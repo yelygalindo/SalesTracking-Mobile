@@ -190,6 +190,7 @@ class _QueueEntryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isWorkdayStart = entry.type == SyncQueueEntryType.workdayStart;
     final isCustomer = entry.type == SyncQueueEntryType.customerCreate;
+    final isAttachment = entry.type == SyncQueueEntryType.projectPhoto;
     final isVisit = switch (entry.type) {
       SyncQueueEntryType.customerVisitCheckIn ||
       SyncQueueEntryType.customerVisitCheckOut ||
@@ -209,6 +210,7 @@ class _QueueEntryCard extends StatelessWidget {
           SyncQueueEntryType.customerVisitCheckOut => 'Check-out en cliente',
           SyncQueueEntryType.projectVisitCheckIn => 'Check-in en obra',
           SyncQueueEntryType.projectVisitCheckOut => 'Check-out en obra',
+          SyncQueueEntryType.projectPhoto => 'Fotografía de obra',
         }, style: const TextStyle(fontWeight: FontWeight.w900)),
         const SizedBox(height: 4),
         Text(
@@ -224,6 +226,8 @@ class _QueueEntryCard extends StatelessWidget {
                     ? 'Creación protegida contra duplicados'
                     : isVisit
                     ? 'Registro de visita listo para enviar'
+                    : isAttachment
+                    ? 'Archivo protegido en el dispositivo'
                     : 'Identificador de reintento listo'
               : isVisit
               ? 'Se enviará después del check-in'
@@ -248,6 +252,8 @@ class _QueueEntryCard extends StatelessWidget {
                     ? Icons.person_add_alt_1
                     : isVisit
                     ? _visitIcon(entry.type)
+                    : isAttachment
+                    ? Icons.photo_camera_outlined
                     : isWorkdayStart
                     ? Icons.login
                     : Icons.logout,

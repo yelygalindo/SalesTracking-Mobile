@@ -70,6 +70,17 @@ class _VisitActionCardState extends State<VisitActionCard> {
     if (changed == true) await _load();
   }
 
+  Future<void> _addPhotos(CurrentVisit visit) async {
+    final changed = await context.push<bool>(
+      AppRoutes.projectAttachments(widget.targetExternalId, visit.externalId),
+    );
+    if (changed == true && mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Fotografías guardadas.')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (widget.targetExternalId.startsWith('local:')) {
@@ -108,6 +119,14 @@ class _VisitActionCardState extends State<VisitActionCard> {
               const SizedBox(height: 4),
               Text('Iniciada a las ${_time(current!.checkInAtUtc)}'),
               const SizedBox(height: 12),
+              if (widget.targetType == VisitTargetType.project) ...[
+                OutlinedButton.icon(
+                  onPressed: () => _addPhotos(current),
+                  icon: const Icon(Icons.photo_camera_outlined),
+                  label: const Text('Agregar fotos'),
+                ),
+                const SizedBox(height: 8),
+              ],
               FilledButton.icon(
                 onPressed: _finish,
                 icon: const Icon(Icons.stop_circle_outlined),

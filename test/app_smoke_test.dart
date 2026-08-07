@@ -21,6 +21,7 @@ void main() {
         customerRepository: EmptyCustomerRepository(),
         projectRepository: EmptyProjectRepository(),
         visitRepository: EmptyVisitRepository(),
+        attachmentRepository: EmptyAttachmentRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -44,6 +45,7 @@ void main() {
         customerRepository: EmptyCustomerRepository(),
         projectRepository: EmptyProjectRepository(),
         visitRepository: EmptyVisitRepository(),
+        attachmentRepository: EmptyAttachmentRepository(),
       ),
     );
     await tester.pumpAndSettle();

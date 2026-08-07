@@ -5,6 +5,7 @@ import '../data/repositories/auth_repository.dart';
 import '../data/repositories/customer_repository.dart';
 import '../data/repositories/project_repository.dart';
 import '../data/repositories/visit_repository.dart';
+import '../data/repositories/project_attachment_repository.dart';
 import '../data/models/visit/visit_target_type.dart';
 import '../data/services/location_service.dart';
 import '../ui/auth/auth_view_model.dart';
@@ -25,6 +26,7 @@ import '../ui/workday/close_workday_screen.dart';
 import '../ui/workday/workday_view_model.dart';
 import '../ui/visits/visit_check_in_screen.dart';
 import '../ui/visits/visit_check_out_screen.dart';
+import '../ui/attachments/project_attachment_screen.dart';
 
 abstract final class AppRoutes {
   static const splash = '/splash';
@@ -39,6 +41,14 @@ abstract final class AppRoutes {
   static const projects = '/projects';
   static const newProject = '/projects/new';
   static const visitCheckOut = '/visits/check-out';
+
+  static String projectAttachments(
+    String projectExternalId,
+    String visitExternalId,
+  ) => Uri(
+    path: '/projects/${Uri.encodeComponent(projectExternalId)}/attachments/new',
+    queryParameters: {'visitId': visitExternalId},
+  ).toString();
 
   static String customerDetail(String externalId) =>
       '/customers/${Uri.encodeComponent(externalId)}';
@@ -75,6 +85,7 @@ abstract final class AppRouter {
     required CustomerRepository customerRepository,
     required ProjectRepository projectRepository,
     required VisitRepository visitRepository,
+    required ProjectAttachmentRepository attachmentRepository,
     required LocationService locationService,
     String initialLocation = AppRoutes.splash,
   }) {
@@ -181,6 +192,14 @@ abstract final class AppRouter {
             projectRepository: projectRepository,
             customerRepository: customerRepository,
             locationService: locationService,
+          ),
+        ),
+        GoRoute(
+          path: '/projects/:externalId/attachments/new',
+          builder: (context, state) => ProjectAttachmentScreen(
+            repository: attachmentRepository,
+            projectExternalId: state.pathParameters['externalId']!,
+            visitExternalId: state.uri.queryParameters['visitId'] ?? '',
           ),
         ),
         GoRoute(

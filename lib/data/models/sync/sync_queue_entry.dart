@@ -6,6 +6,7 @@ enum SyncQueueEntryType {
   customerVisitCheckOut,
   projectVisitCheckIn,
   projectVisitCheckOut,
+  projectPhoto,
 }
 
 class SyncQueueEntry {

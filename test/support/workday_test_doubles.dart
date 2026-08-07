@@ -8,6 +8,10 @@ import 'package:urbantrack/data/models/project/project_input.dart';
 import 'package:urbantrack/data/models/project/project_page.dart';
 import 'package:urbantrack/data/models/visit/current_visit.dart';
 import 'package:urbantrack/data/models/visit/visit_target_type.dart';
+import 'package:urbantrack/data/models/attachment/attachment_save_result.dart';
+import 'package:urbantrack/data/models/attachment/attachment_source_file.dart';
+import 'package:urbantrack/data/models/attachment/attachment_upload_options.dart';
+import 'package:urbantrack/data/models/attachment/project_attachment.dart';
 import 'package:urbantrack/data/models/common/resource_creation_result.dart';
 import 'package:urbantrack/data/models/sync/sync_queue_entry.dart';
 import 'package:urbantrack/data/models/workday/current_workday_response.dart';
@@ -17,6 +21,7 @@ import 'package:urbantrack/data/repositories/sync_repository.dart';
 import 'package:urbantrack/data/repositories/customer_repository.dart';
 import 'package:urbantrack/data/repositories/project_repository.dart';
 import 'package:urbantrack/data/repositories/visit_repository.dart';
+import 'package:urbantrack/data/repositories/project_attachment_repository.dart';
 import 'package:urbantrack/data/services/location_service.dart';
 import 'package:urbantrack/data/services/network_status_service.dart';
 
@@ -201,6 +206,37 @@ class EmptyVisitRepository implements VisitRepository {
   }) {
     throw UnimplementedError();
   }
+
+  @override
+  Future<int> pendingCount() async => 0;
+
+  @override
+  Future<void> syncPending() async {}
+}
+
+class EmptyAttachmentRepository implements ProjectAttachmentRepository {
+  @override
+  Future<AttachmentUploadOptions> getOptions() async =>
+      const AttachmentUploadOptions(
+        maxFileSizeBytes: 0,
+        attachmentTypes: [],
+        acceptedFormats: [],
+      );
+
+  @override
+  Future<List<ProjectAttachment>> getAttachments(
+    String projectExternalId,
+  ) async => const [];
+
+  @override
+  Future<AttachmentSaveResult> saveAttachments({
+    required String projectExternalId,
+    required List<AttachmentSourceFile> sources,
+    required String attachmentType,
+    String? visitExternalId,
+    String? caption,
+    bool isCover = false,
+  }) async => AttachmentSaveResult(savedCount: sources.length, pendingCount: 0);
 
   @override
   Future<int> pendingCount() async => 0;

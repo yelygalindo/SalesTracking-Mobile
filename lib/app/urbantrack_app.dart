@@ -9,6 +9,7 @@ import '../data/repositories/customer_repository.dart';
 import '../data/repositories/project_repository.dart';
 import '../data/repositories/sync_repository.dart';
 import '../data/repositories/visit_repository.dart';
+import '../data/repositories/project_attachment_repository.dart';
 import '../data/repositories/workday_repository.dart';
 import '../data/services/connectivity_sync_coordinator.dart';
 import '../data/services/location_service.dart';
@@ -33,6 +34,7 @@ class UrbanTrackApp extends StatelessWidget {
     required this.customerRepository,
     required this.projectRepository,
     required this.visitRepository,
+    required this.attachmentRepository,
     super.key,
   });
 
@@ -46,6 +48,7 @@ class UrbanTrackApp extends StatelessWidget {
   final CustomerRepository customerRepository;
   final ProjectRepository projectRepository;
   final VisitRepository visitRepository;
+  final ProjectAttachmentRepository attachmentRepository;
 
   @override
   Widget build(BuildContext context) {
@@ -58,6 +61,7 @@ class UrbanTrackApp extends StatelessWidget {
       customerRepository: customerRepository,
       projectRepository: projectRepository,
       visitRepository: visitRepository,
+      attachmentRepository: attachmentRepository,
       builder: (router) => BrandScope(
         brand: brand,
         child: MaterialApp.router(
@@ -81,6 +85,7 @@ class _AppHost extends StatefulWidget {
     required this.customerRepository,
     required this.projectRepository,
     required this.visitRepository,
+    required this.attachmentRepository,
     required this.builder,
   });
 
@@ -92,6 +97,7 @@ class _AppHost extends StatefulWidget {
   final CustomerRepository customerRepository;
   final ProjectRepository projectRepository;
   final VisitRepository visitRepository;
+  final ProjectAttachmentRepository attachmentRepository;
   final Widget Function(GoRouter router) builder;
 
   @override
@@ -134,6 +140,7 @@ class _AppHostState extends State<_AppHost> {
       customerRepository: widget.customerRepository,
       projectRepository: widget.projectRepository,
       visitRepository: widget.visitRepository,
+      attachmentRepository: widget.attachmentRepository,
       locationService: widget.locationService,
     );
     _authViewModel.restoreSession();

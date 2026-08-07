@@ -11,16 +11,18 @@ class AppDatabase {
     final root = await getDatabasesPath();
     return openDatabase(
       path.join(root, 'urbantrack.db'),
-      version: 3,
+      version: 4,
       onConfigure: (database) => database.execute('PRAGMA foreign_keys = ON'),
       onCreate: (database, version) async {
         await _createWorkdayTables(database);
         await _createCustomerTables(database);
         await _createVisitTables(database);
+        await _createAttachmentTables(database);
       },
       onUpgrade: (database, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createCustomerTables(database);
         if (oldVersion < 3) await _createVisitTables(database);
+        if (oldVersion < 4) await _createAttachmentTables(database);
       },
     );
   }
@@ -132,6 +134,27 @@ class AppDatabase {
       CREATE TABLE visit_id_map (
         local_visit_id TEXT PRIMARY KEY,
         server_visit_id TEXT NOT NULL
+      )
+    ''');
+  }
+
+  static Future<void> _createAttachmentTables(Database database) async {
+    await database.execute('''
+      CREATE TABLE attachment_sync_operations (
+        sequence INTEGER PRIMARY KEY AUTOINCREMENT,
+        request_id TEXT NOT NULL UNIQUE,
+        project_external_id TEXT NOT NULL,
+        visit_external_id TEXT,
+        file_path TEXT NOT NULL,
+        file_name TEXT NOT NULL,
+        content_type TEXT NOT NULL,
+        size_bytes INTEGER NOT NULL,
+        attachment_type TEXT NOT NULL,
+        caption TEXT,
+        is_cover INTEGER NOT NULL DEFAULT 0,
+        attempt_count INTEGER NOT NULL DEFAULT 0,
+        last_error TEXT,
+        created_at_utc TEXT NOT NULL
       )
     ''');
   }
