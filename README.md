@@ -28,6 +28,14 @@ flutter test
 flutter build apk --release
 ```
 
+Para comprobar que el Swagger aún conserva los endpoints, parámetros y campos consumidos por la aplicación:
+
+```powershell
+dart run tool/verify_openapi_contract.dart
+```
+
+Este chequeo consulta únicamente el documento OpenAPI público; no usa usuarios, contraseñas ni tokens.
+
 En macOS:
 
 ```bash
