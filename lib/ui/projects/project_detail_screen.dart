@@ -111,6 +111,17 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                               icon: const Icon(Icons.edit_outlined),
                               label: const Text('Editar obra'),
                             ),
+                            const SizedBox(height: 10),
+                            OutlinedButton.icon(
+                              onPressed: () => context.push(
+                                AppRoutes.projectVisits(
+                                  project.externalId,
+                                  project.name,
+                                ),
+                              ),
+                              icon: const Icon(Icons.route_outlined),
+                              label: const Text('Ver visitas registradas'),
+                            ),
                             const SizedBox(height: 12),
                             _ProjectMetadata(project: project),
                             if (project.description.isNotEmpty) ...[

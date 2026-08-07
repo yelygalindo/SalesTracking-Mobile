@@ -160,6 +160,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   context.push(AppRoutes.customers),
                               onProjects: () =>
                                   context.push(AppRoutes.projects),
+                              onHistory: () => context.push(AppRoutes.history),
                             ),
                           ],
                         ),
@@ -377,10 +378,15 @@ class _ActiveWorkdayCard extends StatelessWidget {
 }
 
 class _QuickActions extends StatelessWidget {
-  const _QuickActions({required this.onCustomers, required this.onProjects});
+  const _QuickActions({
+    required this.onCustomers,
+    required this.onProjects,
+    required this.onHistory,
+  });
 
   final VoidCallback onCustomers;
   final VoidCallback onProjects;
+  final VoidCallback onHistory;
 
   @override
   Widget build(BuildContext context) {
@@ -397,13 +403,25 @@ class _QuickActions extends StatelessWidget {
         subtitle: 'Ver asignadas',
         onTap: onProjects,
       ),
+      _QuickActionCard(
+        icon: Icons.history,
+        title: 'Historial',
+        subtitle: 'Revisar actividad',
+        onTap: onHistory,
+      ),
     ];
-    return Row(
-      children: [
-        Expanded(child: cards.first),
-        const SizedBox(width: 8),
-        Expanded(child: cards.last),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = constraints.maxWidth >= 700 ? 3 : 2;
+        final width = (constraints.maxWidth - ((columns - 1) * 8)) / columns;
+        return Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: cards
+              .map((card) => SizedBox(width: width, child: card))
+              .toList(growable: false),
+        );
+      },
     );
   }
 }

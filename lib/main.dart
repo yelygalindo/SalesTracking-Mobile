@@ -19,6 +19,7 @@ import 'data/repositories/remote_project_repository.dart';
 import 'data/repositories/remote_workday_repository.dart';
 import 'data/repositories/remote_visit_repository.dart';
 import 'data/repositories/remote_project_attachment_repository.dart';
+import 'data/repositories/remote_history_repository.dart';
 import 'data/repositories/sqflite_customer_local_store.dart';
 import 'data/repositories/sqflite_workday_local_store.dart';
 import 'data/repositories/sqflite_visit_local_store.dart';
@@ -33,6 +34,7 @@ import 'data/services/project_service.dart';
 import 'data/services/workday_service.dart';
 import 'data/services/visit_service.dart';
 import 'data/services/project_attachment_service.dart';
+import 'data/services/history_service.dart';
 import 'data/storage/app_database.dart';
 import 'data/storage/secure_session_storage.dart';
 import 'data/storage/device_attachment_file_store.dart';
@@ -101,6 +103,10 @@ void main() {
     const DeviceAttachmentFileStore(),
     networkStatusService,
   );
+  final historyRepository = RemoteHistoryRepository(
+    HistoryService(Uri.parse(environment.apiBaseUrl), http.Client()),
+    authRepository,
+  );
   final syncRepository = CompositeSyncRepository([
     workdaySyncRepository,
     CustomerSyncRepository(customerLocalStore, customerRepository),
@@ -121,6 +127,7 @@ void main() {
       projectRepository: projectRepository,
       visitRepository: visitRepository,
       attachmentRepository: attachmentRepository,
+      historyRepository: historyRepository,
     ),
   );
 }

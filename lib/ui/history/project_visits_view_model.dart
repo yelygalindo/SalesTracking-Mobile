@@ -1,0 +1,39 @@
+import 'package:flutter/foundation.dart';
+
+import '../../data/models/history/project_visit.dart';
+import '../../data/repositories/history_repository.dart';
+import '../../data/services/api_exception.dart';
+
+enum ProjectVisitsStatus { initial, loading, loaded, failed }
+
+class ProjectVisitsViewModel extends ChangeNotifier {
+  ProjectVisitsViewModel(this._repository, this._projectExternalId);
+
+  final HistoryRepository _repository;
+  final String _projectExternalId;
+
+  ProjectVisitsStatus _status = ProjectVisitsStatus.initial;
+  List<ProjectVisit> _visits = const [];
+  String? _errorMessage;
+
+  ProjectVisitsStatus get status => _status;
+  List<ProjectVisit> get visits => _visits;
+  String? get errorMessage => _errorMessage;
+
+  Future<void> load() async {
+    _status = ProjectVisitsStatus.loading;
+    _errorMessage = null;
+    notifyListeners();
+    try {
+      _visits = await _repository.getProjectVisits(_projectExternalId);
+      _status = ProjectVisitsStatus.loaded;
+    } on ApiException catch (error) {
+      _errorMessage = error.message;
+      _status = ProjectVisitsStatus.failed;
+    } catch (_) {
+      _errorMessage = 'No pudimos cargar las visitas de esta obra.';
+      _status = ProjectVisitsStatus.failed;
+    }
+    notifyListeners();
+  }
+}

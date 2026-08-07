@@ -22,6 +22,9 @@ import 'package:urbantrack/data/repositories/customer_repository.dart';
 import 'package:urbantrack/data/repositories/project_repository.dart';
 import 'package:urbantrack/data/repositories/visit_repository.dart';
 import 'package:urbantrack/data/repositories/project_attachment_repository.dart';
+import 'package:urbantrack/data/repositories/history_repository.dart';
+import 'package:urbantrack/data/models/history/project_visit.dart';
+import 'package:urbantrack/data/models/history/seller_timeline_page.dart';
 import 'package:urbantrack/data/services/location_service.dart';
 import 'package:urbantrack/data/services/network_status_service.dart';
 
@@ -243,4 +246,28 @@ class EmptyAttachmentRepository implements ProjectAttachmentRepository {
 
   @override
   Future<void> syncPending() async {}
+}
+
+class EmptyHistoryRepository implements HistoryRepository {
+  @override
+  Future<SellerTimelinePage> getMyTimeline({
+    DateTime? from,
+    DateTime? to,
+    int page = 1,
+    int pageSize = 30,
+  }) async => SellerTimelinePage(
+    items: const [],
+    page: page,
+    pageSize: pageSize,
+    totalItems: 0,
+    totalPages: 0,
+  );
+
+  @override
+  Future<List<ProjectVisit>> getProjectVisits(
+    String projectExternalId, {
+    String? sellerExternalId,
+    DateTime? from,
+    DateTime? to,
+  }) async => const [];
 }

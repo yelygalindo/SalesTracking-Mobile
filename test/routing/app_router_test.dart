@@ -34,6 +34,7 @@ void main() {
       projectRepository: EmptyProjectRepository(),
       visitRepository: EmptyVisitRepository(),
       attachmentRepository: EmptyAttachmentRepository(),
+      historyRepository: EmptyHistoryRepository(),
       locationService: FixedLocationService(),
       initialLocation: '${AppRoutes.resetPassword}?token=route-token',
     );
