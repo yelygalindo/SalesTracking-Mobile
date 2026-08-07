@@ -18,6 +18,7 @@ void main() {
         locationService: FixedLocationService(),
         networkStatusService: DisconnectedNetworkStatusService(),
         syncRepository: EmptySyncRepository(),
+        customerRepository: EmptyCustomerRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -38,6 +39,7 @@ void main() {
         locationService: FixedLocationService(),
         networkStatusService: DisconnectedNetworkStatusService(),
         syncRepository: EmptySyncRepository(),
+        customerRepository: EmptyCustomerRepository(),
       ),
     );
     await tester.pumpAndSettle();

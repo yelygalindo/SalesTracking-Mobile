@@ -1,9 +1,12 @@
 import 'package:urbantrack/data/models/common/location_sample.dart';
+import 'package:urbantrack/data/models/customer/customer_page.dart';
+import 'package:urbantrack/data/models/customer/customer_status.dart';
 import 'package:urbantrack/data/models/sync/sync_queue_entry.dart';
 import 'package:urbantrack/data/models/workday/current_workday_response.dart';
 import 'package:urbantrack/data/models/workday/workday.dart';
 import 'package:urbantrack/data/repositories/workday_repository.dart';
 import 'package:urbantrack/data/repositories/sync_repository.dart';
+import 'package:urbantrack/data/repositories/customer_repository.dart';
 import 'package:urbantrack/data/services/location_service.dart';
 import 'package:urbantrack/data/services/network_status_service.dart';
 
@@ -62,4 +65,24 @@ class EmptySyncRepository implements SyncRepository {
 
   @override
   Future<void> synchronize() async {}
+}
+
+class EmptyCustomerRepository implements CustomerRepository {
+  @override
+  Future<CustomerPage> getCustomers({
+    String? status,
+    String? externalUserId,
+    String? search,
+    int page = 1,
+    int pageSize = 20,
+  }) async => CustomerPage(
+    customers: const [],
+    page: page,
+    pageSize: pageSize,
+    totalItems: 0,
+    totalPages: 0,
+  );
+
+  @override
+  Future<List<CustomerStatus>> getStatuses() async => const [];
 }

@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../data/repositories/auth_repository.dart';
+import '../data/repositories/customer_repository.dart';
 import '../ui/auth/auth_view_model.dart';
 import '../ui/auth/forgot_password/forgot_password_screen.dart';
 import '../ui/auth/login/login_screen.dart';
 import '../ui/auth/reset_password/reset_password_screen.dart';
 import '../ui/auth/session_loading_screen.dart';
 import '../ui/home/home_screen.dart';
+import '../ui/customers/customer_list_screen.dart';
 import '../ui/sync/sync_screen.dart';
 import '../ui/sync/sync_view_model.dart';
 import '../ui/workday/close_workday_screen.dart';
@@ -21,6 +23,7 @@ abstract final class AppRoutes {
   static const home = '/home';
   static const closeWorkday = '/workday/close';
   static const sync = '/sync';
+  static const customers = '/customers';
 }
 
 abstract final class AppRouter {
@@ -29,6 +32,7 @@ abstract final class AppRouter {
     required AuthRepository authRepository,
     required WorkdayViewModel workdayViewModel,
     required SyncViewModel syncViewModel,
+    required CustomerRepository customerRepository,
     String initialLocation = AppRoutes.splash,
   }) {
     return GoRouter(
@@ -96,6 +100,11 @@ abstract final class AppRouter {
         GoRoute(
           path: AppRoutes.sync,
           builder: (context, state) => SyncScreen(viewModel: syncViewModel),
+        ),
+        GoRoute(
+          path: AppRoutes.customers,
+          builder: (context, state) =>
+              CustomerListScreen(repository: customerRepository),
         ),
       ],
       errorBuilder: (context, state) => Scaffold(

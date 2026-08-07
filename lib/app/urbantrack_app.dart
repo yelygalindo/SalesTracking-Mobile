@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../config/app_environment.dart';
 import '../data/repositories/auth_repository.dart';
+import '../data/repositories/customer_repository.dart';
 import '../data/repositories/sync_repository.dart';
 import '../data/repositories/workday_repository.dart';
 import '../data/services/connectivity_sync_coordinator.dart';
@@ -27,6 +28,7 @@ class UrbanTrackApp extends StatelessWidget {
     required this.locationService,
     required this.networkStatusService,
     required this.syncRepository,
+    required this.customerRepository,
     super.key,
   });
 
@@ -37,6 +39,7 @@ class UrbanTrackApp extends StatelessWidget {
   final LocationService locationService;
   final NetworkStatusService networkStatusService;
   final SyncRepository syncRepository;
+  final CustomerRepository customerRepository;
 
   @override
   Widget build(BuildContext context) {
@@ -46,6 +49,7 @@ class UrbanTrackApp extends StatelessWidget {
       locationService: locationService,
       networkStatusService: networkStatusService,
       syncRepository: syncRepository,
+      customerRepository: customerRepository,
       builder: (router) => BrandScope(
         brand: brand,
         child: MaterialApp.router(
@@ -66,6 +70,7 @@ class _AppHost extends StatefulWidget {
     required this.locationService,
     required this.networkStatusService,
     required this.syncRepository,
+    required this.customerRepository,
     required this.builder,
   });
 
@@ -74,6 +79,7 @@ class _AppHost extends StatefulWidget {
   final LocationService locationService;
   final NetworkStatusService networkStatusService;
   final SyncRepository syncRepository;
+  final CustomerRepository customerRepository;
   final Widget Function(GoRouter router) builder;
 
   @override
@@ -113,6 +119,7 @@ class _AppHostState extends State<_AppHost> {
       authRepository: widget.authRepository,
       workdayViewModel: _workdayViewModel,
       syncViewModel: _syncViewModel,
+      customerRepository: widget.customerRepository,
     );
     _authViewModel.restoreSession();
   }

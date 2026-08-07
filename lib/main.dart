@@ -9,9 +9,11 @@ import 'config/app_environment.dart';
 import 'data/repositories/remote_auth_repository.dart';
 import 'data/repositories/offline_first_workday_repository.dart';
 import 'data/repositories/remote_workday_repository.dart';
+import 'data/repositories/remote_customer_repository.dart';
 import 'data/repositories/sqflite_workday_local_store.dart';
 import 'data/repositories/workday_sync_repository.dart';
 import 'data/services/connectivity_network_status_service.dart';
+import 'data/services/customer_service.dart';
 import 'data/services/geolocator_location_service.dart';
 import 'data/services/auth_service.dart';
 import 'data/services/workday_service.dart';
@@ -43,6 +45,10 @@ void main() {
     workdayLocalStore,
     workdayRepository,
   );
+  final customerRepository = RemoteCustomerRepository(
+    CustomerService(Uri.parse(environment.apiBaseUrl), http.Client()),
+    authRepository,
+  );
 
   runApp(
     UrbanTrackApp(
@@ -53,6 +59,7 @@ void main() {
       locationService: const GeolocatorLocationService(),
       networkStatusService: networkStatusService,
       syncRepository: syncRepository,
+      customerRepository: customerRepository,
     ),
   );
 }

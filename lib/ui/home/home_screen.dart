@@ -155,7 +155,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ?.copyWith(fontWeight: FontWeight.w900),
                             ),
                             const SizedBox(height: 12),
-                            const _QuickActions(),
+                            _QuickActions(
+                              onCustomers: () =>
+                                  context.push(AppRoutes.customers),
+                            ),
                           ],
                         ),
                       ),
@@ -372,15 +375,18 @@ class _ActiveWorkdayCard extends StatelessWidget {
 }
 
 class _QuickActions extends StatelessWidget {
-  const _QuickActions();
+  const _QuickActions({required this.onCustomers});
+
+  final VoidCallback onCustomers;
 
   @override
   Widget build(BuildContext context) {
     final cards = [
-      const _QuickActionCard(
+      _QuickActionCard(
         icon: Icons.people_outline,
         title: 'Clientes',
         subtitle: 'Consultar o registrar',
+        onTap: onCustomers,
       ),
       const _QuickActionCard(
         icon: Icons.apartment_outlined,
@@ -403,30 +409,36 @@ class _QuickActionCard extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.subtitle,
+    this.onTap,
   });
 
   final IconData icon;
   final String title;
   final String subtitle;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 4),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon),
-            const SizedBox(height: 13),
-            Text(title, style: const TextStyle(fontWeight: FontWeight.w900)),
-            const SizedBox(height: 4),
-            Text(
-              subtitle,
-              style: const TextStyle(color: Color(0xFF6F788A), fontSize: 12),
-            ),
-          ],
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(icon),
+              const SizedBox(height: 13),
+              Text(title, style: const TextStyle(fontWeight: FontWeight.w900)),
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                style: const TextStyle(color: Color(0xFF6F788A), fontSize: 12),
+              ),
+            ],
+          ),
         ),
       ),
     );
