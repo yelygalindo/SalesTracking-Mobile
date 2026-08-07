@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../routing/app_router.dart';
 import '../auth/auth_view_model.dart';
 import '../core/branding/brand_scope.dart';
+import '../core/navigation/app_primary_navigation_bar.dart';
 import '../workday/workday_view_model.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -35,6 +36,9 @@ class _HomeScreenState extends State<HomeScreen> {
     final user = widget.authViewModel.session!.user;
 
     return Scaffold(
+      bottomNavigationBar: const AppPrimaryNavigationBar(
+        selected: AppPrimaryDestination.home,
+      ),
       appBar: AppBar(
         title: Row(
           mainAxisSize: MainAxisSize.min,

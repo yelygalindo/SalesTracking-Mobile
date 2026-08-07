@@ -5,6 +5,7 @@ import '../../data/models/history/seller_timeline_item.dart';
 import '../../data/repositories/history_repository.dart';
 import '../../routing/app_router.dart';
 import '../core/branding/brand_scope.dart';
+import '../core/navigation/app_primary_navigation_bar.dart';
 import 'history_view_model.dart';
 
 class HistoryScreen extends StatefulWidget {
@@ -57,32 +58,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: 3,
-        onDestinationSelected: (index) {
-          final route = switch (index) {
-            0 => AppRoutes.home,
-            1 => AppRoutes.customers,
-            2 => AppRoutes.projects,
-            _ => AppRoutes.history,
-          };
-          if (route != AppRoutes.history) context.go(route);
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            label: 'Inicio',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.people_outline),
-            label: 'Clientes',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.apartment_outlined),
-            label: 'Obras',
-          ),
-          NavigationDestination(icon: Icon(Icons.history), label: 'Historial'),
-        ],
+      bottomNavigationBar: const AppPrimaryNavigationBar(
+        selected: AppPrimaryDestination.history,
       ),
       body: ListenableBuilder(
         listenable: _viewModel,

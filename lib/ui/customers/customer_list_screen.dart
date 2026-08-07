@@ -5,6 +5,7 @@ import '../../data/models/customer/customer_summary.dart';
 import '../../data/repositories/customer_repository.dart';
 import '../../routing/app_router.dart';
 import '../core/branding/brand_scope.dart';
+import '../core/navigation/app_primary_navigation_bar.dart';
 import 'customer_list_view_model.dart';
 
 class CustomerListScreen extends StatefulWidget {
@@ -39,6 +40,9 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      bottomNavigationBar: const AppPrimaryNavigationBar(
+        selected: AppPrimaryDestination.customers,
+      ),
       appBar: AppBar(
         title: const Text('Clientes'),
         actions: [

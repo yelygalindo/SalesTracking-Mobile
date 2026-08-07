@@ -6,6 +6,7 @@ import '../../data/repositories/customer_repository.dart';
 import '../../data/repositories/project_repository.dart';
 import '../../routing/app_router.dart';
 import '../core/branding/brand_scope.dart';
+import '../core/navigation/app_primary_navigation_bar.dart';
 import 'project_list_view_model.dart';
 
 class ProjectListScreen extends StatefulWidget {
@@ -48,6 +49,9 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      bottomNavigationBar: const AppPrimaryNavigationBar(
+        selected: AppPrimaryDestination.projects,
+      ),
       appBar: AppBar(
         title: const Text('Obras'),
         actions: [
