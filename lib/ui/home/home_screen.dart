@@ -123,6 +123,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                 onRetry: viewModel.loadCurrent,
                               ),
                             ],
+                            if (viewModel.hasPendingSync) ...[
+                              const SizedBox(height: 16),
+                              _SyncBanner(count: viewModel.pendingCount),
+                            ],
                             const SizedBox(height: 20),
                             if (viewModel.status == WorkdayStatus.loading)
                               const Card(
@@ -173,6 +177,7 @@ class _ClosedWorkdayCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final brand = BrandScope.of(context);
     final starting = viewModel.status == WorkdayStatus.starting;
+    final pending = viewModel.hasPendingSync;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -213,7 +218,7 @@ class _ClosedWorkdayCard extends StatelessWidget {
               style: FilledButton.styleFrom(
                 backgroundColor: brand.primaryColor,
               ),
-              onPressed: starting ? null : viewModel.startWorkday,
+              onPressed: starting || pending ? null : viewModel.startWorkday,
               icon: starting
                   ? const SizedBox.square(
                       dimension: 18,
@@ -224,11 +229,51 @@ class _ClosedWorkdayCard extends StatelessWidget {
                     )
                   : const Icon(Icons.play_arrow),
               label: Text(
-                starting ? 'Obteniendo ubicación…' : 'Iniciar jornada',
+                starting
+                    ? 'Obteniendo ubicación…'
+                    : pending
+                    ? 'Sincronización pendiente'
+                    : 'Iniciar jornada',
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _SyncBanner extends StatelessWidget {
+  const _SyncBanner({required this.count});
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    final noun = count == 1 ? 'operación guardada' : 'operaciones guardadas';
+    final verb = count == 1 ? 'enviará' : 'enviarán';
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF7E6),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFF0CF8C)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.cloud_upload_outlined, color: Color(0xFF8A5B00)),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              '$count $noun. Se $verb automáticamente al recuperar conexión.',
+              style: const TextStyle(
+                color: Color(0xFF6B4800),
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -16,6 +16,7 @@ void main() {
         authRepository: _SignedOutAuthRepository(),
         workdayRepository: InactiveWorkdayRepository(),
         locationService: FixedLocationService(),
+        networkStatusService: DisconnectedNetworkStatusService(),
       ),
     );
     await tester.pumpAndSettle();
@@ -34,6 +35,7 @@ void main() {
         authRepository: _SignedOutAuthRepository(),
         workdayRepository: InactiveWorkdayRepository(),
         locationService: FixedLocationService(),
+        networkStatusService: DisconnectedNetworkStatusService(),
       ),
     );
     await tester.pumpAndSettle();

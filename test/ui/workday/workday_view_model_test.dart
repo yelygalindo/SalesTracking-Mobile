@@ -73,6 +73,12 @@ class _RecordingWorkdayRepository implements WorkdayRepository {
   String? closeRequestId;
 
   @override
+  Future<void> syncPending() async {}
+
+  @override
+  Future<int> pendingCount() async => 0;
+
+  @override
   Future<CurrentWorkdayResponse> getCurrent() async =>
       const CurrentWorkdayResponse(hasOpenWorkday: false, workday: null);
 

@@ -27,11 +27,14 @@ class WorkdayViewModel extends ChangeNotifier {
   Workday? _workday;
   LocationSample? _closeLocation;
   String? _errorMessage;
+  int _pendingCount = 0;
 
   WorkdayStatus get status => _status;
   Workday? get workday => _workday;
   LocationSample? get closeLocation => _closeLocation;
   String? get errorMessage => _errorMessage;
+  int get pendingCount => _pendingCount;
+  bool get hasPendingSync => _pendingCount > 0;
   bool get hasOpenWorkday => _workday?.isOpen == true;
   bool get isBusy =>
       _status == WorkdayStatus.loading ||
@@ -55,6 +58,7 @@ class WorkdayViewModel extends ChangeNotifier {
       _errorMessage = 'No pudimos consultar la jornada actual.';
     }
 
+    await _refreshPendingCount();
     _status = WorkdayStatus.ready;
     notifyListeners();
   }
@@ -72,6 +76,7 @@ class WorkdayViewModel extends ChangeNotifier {
         clientRequestId: _requestId(),
         note: note,
       );
+      await _refreshPendingCount();
       _status = WorkdayStatus.ready;
       notifyListeners();
       return true;
@@ -83,6 +88,7 @@ class WorkdayViewModel extends ChangeNotifier {
       _errorMessage = 'No pudimos iniciar la jornada.';
     }
 
+    await _refreshPendingCount();
     _status = WorkdayStatus.ready;
     notifyListeners();
     return false;
@@ -135,6 +141,7 @@ class WorkdayViewModel extends ChangeNotifier {
         clientRequestId: _requestId(),
       );
       _closeLocation = null;
+      await _refreshPendingCount();
       _status = WorkdayStatus.ready;
       notifyListeners();
       return true;
@@ -144,8 +151,17 @@ class WorkdayViewModel extends ChangeNotifier {
       _errorMessage = 'No pudimos cerrar la jornada.';
     }
 
+    await _refreshPendingCount();
     _status = WorkdayStatus.ready;
     notifyListeners();
     return false;
+  }
+
+  Future<void> _refreshPendingCount() async {
+    try {
+      _pendingCount = await _repository.pendingCount();
+    } catch (_) {
+      // A pending-count failure must not block a workday operation.
+    }
   }
 }

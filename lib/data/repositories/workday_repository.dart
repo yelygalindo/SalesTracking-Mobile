@@ -3,6 +3,10 @@ import '../models/workday/current_workday_response.dart';
 import '../models/workday/workday.dart';
 
 abstract interface class WorkdayRepository {
+  Future<void> syncPending();
+
+  Future<int> pendingCount();
+
   Future<CurrentWorkdayResponse> getCurrent();
 
   Future<Workday> start({

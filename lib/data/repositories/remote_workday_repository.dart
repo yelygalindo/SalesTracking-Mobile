@@ -16,6 +16,12 @@ class RemoteWorkdayRepository implements WorkdayRepository {
   final AuthRepository _authRepository;
 
   @override
+  Future<void> syncPending() async {}
+
+  @override
+  Future<int> pendingCount() async => 0;
+
+  @override
   Future<CurrentWorkdayResponse> getCurrent() async {
     final session = await _session();
     return _service.getCurrent(session.accessToken);

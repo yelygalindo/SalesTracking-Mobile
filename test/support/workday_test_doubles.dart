@@ -3,8 +3,15 @@ import 'package:urbantrack/data/models/workday/current_workday_response.dart';
 import 'package:urbantrack/data/models/workday/workday.dart';
 import 'package:urbantrack/data/repositories/workday_repository.dart';
 import 'package:urbantrack/data/services/location_service.dart';
+import 'package:urbantrack/data/services/network_status_service.dart';
 
 class InactiveWorkdayRepository implements WorkdayRepository {
+  @override
+  Future<void> syncPending() async {}
+
+  @override
+  Future<int> pendingCount() async => 0;
+
   @override
   Future<CurrentWorkdayResponse> getCurrent() async =>
       const CurrentWorkdayResponse(hasOpenWorkday: false, workday: null);
@@ -37,4 +44,12 @@ class FixedLocationService implements LocationService {
     longitude: -77.0428,
     accuracyMeters: 8,
   );
+}
+
+class DisconnectedNetworkStatusService implements NetworkStatusService {
+  @override
+  Future<bool> get isConnected async => false;
+
+  @override
+  Stream<bool> get changes => const Stream.empty();
 }

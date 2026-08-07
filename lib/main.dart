@@ -7,7 +7,10 @@ import 'package:http/http.dart' as http;
 import 'app/urbantrack_app.dart';
 import 'config/app_environment.dart';
 import 'data/repositories/remote_auth_repository.dart';
+import 'data/repositories/offline_first_workday_repository.dart';
 import 'data/repositories/remote_workday_repository.dart';
+import 'data/repositories/sqflite_workday_local_store.dart';
+import 'data/services/connectivity_network_status_service.dart';
 import 'data/services/geolocator_location_service.dart';
 import 'data/services/auth_service.dart';
 import 'data/services/workday_service.dart';
@@ -24,9 +27,15 @@ void main() {
     SecureSessionStorage(const FlutterSecureStorage()),
     Platform.isIOS ? 'ios' : 'android',
   );
-  final workdayRepository = RemoteWorkdayRepository(
+  final networkStatusService = ConnectivityNetworkStatusService();
+  final remoteWorkdayRepository = RemoteWorkdayRepository(
     WorkdayService(Uri.parse(environment.apiBaseUrl), http.Client()),
     authRepository,
+  );
+  final workdayRepository = OfflineFirstWorkdayRepository(
+    remoteWorkdayRepository,
+    SqfliteWorkdayLocalStore(),
+    networkStatusService,
   );
 
   runApp(
@@ -36,6 +45,7 @@ void main() {
       authRepository: authRepository,
       workdayRepository: workdayRepository,
       locationService: const GeolocatorLocationService(),
+      networkStatusService: networkStatusService,
     ),
   );
 }
