@@ -10,12 +10,16 @@ import 'data/repositories/composite_sync_repository.dart';
 import 'data/repositories/customer_sync_repository.dart';
 import 'data/repositories/offline_first_customer_repository.dart';
 import 'data/repositories/offline_first_workday_repository.dart';
+import 'data/repositories/offline_first_visit_repository.dart';
 import 'data/repositories/remote_auth_repository.dart';
 import 'data/repositories/remote_customer_repository.dart';
 import 'data/repositories/remote_project_repository.dart';
 import 'data/repositories/remote_workday_repository.dart';
+import 'data/repositories/remote_visit_repository.dart';
 import 'data/repositories/sqflite_customer_local_store.dart';
 import 'data/repositories/sqflite_workday_local_store.dart';
+import 'data/repositories/sqflite_visit_local_store.dart';
+import 'data/repositories/visit_sync_repository.dart';
 import 'data/repositories/workday_sync_repository.dart';
 import 'data/services/auth_service.dart';
 import 'data/services/connectivity_network_status_service.dart';
@@ -23,6 +27,7 @@ import 'data/services/customer_service.dart';
 import 'data/services/geolocator_location_service.dart';
 import 'data/services/project_service.dart';
 import 'data/services/workday_service.dart';
+import 'data/services/visit_service.dart';
 import 'data/storage/app_database.dart';
 import 'data/storage/secure_session_storage.dart';
 import 'ui/core/branding/urbantrack_brand.dart';
@@ -63,14 +68,24 @@ void main() {
     customerLocalStore,
     networkStatusService,
   );
-  final syncRepository = CompositeSyncRepository([
-    workdaySyncRepository,
-    CustomerSyncRepository(customerLocalStore, customerRepository),
-  ]);
   final projectRepository = RemoteProjectRepository(
     ProjectService(Uri.parse(environment.apiBaseUrl), http.Client()),
     authRepository,
   );
+  final visitLocalStore = SqfliteVisitLocalStore(appDatabase);
+  final visitRepository = OfflineFirstVisitRepository(
+    RemoteVisitRepository(
+      VisitService(Uri.parse(environment.apiBaseUrl), http.Client()),
+      authRepository,
+    ),
+    visitLocalStore,
+    networkStatusService,
+  );
+  final syncRepository = CompositeSyncRepository([
+    workdaySyncRepository,
+    CustomerSyncRepository(customerLocalStore, customerRepository),
+    VisitSyncRepository(visitLocalStore, visitRepository),
+  ]);
 
   runApp(
     UrbanTrackApp(
@@ -83,6 +98,7 @@ void main() {
       syncRepository: syncRepository,
       customerRepository: customerRepository,
       projectRepository: projectRepository,
+      visitRepository: visitRepository,
     ),
   );
 }

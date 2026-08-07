@@ -6,6 +6,8 @@ import 'package:urbantrack/data/models/customer/customer_status.dart';
 import 'package:urbantrack/data/models/project/project_detail.dart';
 import 'package:urbantrack/data/models/project/project_input.dart';
 import 'package:urbantrack/data/models/project/project_page.dart';
+import 'package:urbantrack/data/models/visit/current_visit.dart';
+import 'package:urbantrack/data/models/visit/visit_target_type.dart';
 import 'package:urbantrack/data/models/common/resource_creation_result.dart';
 import 'package:urbantrack/data/models/sync/sync_queue_entry.dart';
 import 'package:urbantrack/data/models/workday/current_workday_response.dart';
@@ -14,6 +16,7 @@ import 'package:urbantrack/data/repositories/workday_repository.dart';
 import 'package:urbantrack/data/repositories/sync_repository.dart';
 import 'package:urbantrack/data/repositories/customer_repository.dart';
 import 'package:urbantrack/data/repositories/project_repository.dart';
+import 'package:urbantrack/data/repositories/visit_repository.dart';
 import 'package:urbantrack/data/services/location_service.dart';
 import 'package:urbantrack/data/services/network_status_service.dart';
 
@@ -168,4 +171,40 @@ class EmptyProjectRepository implements ProjectRepository {
 
   @override
   Future<void> updateProject(String externalId, ProjectInput input) async {}
+}
+
+class EmptyVisitRepository implements VisitRepository {
+  @override
+  Future<CurrentVisit?> getCurrent() async => null;
+
+  @override
+  Future<CurrentVisit> checkIn({
+    required VisitTargetType targetType,
+    required String targetExternalId,
+    required String targetName,
+    required DateTime checkInAtUtc,
+    required LocationSample location,
+    required String clientRequestId,
+    String? note,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> checkOut({
+    required CurrentVisit visit,
+    required DateTime checkOutAtUtc,
+    required LocationSample location,
+    required String clientRequestId,
+    String? note,
+    String? result,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<int> pendingCount() async => 0;
+
+  @override
+  Future<void> syncPending() async {}
 }

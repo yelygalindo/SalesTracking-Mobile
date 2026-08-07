@@ -3,19 +3,24 @@ import 'package:go_router/go_router.dart';
 
 import '../../data/models/project/project_detail.dart';
 import '../../data/repositories/project_repository.dart';
+import '../../data/repositories/visit_repository.dart';
+import '../../data/models/visit/visit_target_type.dart';
 import '../../routing/app_router.dart';
 import '../core/branding/brand_scope.dart';
 import 'project_detail_view_model.dart';
+import '../visits/visit_action_card.dart';
 
 class ProjectDetailScreen extends StatefulWidget {
   const ProjectDetailScreen({
     required this.repository,
     required this.externalId,
+    required this.visitRepository,
     super.key,
   });
 
   final ProjectRepository repository;
   final String externalId;
+  final VisitRepository visitRepository;
 
   @override
   State<ProjectDetailScreen> createState() => _ProjectDetailScreenState();
@@ -93,6 +98,13 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             _ProjectHero(project: project),
+                            const SizedBox(height: 12),
+                            VisitActionCard(
+                              repository: widget.visitRepository,
+                              targetType: VisitTargetType.project,
+                              targetExternalId: project.externalId,
+                              targetName: project.name,
+                            ),
                             const SizedBox(height: 12),
                             FilledButton.icon(
                               onPressed: _edit,

@@ -190,6 +190,13 @@ class _QueueEntryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isWorkdayStart = entry.type == SyncQueueEntryType.workdayStart;
     final isCustomer = entry.type == SyncQueueEntryType.customerCreate;
+    final isVisit = switch (entry.type) {
+      SyncQueueEntryType.customerVisitCheckIn ||
+      SyncQueueEntryType.customerVisitCheckOut ||
+      SyncQueueEntryType.projectVisitCheckIn ||
+      SyncQueueEntryType.projectVisitCheckOut => true,
+      _ => false,
+    };
     final hasError = entry.lastError?.isNotEmpty == true;
     final details = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -198,6 +205,10 @@ class _QueueEntryCard extends StatelessWidget {
           SyncQueueEntryType.workdayStart => 'Inicio de jornada',
           SyncQueueEntryType.workdayClose => 'Cierre de jornada',
           SyncQueueEntryType.customerCreate => 'Nuevo cliente',
+          SyncQueueEntryType.customerVisitCheckIn => 'Check-in en cliente',
+          SyncQueueEntryType.customerVisitCheckOut => 'Check-out en cliente',
+          SyncQueueEntryType.projectVisitCheckIn => 'Check-in en obra',
+          SyncQueueEntryType.projectVisitCheckOut => 'Check-out en obra',
         }, style: const TextStyle(fontWeight: FontWeight.w900)),
         const SizedBox(height: 4),
         Text(
@@ -211,7 +222,11 @@ class _QueueEntryCard extends StatelessWidget {
               : entry.dependsOnId == null
               ? isCustomer
                     ? 'Creación protegida contra duplicados'
+                    : isVisit
+                    ? 'Registro de visita listo para enviar'
                     : 'Identificador de reintento listo'
+              : isVisit
+              ? 'Se enviará después del check-in'
               : 'Se enviará después del inicio de jornada',
           style: TextStyle(
             color: hasError ? const Color(0xFFA23A32) : const Color(0xFF536174),
@@ -231,6 +246,8 @@ class _QueueEntryCard extends StatelessWidget {
               _QueueIcon(
                 icon: isCustomer
                     ? Icons.person_add_alt_1
+                    : isVisit
+                    ? _visitIcon(entry.type)
                     : isWorkdayStart
                     ? Icons.login
                     : Icons.logout,
@@ -264,6 +281,14 @@ class _QueueEntryCard extends StatelessWidget {
     );
   }
 }
+
+IconData _visitIcon(SyncQueueEntryType type) => switch (type) {
+  SyncQueueEntryType.customerVisitCheckIn ||
+  SyncQueueEntryType.projectVisitCheckIn => Icons.play_circle_outline,
+  SyncQueueEntryType.customerVisitCheckOut ||
+  SyncQueueEntryType.projectVisitCheckOut => Icons.stop_circle_outlined,
+  _ => Icons.sync,
+};
 
 class _QueueIcon extends StatelessWidget {
   const _QueueIcon({required this.icon});

@@ -20,6 +20,7 @@ void main() {
         syncRepository: EmptySyncRepository(),
         customerRepository: EmptyCustomerRepository(),
         projectRepository: EmptyProjectRepository(),
+        visitRepository: EmptyVisitRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -42,6 +43,7 @@ void main() {
         syncRepository: EmptySyncRepository(),
         customerRepository: EmptyCustomerRepository(),
         projectRepository: EmptyProjectRepository(),
+        visitRepository: EmptyVisitRepository(),
       ),
     );
     await tester.pumpAndSettle();

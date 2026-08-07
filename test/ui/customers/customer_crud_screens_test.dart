@@ -16,6 +16,8 @@ import 'package:urbantrack/ui/core/branding/urbantrack_brand.dart';
 import 'package:urbantrack/ui/customers/customer_detail_screen.dart';
 import 'package:urbantrack/ui/customers/customer_form_screen.dart';
 
+import '../../support/workday_test_doubles.dart';
+
 void main() {
   testWidgets('renders detail sections on a narrow screen', (tester) async {
     await tester.binding.setSurfaceSize(const Size(390, 844));
@@ -27,6 +29,7 @@ void main() {
         child: MaterialApp(
           home: CustomerDetailScreen(
             repository: _ScreenCustomerRepository(),
+            visitRepository: EmptyVisitRepository(),
             externalId: 'customer-id',
           ),
         ),

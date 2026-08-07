@@ -5,19 +5,24 @@ import '../../data/models/customer/customer_detail.dart';
 import '../../data/models/customer/customer_note.dart';
 import '../../data/models/customer/customer_reminder.dart';
 import '../../data/repositories/customer_repository.dart';
+import '../../data/repositories/visit_repository.dart';
+import '../../data/models/visit/visit_target_type.dart';
 import '../../routing/app_router.dart';
 import '../core/branding/brand_scope.dart';
 import 'customer_detail_view_model.dart';
+import '../visits/visit_action_card.dart';
 
 class CustomerDetailScreen extends StatefulWidget {
   const CustomerDetailScreen({
     required this.repository,
     required this.externalId,
+    required this.visitRepository,
     super.key,
   });
 
   final CustomerRepository repository;
   final String externalId;
+  final VisitRepository visitRepository;
 
   @override
   State<CustomerDetailScreen> createState() => _CustomerDetailScreenState();
@@ -171,6 +176,13 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                               const SizedBox(height: 12),
                               const _PendingCustomerNotice(),
                             ],
+                            const SizedBox(height: 12),
+                            VisitActionCard(
+                              repository: widget.visitRepository,
+                              targetType: VisitTargetType.customer,
+                              targetExternalId: customer.externalId,
+                              targetName: customer.name,
+                            ),
                             const SizedBox(height: 12),
                             FilledButton.icon(
                               onPressed: pendingSync ? null : _edit,

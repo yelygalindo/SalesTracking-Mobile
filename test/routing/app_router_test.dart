@@ -32,6 +32,7 @@ void main() {
       syncViewModel: syncViewModel,
       customerRepository: EmptyCustomerRepository(),
       projectRepository: EmptyProjectRepository(),
+      visitRepository: EmptyVisitRepository(),
       locationService: FixedLocationService(),
       initialLocation: '${AppRoutes.resetPassword}?token=route-token',
     );

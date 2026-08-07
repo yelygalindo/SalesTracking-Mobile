@@ -53,6 +53,7 @@ void main() {
         child: MaterialApp(
           home: ProjectDetailScreen(
             repository: repository,
+            visitRepository: EmptyVisitRepository(),
             externalId: 'project-1',
           ),
         ),
