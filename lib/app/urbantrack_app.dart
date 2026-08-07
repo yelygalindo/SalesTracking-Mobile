@@ -120,6 +120,7 @@ class _AppHostState extends State<_AppHost> {
       workdayViewModel: _workdayViewModel,
       syncViewModel: _syncViewModel,
       customerRepository: widget.customerRepository,
+      locationService: widget.locationService,
     );
     _authViewModel.restoreSession();
   }

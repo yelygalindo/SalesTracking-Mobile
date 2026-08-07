@@ -31,6 +31,11 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
     super.dispose();
   }
 
+  Future<void> _createCustomer() async {
+    final changed = await context.push<bool>(AppRoutes.newCustomer);
+    if (changed == true) await _viewModel.refresh();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -43,6 +48,11 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
             icon: const Icon(Icons.cloud_sync_outlined),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        tooltip: 'Nuevo cliente',
+        onPressed: _createCustomer,
+        child: const Icon(Icons.add),
       ),
       body: ListenableBuilder(
         listenable: _viewModel,
@@ -210,7 +220,16 @@ class _CustomerResults extends StatelessWidget {
             if (index == viewModel.customers.length) {
               return const Center(child: CircularProgressIndicator());
             }
-            return _CustomerCard(customer: viewModel.customers[index]);
+            final customer = viewModel.customers[index];
+            return _CustomerCard(
+              customer: customer,
+              onTap: () async {
+                final changed = await context.push<bool>(
+                  AppRoutes.customerDetail(customer.externalId),
+                );
+                if (changed == true) await viewModel.refresh();
+              },
+            );
           },
         ),
       ),
@@ -219,81 +238,97 @@ class _CustomerResults extends StatelessWidget {
 }
 
 class _CustomerCard extends StatelessWidget {
-  const _CustomerCard({required this.customer});
+  const _CustomerCard({required this.customer, required this.onTap});
 
   final CustomerSummary customer;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final brand = BrandScope.of(context);
     final contact = customer.phone.isNotEmpty ? customer.phone : customer.email;
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(15),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 43,
-              height: 43,
-              decoration: BoxDecoration(
-                color: brand.inkColor.withValues(alpha: .09),
-                borderRadius: BorderRadius.circular(13),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(15),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 43,
+                height: 43,
+                decoration: BoxDecoration(
+                  color: brand.inkColor.withValues(alpha: .09),
+                  borderRadius: BorderRadius.circular(13),
+                ),
+                child: Icon(Icons.person_outline, color: brand.inkColor),
               ),
-              child: Icon(Icons.person_outline, color: brand.inkColor),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      customer.name.isEmpty
+                          ? 'Cliente sin nombre'
+                          : customer.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      customer.companyName.isEmpty
+                          ? 'Empresa no registrada'
+                          : customer.companyName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(color: Color(0xFF6F788A)),
+                    ),
+                    const Spacer(),
+                    if (contact.isNotEmpty)
+                      Text(
+                        contact,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Color(0xFF536174),
+                          fontSize: 12,
+                        ),
+                      ),
+                    if (customer.seller?.name.isNotEmpty == true)
+                      Text(
+                        'Asignado a ${customer.seller!.name}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Color(0xFF6F788A),
+                          fontSize: 11,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text(
-                    customer.name.isEmpty
-                        ? 'Cliente sin nombre'
-                        : customer.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    customer.companyName.isEmpty
-                        ? 'Empresa no registrada'
-                        : customer.companyName,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: Color(0xFF6F788A)),
-                  ),
+                  _CustomerStatusBadge(status: customer.status),
                   const Spacer(),
-                  if (contact.isNotEmpty)
-                    Text(
-                      contact,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Color(0xFF536174),
-                        fontSize: 12,
-                      ),
-                    ),
-                  if (customer.seller?.name.isNotEmpty == true)
-                    Text(
-                      'Asignado a ${customer.seller!.name}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Color(0xFF6F788A),
-                        fontSize: 11,
-                      ),
-                    ),
+                  const Icon(
+                    Icons.chevron_right,
+                    size: 20,
+                    color: Color(0xFF6F788A),
+                  ),
                 ],
               ),
-            ),
-            const SizedBox(width: 8),
-            _CustomerStatusBadge(status: customer.status),
-          ],
+            ],
+          ),
         ),
       ),
     );

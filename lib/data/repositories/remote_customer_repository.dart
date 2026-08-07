@@ -1,4 +1,7 @@
 import '../models/auth/auth_session.dart';
+import '../models/common/resource_creation_result.dart';
+import '../models/customer/customer_detail.dart';
+import '../models/customer/customer_input.dart';
 import '../models/customer/customer_page.dart';
 import '../models/customer/customer_status.dart';
 import '../services/api_exception.dart';
@@ -35,6 +38,33 @@ class RemoteCustomerRepository implements CustomerRepository {
   Future<List<CustomerStatus>> getStatuses() async {
     final session = await _session();
     return _service.getStatuses(session.accessToken);
+  }
+
+  @override
+  Future<CustomerDetail> getCustomer(String externalId) async {
+    final session = await _session();
+    return _service.getCustomer(session.accessToken, externalId);
+  }
+
+  @override
+  Future<ResourceCreationResult> createCustomer(
+    CustomerInput input,
+    String clientRequestId,
+  ) async {
+    final session = await _session();
+    return _service.createCustomer(session.accessToken, input, clientRequestId);
+  }
+
+  @override
+  Future<void> updateCustomer(String externalId, CustomerInput input) async {
+    final session = await _session();
+    await _service.updateCustomer(session.accessToken, externalId, input);
+  }
+
+  @override
+  Future<void> changeStatus(String externalId, int statusId) async {
+    final session = await _session();
+    await _service.changeStatus(session.accessToken, externalId, statusId);
   }
 
   Future<AuthSession> _session() async {

@@ -31,6 +31,7 @@ void main() {
       workdayViewModel: workdayViewModel,
       syncViewModel: syncViewModel,
       customerRepository: EmptyCustomerRepository(),
+      locationService: FixedLocationService(),
       initialLocation: '${AppRoutes.resetPassword}?token=route-token',
     );
 

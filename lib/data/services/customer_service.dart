@@ -5,7 +5,10 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 
 import '../models/customer/customer_page.dart';
+import '../models/customer/customer_detail.dart';
+import '../models/customer/customer_input.dart';
 import '../models/customer/customer_status.dart';
+import '../models/common/resource_creation_result.dart';
 import 'api_exception.dart';
 
 class CustomerService {
@@ -39,12 +42,13 @@ class CustomerService {
             'PageSize': '$pageSize',
           },
         );
-    final response = await _get(uri, accessToken);
+    final response = await _request('GET', uri, accessToken);
     return CustomerPage.fromJson(_decodeObject(response.bodyBytes));
   }
 
   Future<List<CustomerStatus>> getStatuses(String accessToken) async {
-    final response = await _get(
+    final response = await _request(
+      'GET',
       _baseUrl.resolve('/api/customers/statuses'),
       accessToken,
     );
@@ -61,17 +65,89 @@ class CustomerService {
         .toList(growable: false);
   }
 
-  Future<http.Response> _get(Uri uri, String accessToken) async {
+  Future<CustomerDetail> getCustomer(
+    String accessToken,
+    String externalId,
+  ) async {
+    final response = await _request(
+      'GET',
+      _baseUrl.resolve('/api/customers/${Uri.encodeComponent(externalId)}'),
+      accessToken,
+    );
+    return CustomerDetail.fromJson(_decodeObject(response.bodyBytes));
+  }
+
+  Future<ResourceCreationResult> createCustomer(
+    String accessToken,
+    CustomerInput input,
+    String clientRequestId,
+  ) async {
+    final response = await _request(
+      'POST',
+      _baseUrl.resolve('/api/customers'),
+      accessToken,
+      payload: input.toCreateJson(clientRequestId),
+    );
+    return ResourceCreationResult.fromJson(_decodeObject(response.bodyBytes));
+  }
+
+  Future<void> updateCustomer(
+    String accessToken,
+    String externalId,
+    CustomerInput input,
+  ) async {
+    await _request(
+      'PUT',
+      _baseUrl.resolve('/api/customers/${Uri.encodeComponent(externalId)}'),
+      accessToken,
+      payload: input.toJson(),
+    );
+  }
+
+  Future<void> changeStatus(
+    String accessToken,
+    String externalId,
+    int statusId,
+  ) async {
+    await _request(
+      'PATCH',
+      _baseUrl.resolve(
+        '/api/customers/${Uri.encodeComponent(externalId)}/status',
+      ),
+      accessToken,
+      payload: {'statusId': statusId},
+    );
+  }
+
+  Future<http.Response> _request(
+    String method,
+    Uri uri,
+    String accessToken, {
+    Map<String, dynamic>? payload,
+  }) async {
     try {
-      final response = await _client
-          .get(
-            uri,
-            headers: {
-              HttpHeaders.acceptHeader: 'application/json',
-              HttpHeaders.authorizationHeader: 'Bearer $accessToken',
-            },
-          )
-          .timeout(timeout);
+      final headers = {
+        HttpHeaders.acceptHeader: 'application/json',
+        HttpHeaders.authorizationHeader: 'Bearer $accessToken',
+        if (payload != null)
+          HttpHeaders.contentTypeHeader: 'application/json; charset=UTF-8',
+      };
+      final future = switch (method) {
+        'GET' => _client.get(uri, headers: headers),
+        'POST' => _client.post(
+          uri,
+          headers: headers,
+          body: jsonEncode(payload),
+        ),
+        'PUT' => _client.put(uri, headers: headers, body: jsonEncode(payload)),
+        'PATCH' => _client.patch(
+          uri,
+          headers: headers,
+          body: jsonEncode(payload),
+        ),
+        _ => throw ArgumentError.value(method, 'method'),
+      };
+      final response = await future.timeout(timeout);
       if (response.statusCode >= 200 && response.statusCode < 300) {
         return response;
       }
@@ -121,6 +197,8 @@ class CustomerService {
     }
     return switch (statusCode) {
       401 => 'Tu sesión expiró. Inicia sesión nuevamente.',
+      404 => 'No se encontró el cliente.',
+      400 => 'No se pudo guardar el cliente con estos datos.',
       >= 500 => 'El servidor no está disponible en este momento.',
       _ => 'No se pudieron consultar los clientes.',
     };

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:urbantrack/data/models/customer/customer_input.dart';
 import 'package:urbantrack/data/services/api_exception.dart';
 import 'package:urbantrack/data/services/customer_service.dart';
 
@@ -97,5 +98,106 @@ void main() {
             .having((error) => error.message, 'message', 'No autorizado.'),
       ),
     );
+  });
+
+  test('parses customer detail with notes and reminders', () async {
+    final service = CustomerService(
+      Uri.parse('https://api.example.test'),
+      MockClient((request) async {
+        expect(request.url.path, '/api/customers/customer-id');
+        return http.Response(
+          jsonEncode({
+            'id': 7,
+            'externalId': 'customer-id',
+            'name': 'Ricardo Alarcón',
+            'companyName': 'Constructora Horizonte',
+            'phone': '700 10001',
+            'email': 'seller@example.test',
+            'statusId': 3,
+            'status': 'Activo',
+            'address': 'Av. Banzer',
+            'latitude': -17.75,
+            'longitude': -63.18,
+            'createdAt': '2026-08-07T15:00:00Z',
+            'seller': {'externalId': 'seller-id', 'name': 'Carlos Gómez'},
+            'notes': [
+              {
+                'id': 1,
+                'externalId': 'note-id',
+                'text': 'Solicitó una cotización.',
+                'author': {'externalId': 'seller-id', 'name': 'Carlos Gómez'},
+                'createdAt': '2026-08-07T16:00:00Z',
+              },
+            ],
+            'reminders': [
+              {
+                'id': 2,
+                'externalId': 'reminder-id',
+                'text': 'Llamar por cotización',
+                'reminderAt': '2026-08-08T15:00:00Z',
+                'assignedTo': {
+                  'externalId': 'seller-id',
+                  'name': 'Carlos Gómez',
+                },
+                'completed': false,
+              },
+            ],
+          }),
+          200,
+          headers: {'content-type': 'application/json; charset=utf-8'},
+        );
+      }),
+    );
+
+    final customer = await service.getCustomer('access-token', 'customer-id');
+
+    expect(customer.notes.single.text, 'Solicitó una cotización.');
+    expect(customer.reminders.single.completed, isFalse);
+    expect(customer.seller?.name, 'Carlos Gómez');
+  });
+
+  test('sends create, update and status contracts', () async {
+    final requests = <http.Request>[];
+    final service = CustomerService(
+      Uri.parse('https://api.example.test'),
+      MockClient((request) async {
+        requests.add(request);
+        if (request.method == 'POST') {
+          return http.Response(
+            jsonEncode({'id': 'customer-id', 'message': 'Created'}),
+            201,
+          );
+        }
+        return http.Response(jsonEncode({'message': 'Updated'}), 200);
+      }),
+    );
+    const input = CustomerInput(
+      name: 'Ricardo',
+      companyName: 'Horizonte',
+      phone: '70010001',
+      email: 'seller@example.test',
+      sellerExternalId: null,
+      address: 'Av. Banzer',
+      latitude: -17.75,
+      longitude: -63.18,
+    );
+
+    final created = await service.createCustomer(
+      'access-token',
+      input,
+      'request-id',
+    );
+    await service.updateCustomer('access-token', 'customer-id', input);
+    await service.changeStatus('access-token', 'customer-id', 3);
+
+    expect(created.id, 'customer-id');
+    expect(requests.map((request) => request.method), ['POST', 'PUT', 'PATCH']);
+    expect(jsonDecode(requests[0].body)['clientRequestId'], 'request-id');
+    expect(
+      jsonDecode(requests[1].body).containsKey('clientRequestId'),
+      isFalse,
+    );
+    expect(requests[2].url.path, '/api/customers/customer-id/status');
+    expect(jsonDecode(requests[2].body), {'statusId': 3});
   });
 }

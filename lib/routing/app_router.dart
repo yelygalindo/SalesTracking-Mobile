@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../data/repositories/auth_repository.dart';
 import '../data/repositories/customer_repository.dart';
+import '../data/services/location_service.dart';
 import '../ui/auth/auth_view_model.dart';
 import '../ui/auth/forgot_password/forgot_password_screen.dart';
 import '../ui/auth/login/login_screen.dart';
@@ -10,6 +11,8 @@ import '../ui/auth/reset_password/reset_password_screen.dart';
 import '../ui/auth/session_loading_screen.dart';
 import '../ui/home/home_screen.dart';
 import '../ui/customers/customer_list_screen.dart';
+import '../ui/customers/customer_detail_screen.dart';
+import '../ui/customers/customer_form_screen.dart';
 import '../ui/sync/sync_screen.dart';
 import '../ui/sync/sync_view_model.dart';
 import '../ui/workday/close_workday_screen.dart';
@@ -24,6 +27,13 @@ abstract final class AppRoutes {
   static const closeWorkday = '/workday/close';
   static const sync = '/sync';
   static const customers = '/customers';
+  static const newCustomer = '/customers/new';
+
+  static String customerDetail(String externalId) =>
+      '/customers/${Uri.encodeComponent(externalId)}';
+
+  static String editCustomer(String externalId) =>
+      '${customerDetail(externalId)}/edit';
 }
 
 abstract final class AppRouter {
@@ -33,6 +43,7 @@ abstract final class AppRouter {
     required WorkdayViewModel workdayViewModel,
     required SyncViewModel syncViewModel,
     required CustomerRepository customerRepository,
+    required LocationService locationService,
     String initialLocation = AppRoutes.splash,
   }) {
     return GoRouter(
@@ -105,6 +116,28 @@ abstract final class AppRouter {
           path: AppRoutes.customers,
           builder: (context, state) =>
               CustomerListScreen(repository: customerRepository),
+        ),
+        GoRoute(
+          path: AppRoutes.newCustomer,
+          builder: (context, state) => CustomerFormScreen(
+            repository: customerRepository,
+            locationService: locationService,
+          ),
+        ),
+        GoRoute(
+          path: '/customers/:externalId',
+          builder: (context, state) => CustomerDetailScreen(
+            repository: customerRepository,
+            externalId: state.pathParameters['externalId']!,
+          ),
+        ),
+        GoRoute(
+          path: '/customers/:externalId/edit',
+          builder: (context, state) => CustomerFormScreen(
+            repository: customerRepository,
+            locationService: locationService,
+            externalId: state.pathParameters['externalId']!,
+          ),
         ),
       ],
       errorBuilder: (context, state) => Scaffold(

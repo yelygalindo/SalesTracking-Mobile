@@ -1,5 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:urbantrack/data/models/common/user_reference.dart';
+import 'package:urbantrack/data/models/common/resource_creation_result.dart';
+import 'package:urbantrack/data/models/customer/customer_detail.dart';
+import 'package:urbantrack/data/models/customer/customer_input.dart';
 import 'package:urbantrack/data/models/customer/customer_page.dart';
 import 'package:urbantrack/data/models/customer/customer_status.dart';
 import 'package:urbantrack/data/models/customer/customer_summary.dart';
@@ -54,6 +57,21 @@ class _RecordingCustomerRepository implements CustomerRepository {
   final List<String?> searches = [];
 
   @override
+  Future<void> changeStatus(String externalId, int statusId) async {}
+
+  @override
+  Future<ResourceCreationResult> createCustomer(
+    CustomerInput input,
+    String clientRequestId,
+  ) async =>
+      const ResourceCreationResult(id: 'customer-id', message: 'Created');
+
+  @override
+  Future<CustomerDetail> getCustomer(String externalId) {
+    throw UnimplementedError();
+  }
+
+  @override
   Future<CustomerPage> getCustomers({
     String? status,
     String? externalUserId,
@@ -77,6 +95,9 @@ class _RecordingCustomerRepository implements CustomerRepository {
   Future<List<CustomerStatus>> getStatuses() async => const [
     CustomerStatus(value: 1, label: 'Activo'),
   ];
+
+  @override
+  Future<void> updateCustomer(String externalId, CustomerInput input) async {}
 }
 
 CustomerSummary _customer(int index) => CustomerSummary(
