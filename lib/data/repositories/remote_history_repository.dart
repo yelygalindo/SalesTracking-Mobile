@@ -1,5 +1,6 @@
 import '../models/auth/auth_session.dart';
 import '../models/history/project_visit.dart';
+import '../models/history/seller_timeline_item.dart';
 import '../models/history/seller_timeline_page.dart';
 import '../services/api_exception.dart';
 import '../services/history_service.dart';
@@ -26,14 +27,25 @@ class RemoteHistoryRepository implements HistoryRepository {
         message: 'Tu usuario no tiene un identificador de vendedor.',
       );
     }
-    return _service.getSellerTimeline(
-      session.accessToken,
-      sellerExternalId,
-      from: from,
-      to: to,
-      page: page,
-      pageSize: pageSize,
-    );
+    try {
+      return await _service.getSellerTimeline(
+        session.accessToken,
+        sellerExternalId,
+        from: from,
+        to: to,
+        page: page,
+        pageSize: pageSize,
+      );
+    } on ApiException catch (error) {
+      if (error.statusCode != 403) rethrow;
+      final visits = await _service.getVisits(
+        session.accessToken,
+        sellerExternalId: sellerExternalId,
+        from: from,
+        to: to,
+      );
+      return _timelineFromVisits(visits, page: page, pageSize: pageSize);
+    }
   }
 
   @override
@@ -63,4 +75,77 @@ class RemoteHistoryRepository implements HistoryRepository {
     }
     return session;
   }
+}
+
+SellerTimelinePage _timelineFromVisits(
+  List<ProjectVisit> visits, {
+  required int page,
+  required int pageSize,
+}) {
+  final items = <SellerTimelineItem>[];
+  for (final visit in visits) {
+    final targetName = visit.projectName.trim().isEmpty
+        ? 'Obra'
+        : visit.projectName.trim();
+    items.add(
+      SellerTimelineItem(
+        externalId: '${visit.externalId}-checkin',
+        eventType: 'ProjectVisitCheckedIn',
+        resourceType: 'ProjectVisit',
+        resourceExternalId: visit.externalId,
+        title: 'Visita iniciada · $targetName',
+        description: _checkInDescription(visit),
+        occurredAtUtc: visit.visitedAtUtc,
+      ),
+    );
+    if (visit.checkOutAtUtc case final checkOutAt?) {
+      items.add(
+        SellerTimelineItem(
+          externalId: '${visit.externalId}-checkout',
+          eventType: 'ProjectVisitCheckedOut',
+          resourceType: 'ProjectVisit',
+          resourceExternalId: visit.externalId,
+          title: 'Visita finalizada · $targetName',
+          description: _checkOutDescription(visit),
+          occurredAtUtc: checkOutAt,
+        ),
+      );
+    }
+  }
+  items.sort((a, b) => b.occurredAtUtc.compareTo(a.occurredAtUtc));
+  final safePage = page < 1 ? 1 : page;
+  final safePageSize = pageSize < 1 ? 30 : pageSize;
+  final start = (safePage - 1) * safePageSize;
+  final pageItems = start >= items.length
+      ? const <SellerTimelineItem>[]
+      : items.sublist(start, (start + safePageSize).clamp(0, items.length));
+  final totalPages = items.isEmpty
+      ? 0
+      : ((items.length + safePageSize - 1) ~/ safePageSize);
+  return SellerTimelinePage(
+    items: pageItems,
+    page: safePage,
+    pageSize: safePageSize,
+    totalItems: items.length,
+    totalPages: totalPages,
+  );
+}
+
+String _checkInDescription(ProjectVisit visit) {
+  final parts = <String>[
+    'Ubicación ${visit.latitude.toStringAsFixed(5)}, '
+        '${visit.longitude.toStringAsFixed(5)}',
+    if (visit.notes?.trim().isNotEmpty == true) visit.notes!.trim(),
+  ];
+  return parts.join(' · ');
+}
+
+String _checkOutDescription(ProjectVisit visit) {
+  final parts = <String>[
+    if (visit.result?.trim().isNotEmpty == true)
+      'Resultado: ${visit.result!.trim()}',
+    if (visit.checkOutNote?.trim().isNotEmpty == true)
+      visit.checkOutNote!.trim(),
+  ];
+  return parts.isEmpty ? 'Visita cerrada.' : parts.join(' · ');
 }

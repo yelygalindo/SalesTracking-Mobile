@@ -75,6 +75,35 @@ class HistoryService {
     );
   }
 
+  Future<List<ProjectVisit>> getVisits(
+    String accessToken, {
+    String? sellerExternalId,
+    DateTime? from,
+    DateTime? to,
+  }) async {
+    final uri = _baseUrl
+        .resolve('/api/visits')
+        .replace(
+          queryParameters: {
+            if (sellerExternalId?.trim().isNotEmpty == true)
+              'SellerExternalId': sellerExternalId!.trim(),
+            if (from != null) 'From': from.toUtc().toIso8601String(),
+            if (to != null) 'To': to.toUtc().toIso8601String(),
+          },
+        );
+    final response = await _get(uri, accessToken);
+    final decoded = _decode(response.bodyBytes);
+    if (decoded is List) {
+      return decoded
+          .whereType<Map<String, dynamic>>()
+          .map(ProjectVisit.fromJson)
+          .toList(growable: false);
+    }
+    throw const ApiException(
+      message: 'El servidor devolvió un historial de visitas no válido.',
+    );
+  }
+
   Future<http.Response> _get(Uri uri, String accessToken) async {
     try {
       final response = await _client
