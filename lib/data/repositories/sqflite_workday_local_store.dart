@@ -1,58 +1,17 @@
 import 'dart:convert';
 
-import 'package:path/path.dart' as path;
 import 'package:sqflite/sqflite.dart';
 
 import '../models/workday/pending_workday_operation.dart';
 import '../models/workday/workday.dart';
+import '../storage/app_database.dart';
 import 'workday_local_store.dart';
 
 class SqfliteWorkdayLocalStore implements WorkdayLocalStore {
-  SqfliteWorkdayLocalStore({Future<Database>? database})
-    : _database = database ?? _openDatabase();
+  SqfliteWorkdayLocalStore(AppDatabase appDatabase)
+    : _database = appDatabase.database;
 
   final Future<Database> _database;
-
-  static Future<Database> _openDatabase() async {
-    final root = await getDatabasesPath();
-    return openDatabase(
-      path.join(root, 'urbantrack.db'),
-      version: 1,
-      onConfigure: (database) => database.execute('PRAGMA foreign_keys = ON'),
-      onCreate: (database, version) async {
-        await database.execute('''
-          CREATE TABLE workday_cache (
-            id INTEGER PRIMARY KEY CHECK (id = 1),
-            payload TEXT NOT NULL
-          )
-        ''');
-        await database.execute('''
-          CREATE TABLE workday_sync_operations (
-            sequence INTEGER PRIMARY KEY AUTOINCREMENT,
-            request_id TEXT NOT NULL UNIQUE,
-            local_workday_id TEXT NOT NULL,
-            operation_type TEXT NOT NULL,
-            occurred_at_utc TEXT NOT NULL,
-            latitude REAL NOT NULL,
-            longitude REAL NOT NULL,
-            accuracy_meters REAL NOT NULL,
-            note TEXT,
-            server_workday_id TEXT,
-            depends_on_request_id TEXT,
-            attempt_count INTEGER NOT NULL DEFAULT 0,
-            last_error TEXT,
-            created_at_utc TEXT NOT NULL
-          )
-        ''');
-        await database.execute('''
-          CREATE TABLE workday_id_map (
-            local_workday_id TEXT PRIMARY KEY,
-            server_workday_id TEXT NOT NULL
-          )
-        ''');
-      },
-    );
-  }
 
   @override
   Future<Workday?> readCurrent() async {

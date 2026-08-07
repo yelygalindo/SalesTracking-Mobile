@@ -108,7 +108,7 @@ class _AppHostState extends State<_AppHost> {
     unawaited(_syncViewModel.initialize());
     _syncCoordinator = ConnectivitySyncCoordinator(
       widget.networkStatusService,
-      widget.workdayRepository,
+      widget.syncRepository,
       onSynced: () async {
         await _workdayViewModel.loadCurrent();
         await _syncViewModel.load();

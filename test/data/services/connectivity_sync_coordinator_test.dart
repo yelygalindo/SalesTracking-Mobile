@@ -1,10 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:urbantrack/data/models/common/location_sample.dart';
-import 'package:urbantrack/data/models/workday/current_workday_response.dart';
-import 'package:urbantrack/data/models/workday/workday.dart';
-import 'package:urbantrack/data/repositories/workday_repository.dart';
+import 'package:urbantrack/data/models/sync/sync_queue_entry.dart';
+import 'package:urbantrack/data/repositories/sync_repository.dart';
 import 'package:urbantrack/data/services/connectivity_sync_coordinator.dart';
 import 'package:urbantrack/data/services/network_status_service.dart';
 
@@ -38,36 +36,12 @@ class _ControlledNetworkStatusService implements NetworkStatusService {
   Stream<bool> get changes => controller.stream;
 }
 
-class _SyncRecordingRepository implements WorkdayRepository {
+class _SyncRecordingRepository implements SyncRepository {
   int syncCalls = 0;
 
   @override
-  Future<void> syncPending() async => syncCalls += 1;
+  Future<List<SyncQueueEntry>> getPending() async => const [];
 
   @override
-  Future<int> pendingCount() async => 0;
-
-  @override
-  Future<CurrentWorkdayResponse> getCurrent() async =>
-      const CurrentWorkdayResponse(hasOpenWorkday: false, workday: null);
-
-  @override
-  Future<Workday> start({
-    required DateTime startedAtUtc,
-    required LocationSample location,
-    required String clientRequestId,
-    String? note,
-  }) {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Workday> close({
-    required String externalId,
-    required DateTime endedAtUtc,
-    required LocationSample location,
-    required String clientRequestId,
-  }) {
-    throw UnimplementedError();
-  }
+  Future<void> synchronize() async => syncCalls += 1;
 }

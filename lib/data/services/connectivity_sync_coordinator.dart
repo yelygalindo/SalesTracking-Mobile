@@ -1,13 +1,13 @@
 import 'dart:async';
 
-import '../repositories/workday_repository.dart';
+import '../repositories/sync_repository.dart';
 import 'network_status_service.dart';
 
 class ConnectivitySyncCoordinator {
-  ConnectivitySyncCoordinator(this._network, this._workdays, {this.onSynced});
+  ConnectivitySyncCoordinator(this._network, this._sync, {this.onSynced});
 
   final NetworkStatusService _network;
-  final WorkdayRepository _workdays;
+  final SyncRepository _sync;
   final Future<void> Function()? onSynced;
 
   StreamSubscription<bool>? _subscription;
@@ -25,7 +25,7 @@ class ConnectivitySyncCoordinator {
     if (_syncing || _disposed) return;
     _syncing = true;
     try {
-      await _workdays.syncPending();
+      await _sync.synchronize();
       if (!_disposed) await onSynced?.call();
     } catch (_) {
       // Operations remain durable and will be retried on the next reconnect.

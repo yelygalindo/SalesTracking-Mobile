@@ -6,17 +6,22 @@ import 'package:http/http.dart' as http;
 
 import 'app/urbantrack_app.dart';
 import 'config/app_environment.dart';
-import 'data/repositories/remote_auth_repository.dart';
+import 'data/repositories/composite_sync_repository.dart';
+import 'data/repositories/customer_sync_repository.dart';
+import 'data/repositories/offline_first_customer_repository.dart';
 import 'data/repositories/offline_first_workday_repository.dart';
-import 'data/repositories/remote_workday_repository.dart';
+import 'data/repositories/remote_auth_repository.dart';
 import 'data/repositories/remote_customer_repository.dart';
+import 'data/repositories/remote_workday_repository.dart';
+import 'data/repositories/sqflite_customer_local_store.dart';
 import 'data/repositories/sqflite_workday_local_store.dart';
 import 'data/repositories/workday_sync_repository.dart';
+import 'data/services/auth_service.dart';
 import 'data/services/connectivity_network_status_service.dart';
 import 'data/services/customer_service.dart';
 import 'data/services/geolocator_location_service.dart';
-import 'data/services/auth_service.dart';
 import 'data/services/workday_service.dart';
+import 'data/storage/app_database.dart';
 import 'data/storage/secure_session_storage.dart';
 import 'ui/core/branding/urbantrack_brand.dart';
 
@@ -31,24 +36,35 @@ void main() {
     Platform.isIOS ? 'ios' : 'android',
   );
   final networkStatusService = ConnectivityNetworkStatusService();
+  final appDatabase = AppDatabase();
   final remoteWorkdayRepository = RemoteWorkdayRepository(
     WorkdayService(Uri.parse(environment.apiBaseUrl), http.Client()),
     authRepository,
   );
-  final workdayLocalStore = SqfliteWorkdayLocalStore();
+  final workdayLocalStore = SqfliteWorkdayLocalStore(appDatabase);
   final workdayRepository = OfflineFirstWorkdayRepository(
     remoteWorkdayRepository,
     workdayLocalStore,
     networkStatusService,
   );
-  final syncRepository = WorkdaySyncRepository(
+  final workdaySyncRepository = WorkdaySyncRepository(
     workdayLocalStore,
     workdayRepository,
   );
-  final customerRepository = RemoteCustomerRepository(
+  final remoteCustomerRepository = RemoteCustomerRepository(
     CustomerService(Uri.parse(environment.apiBaseUrl), http.Client()),
     authRepository,
   );
+  final customerLocalStore = SqfliteCustomerLocalStore(appDatabase);
+  final customerRepository = OfflineFirstCustomerRepository(
+    remoteCustomerRepository,
+    customerLocalStore,
+    networkStatusService,
+  );
+  final syncRepository = CompositeSyncRepository([
+    workdaySyncRepository,
+    CustomerSyncRepository(customerLocalStore, customerRepository),
+  ]);
 
   runApp(
     UrbanTrackApp(

@@ -27,13 +27,20 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('2 registros pendientes'), findsOneWidget);
+    expect(find.text('3 registros pendientes'), findsOneWidget);
     expect(find.text('Inicio de jornada'), findsOneWidget);
     expect(find.text('Cierre de jornada'), findsOneWidget);
+    expect(find.text('Nuevo cliente'), findsOneWidget);
     expect(find.text('Intentar sincronizar ahora'), findsOneWidget);
     expect(tester.takeException(), isNull);
 
-    await tester.tap(find.text('Intentar sincronizar ahora'));
+    final syncButton = find.widgetWithText(
+      FilledButton,
+      'Intentar sincronizar ahora',
+    );
+    await tester.drag(find.byType(ListView).first, const Offset(0, -500));
+    await tester.pumpAndSettle();
+    await tester.tap(syncButton);
     await tester.pumpAndSettle();
 
     expect(find.text('Todo está sincronizado'), findsOneWidget);
@@ -58,6 +65,13 @@ class _ScreenSyncRepository implements SyncRepository {
       occurredAtUtc: DateTime.utc(2026, 8, 7, 22),
       createdAtUtc: DateTime.utc(2026, 8, 7, 22, 0, 1),
       dependsOnId: 'start-id',
+      attemptCount: 0,
+    ),
+    SyncQueueEntry(
+      id: 'customer-id',
+      type: SyncQueueEntryType.customerCreate,
+      occurredAtUtc: DateTime.utc(2026, 8, 7, 22, 5),
+      createdAtUtc: DateTime.utc(2026, 8, 7, 22, 5),
       attemptCount: 0,
     ),
   ];

@@ -1,4 +1,4 @@
-enum SyncQueueEntryType { workdayStart, workdayClose }
+enum SyncQueueEntryType { workdayStart, workdayClose, customerCreate }
 
 class SyncQueueEntry {
   const SyncQueueEntry({

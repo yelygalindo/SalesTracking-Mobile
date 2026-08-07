@@ -188,15 +188,17 @@ class _QueueEntryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final start = entry.type == SyncQueueEntryType.workdayStart;
+    final isWorkdayStart = entry.type == SyncQueueEntryType.workdayStart;
+    final isCustomer = entry.type == SyncQueueEntryType.customerCreate;
     final hasError = entry.lastError?.isNotEmpty == true;
     final details = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          start ? 'Inicio de jornada' : 'Cierre de jornada',
-          style: const TextStyle(fontWeight: FontWeight.w900),
-        ),
+        Text(switch (entry.type) {
+          SyncQueueEntryType.workdayStart => 'Inicio de jornada',
+          SyncQueueEntryType.workdayClose => 'Cierre de jornada',
+          SyncQueueEntryType.customerCreate => 'Nuevo cliente',
+        }, style: const TextStyle(fontWeight: FontWeight.w900)),
         const SizedBox(height: 4),
         Text(
           'Guardado ${_relativeDate(entry.occurredAtUtc)}',
@@ -207,7 +209,9 @@ class _QueueEntryCard extends StatelessWidget {
           hasError
               ? entry.lastError!
               : entry.dependsOnId == null
-              ? 'Identificador de reintento listo'
+              ? isCustomer
+                    ? 'Creación protegida contra duplicados'
+                    : 'Identificador de reintento listo'
               : 'Se enviará después del inicio de jornada',
           style: TextStyle(
             color: hasError ? const Color(0xFFA23A32) : const Color(0xFF536174),
@@ -224,7 +228,13 @@ class _QueueEntryCard extends StatelessWidget {
         child: LayoutBuilder(
           builder: (context, constraints) {
             final content = [
-              _QueueIcon(start: start),
+              _QueueIcon(
+                icon: isCustomer
+                    ? Icons.person_add_alt_1
+                    : isWorkdayStart
+                    ? Icons.login
+                    : Icons.logout,
+              ),
               const SizedBox(width: 12, height: 12),
               Expanded(child: details),
             ];
@@ -256,9 +266,9 @@ class _QueueEntryCard extends StatelessWidget {
 }
 
 class _QueueIcon extends StatelessWidget {
-  const _QueueIcon({required this.start});
+  const _QueueIcon({required this.icon});
 
-  final bool start;
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
@@ -270,10 +280,7 @@ class _QueueIcon extends StatelessWidget {
         color: brand.primaryColor.withValues(alpha: .12),
         borderRadius: BorderRadius.circular(13),
       ),
-      child: Icon(
-        start ? Icons.login : Icons.logout,
-        color: brand.primaryColor,
-      ),
+      child: Icon(icon, color: brand.primaryColor),
     );
   }
 }
