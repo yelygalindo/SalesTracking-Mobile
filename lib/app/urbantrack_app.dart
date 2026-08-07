@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../config/app_environment.dart';
 import '../data/repositories/auth_repository.dart';
 import '../data/repositories/customer_repository.dart';
+import '../data/repositories/project_repository.dart';
 import '../data/repositories/sync_repository.dart';
 import '../data/repositories/workday_repository.dart';
 import '../data/services/connectivity_sync_coordinator.dart';
@@ -29,6 +30,7 @@ class UrbanTrackApp extends StatelessWidget {
     required this.networkStatusService,
     required this.syncRepository,
     required this.customerRepository,
+    required this.projectRepository,
     super.key,
   });
 
@@ -40,6 +42,7 @@ class UrbanTrackApp extends StatelessWidget {
   final NetworkStatusService networkStatusService;
   final SyncRepository syncRepository;
   final CustomerRepository customerRepository;
+  final ProjectRepository projectRepository;
 
   @override
   Widget build(BuildContext context) {
@@ -50,6 +53,7 @@ class UrbanTrackApp extends StatelessWidget {
       networkStatusService: networkStatusService,
       syncRepository: syncRepository,
       customerRepository: customerRepository,
+      projectRepository: projectRepository,
       builder: (router) => BrandScope(
         brand: brand,
         child: MaterialApp.router(
@@ -71,6 +75,7 @@ class _AppHost extends StatefulWidget {
     required this.networkStatusService,
     required this.syncRepository,
     required this.customerRepository,
+    required this.projectRepository,
     required this.builder,
   });
 
@@ -80,6 +85,7 @@ class _AppHost extends StatefulWidget {
   final NetworkStatusService networkStatusService;
   final SyncRepository syncRepository;
   final CustomerRepository customerRepository;
+  final ProjectRepository projectRepository;
   final Widget Function(GoRouter router) builder;
 
   @override
@@ -120,6 +126,7 @@ class _AppHostState extends State<_AppHost> {
       workdayViewModel: _workdayViewModel,
       syncViewModel: _syncViewModel,
       customerRepository: widget.customerRepository,
+      projectRepository: widget.projectRepository,
       locationService: widget.locationService,
     );
     _authViewModel.restoreSession();

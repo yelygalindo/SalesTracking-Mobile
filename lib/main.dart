@@ -12,6 +12,7 @@ import 'data/repositories/offline_first_customer_repository.dart';
 import 'data/repositories/offline_first_workday_repository.dart';
 import 'data/repositories/remote_auth_repository.dart';
 import 'data/repositories/remote_customer_repository.dart';
+import 'data/repositories/remote_project_repository.dart';
 import 'data/repositories/remote_workday_repository.dart';
 import 'data/repositories/sqflite_customer_local_store.dart';
 import 'data/repositories/sqflite_workday_local_store.dart';
@@ -20,6 +21,7 @@ import 'data/services/auth_service.dart';
 import 'data/services/connectivity_network_status_service.dart';
 import 'data/services/customer_service.dart';
 import 'data/services/geolocator_location_service.dart';
+import 'data/services/project_service.dart';
 import 'data/services/workday_service.dart';
 import 'data/storage/app_database.dart';
 import 'data/storage/secure_session_storage.dart';
@@ -65,6 +67,10 @@ void main() {
     workdaySyncRepository,
     CustomerSyncRepository(customerLocalStore, customerRepository),
   ]);
+  final projectRepository = RemoteProjectRepository(
+    ProjectService(Uri.parse(environment.apiBaseUrl), http.Client()),
+    authRepository,
+  );
 
   runApp(
     UrbanTrackApp(
@@ -76,6 +82,7 @@ void main() {
       networkStatusService: networkStatusService,
       syncRepository: syncRepository,
       customerRepository: customerRepository,
+      projectRepository: projectRepository,
     ),
   );
 }

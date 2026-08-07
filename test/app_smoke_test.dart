@@ -19,6 +19,7 @@ void main() {
         networkStatusService: DisconnectedNetworkStatusService(),
         syncRepository: EmptySyncRepository(),
         customerRepository: EmptyCustomerRepository(),
+        projectRepository: EmptyProjectRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -40,6 +41,7 @@ void main() {
         networkStatusService: DisconnectedNetworkStatusService(),
         syncRepository: EmptySyncRepository(),
         customerRepository: EmptyCustomerRepository(),
+        projectRepository: EmptyProjectRepository(),
       ),
     );
     await tester.pumpAndSettle();

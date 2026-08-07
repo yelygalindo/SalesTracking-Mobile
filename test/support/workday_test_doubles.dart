@@ -3,6 +3,9 @@ import 'package:urbantrack/data/models/customer/customer_page.dart';
 import 'package:urbantrack/data/models/customer/customer_detail.dart';
 import 'package:urbantrack/data/models/customer/customer_input.dart';
 import 'package:urbantrack/data/models/customer/customer_status.dart';
+import 'package:urbantrack/data/models/project/project_detail.dart';
+import 'package:urbantrack/data/models/project/project_input.dart';
+import 'package:urbantrack/data/models/project/project_page.dart';
 import 'package:urbantrack/data/models/common/resource_creation_result.dart';
 import 'package:urbantrack/data/models/sync/sync_queue_entry.dart';
 import 'package:urbantrack/data/models/workday/current_workday_response.dart';
@@ -10,6 +13,7 @@ import 'package:urbantrack/data/models/workday/workday.dart';
 import 'package:urbantrack/data/repositories/workday_repository.dart';
 import 'package:urbantrack/data/repositories/sync_repository.dart';
 import 'package:urbantrack/data/repositories/customer_repository.dart';
+import 'package:urbantrack/data/repositories/project_repository.dart';
 import 'package:urbantrack/data/services/location_service.dart';
 import 'package:urbantrack/data/services/network_status_service.dart';
 
@@ -128,4 +132,40 @@ class EmptyCustomerRepository implements CustomerRepository {
 
   @override
   Future<void> updateCustomer(String externalId, CustomerInput input) async {}
+}
+
+class EmptyProjectRepository implements ProjectRepository {
+  @override
+  Future<void> changeStatus(String externalId, int statusId) async {}
+
+  @override
+  Future<ProjectDetail> createProject(
+    ProjectInput input,
+    String clientRequestId,
+  ) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<ProjectDetail> getProject(String externalId) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<ProjectPage> getProjects({
+    String? status,
+    String? customerId,
+    String? sellerId,
+    int page = 1,
+    int pageSize = 20,
+  }) async => ProjectPage(
+    projects: const [],
+    page: page,
+    pageSize: pageSize,
+    totalItems: 0,
+    totalPages: 0,
+  );
+
+  @override
+  Future<void> updateProject(String externalId, ProjectInput input) async {}
 }

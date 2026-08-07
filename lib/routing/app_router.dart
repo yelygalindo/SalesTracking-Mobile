@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../data/repositories/auth_repository.dart';
 import '../data/repositories/customer_repository.dart';
+import '../data/repositories/project_repository.dart';
 import '../data/services/location_service.dart';
 import '../ui/auth/auth_view_model.dart';
 import '../ui/auth/forgot_password/forgot_password_screen.dart';
@@ -13,6 +14,9 @@ import '../ui/home/home_screen.dart';
 import '../ui/customers/customer_list_screen.dart';
 import '../ui/customers/customer_detail_screen.dart';
 import '../ui/customers/customer_form_screen.dart';
+import '../ui/projects/project_detail_screen.dart';
+import '../ui/projects/project_form_screen.dart';
+import '../ui/projects/project_list_screen.dart';
 import '../ui/sync/sync_screen.dart';
 import '../ui/sync/sync_view_model.dart';
 import '../ui/workday/close_workday_screen.dart';
@@ -28,12 +32,20 @@ abstract final class AppRoutes {
   static const sync = '/sync';
   static const customers = '/customers';
   static const newCustomer = '/customers/new';
+  static const projects = '/projects';
+  static const newProject = '/projects/new';
 
   static String customerDetail(String externalId) =>
       '/customers/${Uri.encodeComponent(externalId)}';
 
   static String editCustomer(String externalId) =>
       '${customerDetail(externalId)}/edit';
+
+  static String projectDetail(String externalId) =>
+      '/projects/${Uri.encodeComponent(externalId)}';
+
+  static String editProject(String externalId) =>
+      '${projectDetail(externalId)}/edit';
 }
 
 abstract final class AppRouter {
@@ -43,6 +55,7 @@ abstract final class AppRouter {
     required WorkdayViewModel workdayViewModel,
     required SyncViewModel syncViewModel,
     required CustomerRepository customerRepository,
+    required ProjectRepository projectRepository,
     required LocationService locationService,
     String initialLocation = AppRoutes.splash,
   }) {
@@ -116,6 +129,37 @@ abstract final class AppRouter {
           path: AppRoutes.customers,
           builder: (context, state) =>
               CustomerListScreen(repository: customerRepository),
+        ),
+        GoRoute(
+          path: AppRoutes.projects,
+          builder: (context, state) => ProjectListScreen(
+            projectRepository: projectRepository,
+            customerRepository: customerRepository,
+          ),
+        ),
+        GoRoute(
+          path: AppRoutes.newProject,
+          builder: (context, state) => ProjectFormScreen(
+            projectRepository: projectRepository,
+            customerRepository: customerRepository,
+            locationService: locationService,
+          ),
+        ),
+        GoRoute(
+          path: '/projects/:externalId',
+          builder: (context, state) => ProjectDetailScreen(
+            repository: projectRepository,
+            externalId: state.pathParameters['externalId']!,
+          ),
+        ),
+        GoRoute(
+          path: '/projects/:externalId/edit',
+          builder: (context, state) => ProjectFormScreen(
+            projectRepository: projectRepository,
+            customerRepository: customerRepository,
+            locationService: locationService,
+            externalId: state.pathParameters['externalId']!,
+          ),
         ),
         GoRoute(
           path: AppRoutes.newCustomer,

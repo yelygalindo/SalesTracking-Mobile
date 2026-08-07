@@ -158,6 +158,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             _QuickActions(
                               onCustomers: () =>
                                   context.push(AppRoutes.customers),
+                              onProjects: () =>
+                                  context.push(AppRoutes.projects),
                             ),
                           ],
                         ),
@@ -375,9 +377,10 @@ class _ActiveWorkdayCard extends StatelessWidget {
 }
 
 class _QuickActions extends StatelessWidget {
-  const _QuickActions({required this.onCustomers});
+  const _QuickActions({required this.onCustomers, required this.onProjects});
 
   final VoidCallback onCustomers;
+  final VoidCallback onProjects;
 
   @override
   Widget build(BuildContext context) {
@@ -388,10 +391,11 @@ class _QuickActions extends StatelessWidget {
         subtitle: 'Consultar o registrar',
         onTap: onCustomers,
       ),
-      const _QuickActionCard(
+      _QuickActionCard(
         icon: Icons.apartment_outlined,
         title: 'Obras',
         subtitle: 'Ver asignadas',
+        onTap: onProjects,
       ),
     ];
     return Row(
