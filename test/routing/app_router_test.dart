@@ -7,15 +7,23 @@ import 'package:urbantrack/ui/auth/auth_view_model.dart';
 import 'package:urbantrack/ui/core/branding/brand_scope.dart';
 import 'package:urbantrack/ui/core/branding/urbantrack_brand.dart';
 import 'package:urbantrack/ui/core/theme/app_theme.dart';
+import 'package:urbantrack/ui/workday/workday_view_model.dart';
+
+import '../support/workday_test_doubles.dart';
 
 void main() {
   testWidgets('prefills a reset token received in the route', (tester) async {
     final repository = _SignedOutRepository();
     final authViewModel = AuthViewModel(repository);
+    final workdayViewModel = WorkdayViewModel(
+      InactiveWorkdayRepository(),
+      FixedLocationService(),
+    );
     await authViewModel.restoreSession();
     final router = AppRouter.create(
       authViewModel: authViewModel,
       authRepository: repository,
+      workdayViewModel: workdayViewModel,
       initialLocation: '${AppRoutes.resetPassword}?token=route-token',
     );
 
@@ -34,6 +42,7 @@ void main() {
     expect(find.text('route-token'), findsOneWidget);
 
     router.dispose();
+    workdayViewModel.dispose();
     authViewModel.dispose();
   });
 }

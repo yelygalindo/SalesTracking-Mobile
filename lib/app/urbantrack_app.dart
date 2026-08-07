@@ -3,8 +3,11 @@ import 'package:go_router/go_router.dart';
 
 import '../config/app_environment.dart';
 import '../data/repositories/auth_repository.dart';
+import '../data/repositories/workday_repository.dart';
+import '../data/services/location_service.dart';
 import '../routing/app_router.dart';
 import '../ui/auth/auth_view_model.dart';
+import '../ui/workday/workday_view_model.dart';
 import '../ui/core/branding/brand_config.dart';
 import '../ui/core/branding/brand_scope.dart';
 import '../ui/core/theme/app_theme.dart';
@@ -14,17 +17,23 @@ class UrbanTrackApp extends StatelessWidget {
     required this.brand,
     required this.environment,
     required this.authRepository,
+    required this.workdayRepository,
+    required this.locationService,
     super.key,
   });
 
   final BrandConfig brand;
   final AppEnvironment environment;
   final AuthRepository authRepository;
+  final WorkdayRepository workdayRepository;
+  final LocationService locationService;
 
   @override
   Widget build(BuildContext context) {
     return _AppHost(
       authRepository: authRepository,
+      workdayRepository: workdayRepository,
+      locationService: locationService,
       builder: (router) => BrandScope(
         brand: brand,
         child: MaterialApp.router(
@@ -39,9 +48,16 @@ class UrbanTrackApp extends StatelessWidget {
 }
 
 class _AppHost extends StatefulWidget {
-  const _AppHost({required this.authRepository, required this.builder});
+  const _AppHost({
+    required this.authRepository,
+    required this.workdayRepository,
+    required this.locationService,
+    required this.builder,
+  });
 
   final AuthRepository authRepository;
+  final WorkdayRepository workdayRepository;
+  final LocationService locationService;
   final Widget Function(GoRouter router) builder;
 
   @override
@@ -50,15 +66,21 @@ class _AppHost extends StatefulWidget {
 
 class _AppHostState extends State<_AppHost> {
   late final AuthViewModel _authViewModel;
+  late final WorkdayViewModel _workdayViewModel;
   late final GoRouter _router;
 
   @override
   void initState() {
     super.initState();
     _authViewModel = AuthViewModel(widget.authRepository);
+    _workdayViewModel = WorkdayViewModel(
+      widget.workdayRepository,
+      widget.locationService,
+    );
     _router = AppRouter.create(
       authViewModel: _authViewModel,
       authRepository: widget.authRepository,
+      workdayViewModel: _workdayViewModel,
     );
     _authViewModel.restoreSession();
   }
@@ -66,6 +88,7 @@ class _AppHostState extends State<_AppHost> {
   @override
   void dispose() {
     _router.dispose();
+    _workdayViewModel.dispose();
     _authViewModel.dispose();
     super.dispose();
   }

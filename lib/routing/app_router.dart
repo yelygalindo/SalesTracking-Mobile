@@ -8,6 +8,8 @@ import '../ui/auth/login/login_screen.dart';
 import '../ui/auth/reset_password/reset_password_screen.dart';
 import '../ui/auth/session_loading_screen.dart';
 import '../ui/home/home_screen.dart';
+import '../ui/workday/close_workday_screen.dart';
+import '../ui/workday/workday_view_model.dart';
 
 abstract final class AppRoutes {
   static const splash = '/splash';
@@ -15,12 +17,14 @@ abstract final class AppRoutes {
   static const forgotPassword = '/forgot-password';
   static const resetPassword = '/reset-password';
   static const home = '/home';
+  static const closeWorkday = '/workday/close';
 }
 
 abstract final class AppRouter {
   static GoRouter create({
     required AuthViewModel authViewModel,
     required AuthRepository authRepository,
+    required WorkdayViewModel workdayViewModel,
     String initialLocation = AppRoutes.splash,
   }) {
     return GoRouter(
@@ -75,7 +79,15 @@ abstract final class AppRouter {
         ),
         GoRoute(
           path: AppRoutes.home,
-          builder: (context, state) => HomeScreen(viewModel: authViewModel),
+          builder: (context, state) => HomeScreen(
+            authViewModel: authViewModel,
+            workdayViewModel: workdayViewModel,
+          ),
+        ),
+        GoRoute(
+          path: AppRoutes.closeWorkday,
+          builder: (context, state) =>
+              CloseWorkdayScreen(viewModel: workdayViewModel),
         ),
       ],
       errorBuilder: (context, state) => Scaffold(

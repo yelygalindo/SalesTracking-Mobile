@@ -5,6 +5,8 @@ import 'package:urbantrack/data/models/auth/auth_session.dart';
 import 'package:urbantrack/data/repositories/auth_repository.dart';
 import 'package:urbantrack/ui/core/branding/urbantrack_brand.dart';
 
+import 'support/workday_test_doubles.dart';
+
 void main() {
   testWidgets('shows the UrbanTrack login shell', (tester) async {
     await tester.pumpWidget(
@@ -12,6 +14,8 @@ void main() {
         brand: UrbanTrackBrand.config,
         environment: const AppEnvironment(apiBaseUrl: 'https://example.test'),
         authRepository: _SignedOutAuthRepository(),
+        workdayRepository: InactiveWorkdayRepository(),
+        locationService: FixedLocationService(),
       ),
     );
     await tester.pumpAndSettle();
@@ -28,6 +32,8 @@ void main() {
         brand: UrbanTrackBrand.config,
         environment: const AppEnvironment(apiBaseUrl: 'https://example.test'),
         authRepository: _SignedOutAuthRepository(),
+        workdayRepository: InactiveWorkdayRepository(),
+        locationService: FixedLocationService(),
       ),
     );
     await tester.pumpAndSettle();
