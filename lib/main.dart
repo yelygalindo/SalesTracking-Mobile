@@ -16,6 +16,8 @@ import 'data/repositories/offline_first_project_attachment_repository.dart';
 import 'data/repositories/remote_auth_repository.dart';
 import 'data/repositories/remote_customer_repository.dart';
 import 'data/repositories/remote_project_repository.dart';
+import 'data/repositories/offline_first_project_repository.dart';
+import 'data/repositories/sqflite_project_local_store.dart';
 import 'data/repositories/remote_workday_repository.dart';
 import 'data/repositories/remote_visit_repository.dart';
 import 'data/repositories/remote_project_attachment_repository.dart';
@@ -76,9 +78,14 @@ void main() {
     customerLocalStore,
     networkStatusService,
   );
-  final projectRepository = RemoteProjectRepository(
+  final remoteProjectRepository = RemoteProjectRepository(
     ProjectService(Uri.parse(environment.apiBaseUrl), http.Client()),
     authRepository,
+  );
+  final projectRepository = OfflineFirstProjectRepository(
+    remoteProjectRepository,
+    SqfliteProjectLocalStore(appDatabase),
+    networkStatusService,
   );
   final visitLocalStore = SqfliteVisitLocalStore(appDatabase);
   final visitRepository = OfflineFirstVisitRepository(

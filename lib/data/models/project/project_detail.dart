@@ -59,6 +59,27 @@ class ProjectDetail {
   final double? latitude;
   final double? longitude;
   final DateTime? createdAtUtc;
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'externalId': externalId,
+    'name': name,
+    'description': description,
+    'customerExternalId': customerExternalId,
+    'customerName': customerName,
+    'sellerExternalId': sellerExternalId,
+    'sellerName': sellerName,
+    'status': status,
+    'estimatedAmount': estimatedAmount,
+    'startDateUtc': startDateUtc?.toUtc().toIso8601String(),
+    'expectedCloseDateUtc': expectedCloseDateUtc?.toUtc().toIso8601String(),
+    'progressPercentage': progressPercentage,
+    'actualCloseDateUtc': actualCloseDateUtc?.toUtc().toIso8601String(),
+    'address': address,
+    'latitude': latitude,
+    'longitude': longitude,
+    'createdAtUtc': createdAtUtc?.toUtc().toIso8601String(),
+  };
 }
 
 DateTime? _date(Object? value) =>
