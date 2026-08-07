@@ -40,6 +40,6 @@ class CustomerNote {
 DateTime _requiredDate(Object? value) {
   return value is String
       ? DateTime.tryParse(value)?.toUtc() ??
-            DateTime.fromMillisecondsSinceEpoch(0)
-      : DateTime.fromMillisecondsSinceEpoch(0);
+            DateTime.fromMillisecondsSinceEpoch(0, isUtc: true)
+      : DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
 }

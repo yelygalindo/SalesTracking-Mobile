@@ -104,6 +104,27 @@ void main() {
     );
     expect(await repository.pendingCount(), 0);
   });
+
+  test('protects activity on a customer that is still local', () async {
+    final repository = OfflineFirstCustomerRepository(
+      _RecordingRemoteCustomerRepository(),
+      _MemoryCustomerLocalStore(),
+      _MutableNetworkStatusService(false),
+      now: () => DateTime.utc(2026, 8, 7, 16),
+    );
+    final created = await repository.createCustomer(_input, 'request-activity');
+
+    expect(
+      () => repository.addNote(created.id!, 'Nota local', 'note-request-id'),
+      throwsA(
+        isA<ApiException>().having(
+          (error) => error.message,
+          'message',
+          contains('Sincroniza el cliente'),
+        ),
+      ),
+    );
+  });
 }
 
 const _input = CustomerInput(
@@ -133,6 +154,28 @@ class _RecordingRemoteCustomerRepository implements CustomerRepository {
 
   final ApiException? createError;
   final List<String> createRequestIds = [];
+
+  @override
+  Future<ResourceCreationResult> addNote(
+    String externalId,
+    String text,
+    String clientRequestId,
+  ) async => const ResourceCreationResult(id: 'note-id', message: 'Created');
+
+  @override
+  Future<ResourceCreationResult> addReminder(
+    String externalId, {
+    required String text,
+    required DateTime reminderAtUtc,
+    String? assignedToId,
+  }) async =>
+      const ResourceCreationResult(id: 'reminder-id', message: 'Created');
+
+  @override
+  Future<void> completeReminder(
+    String customerExternalId,
+    String reminderExternalId,
+  ) async {}
 
   @override
   Future<ResourceCreationResult> createCustomer(

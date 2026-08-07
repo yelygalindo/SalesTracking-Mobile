@@ -155,6 +155,46 @@ class OfflineFirstCustomerRepository
   }
 
   @override
+  Future<ResourceCreationResult> addNote(
+    String externalId,
+    String text,
+    String clientRequestId,
+  ) async {
+    final resolvedId = await _onlineCustomerId(externalId);
+    final result = await _remote.addNote(resolvedId, text, clientRequestId);
+    await _refreshDetail(resolvedId);
+    return result;
+  }
+
+  @override
+  Future<ResourceCreationResult> addReminder(
+    String externalId, {
+    required String text,
+    required DateTime reminderAtUtc,
+    String? assignedToId,
+  }) async {
+    final resolvedId = await _onlineCustomerId(externalId);
+    final result = await _remote.addReminder(
+      resolvedId,
+      text: text,
+      reminderAtUtc: reminderAtUtc,
+      assignedToId: assignedToId,
+    );
+    await _refreshDetail(resolvedId);
+    return result;
+  }
+
+  @override
+  Future<void> completeReminder(
+    String customerExternalId,
+    String reminderExternalId,
+  ) async {
+    final resolvedId = await _onlineCustomerId(customerExternalId);
+    await _remote.completeReminder(resolvedId, reminderExternalId);
+    await _refreshDetail(resolvedId);
+  }
+
+  @override
   Future<void> syncPending() {
     final active = _activeSync;
     if (active != null) return active;
@@ -297,6 +337,27 @@ class OfflineFirstCustomerRepository
   Future<String> _resolveExternalId(String externalId) async {
     if (!externalId.startsWith('local:')) return externalId;
     return await _local.serverIdForLocalId(externalId) ?? externalId;
+  }
+
+  Future<String> _onlineCustomerId(String externalId) async {
+    final resolvedId = await _resolveExternalId(externalId);
+    if (resolvedId.startsWith('local:')) {
+      throw const ApiException(
+        message:
+            'Sincroniza el cliente antes de agregar notas o recordatorios.',
+      );
+    }
+    if (!await _network.isConnected) {
+      throw const ApiException(
+        message: 'Necesitas conexión para modificar notas o recordatorios.',
+      );
+    }
+    return resolvedId;
+  }
+
+  Future<void> _refreshDetail(String externalId) async {
+    final refreshed = await _remote.getCustomer(externalId);
+    await _local.cacheDetail(refreshed);
   }
 
   bool _isTransient(ApiException error) {

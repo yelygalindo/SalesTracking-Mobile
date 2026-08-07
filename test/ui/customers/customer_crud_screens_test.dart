@@ -37,6 +37,9 @@ void main() {
     expect(find.text('Ricardo Alarcón'), findsOneWidget);
     expect(find.text('Llamar por cotización'), findsOneWidget);
     expect(find.text('Solicitó una cotización.'), findsOneWidget);
+    expect(find.byTooltip('Nuevo recordatorio'), findsOneWidget);
+    expect(find.byTooltip('Nueva nota'), findsOneWidget);
+    expect(find.byTooltip('Marcar como completado'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -63,6 +66,28 @@ void main() {
 }
 
 class _ScreenCustomerRepository implements CustomerRepository {
+  @override
+  Future<ResourceCreationResult> addNote(
+    String externalId,
+    String text,
+    String clientRequestId,
+  ) async => const ResourceCreationResult(id: 'note-id', message: 'Created');
+
+  @override
+  Future<ResourceCreationResult> addReminder(
+    String externalId, {
+    required String text,
+    required DateTime reminderAtUtc,
+    String? assignedToId,
+  }) async =>
+      const ResourceCreationResult(id: 'reminder-id', message: 'Created');
+
+  @override
+  Future<void> completeReminder(
+    String customerExternalId,
+    String reminderExternalId,
+  ) async {}
+
   @override
   Future<void> changeStatus(String externalId, int statusId) async {}
 

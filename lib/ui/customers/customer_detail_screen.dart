@@ -46,6 +46,82 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
     if (changed == true) await _viewModel.load();
   }
 
+  Future<void> _addNote() async {
+    final text = await _promptText(
+      title: 'Nueva nota',
+      label: 'Nota',
+      actionLabel: 'Guardar nota',
+    );
+    if (text == null || !mounted) return;
+    await _viewModel.addNote(text);
+  }
+
+  Future<void> _addReminder() async {
+    final text = await _promptText(
+      title: 'Nuevo recordatorio',
+      label: '¿Qué necesitas recordar?',
+      actionLabel: 'Elegir fecha',
+    );
+    if (text == null || !mounted) return;
+    final now = DateTime.now();
+    final date = await showDatePicker(
+      context: context,
+      initialDate: now.add(const Duration(days: 1)),
+      firstDate: DateTime(now.year, now.month, now.day),
+      lastDate: DateTime(now.year + 5),
+    );
+    if (date == null || !mounted) return;
+    final time = await showTimePicker(
+      context: context,
+      initialTime: const TimeOfDay(hour: 9, minute: 0),
+    );
+    if (time == null || !mounted) return;
+    final localDateTime = DateTime(
+      date.year,
+      date.month,
+      date.day,
+      time.hour,
+      time.minute,
+    );
+    await _viewModel.addReminder(
+      text: text,
+      reminderAtUtc: localDateTime.toUtc(),
+    );
+  }
+
+  Future<String?> _promptText({
+    required String title,
+    required String label,
+    required String actionLabel,
+  }) async {
+    final controller = TextEditingController();
+    final value = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          minLines: 2,
+          maxLines: 4,
+          decoration: InputDecoration(labelText: label),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, controller.text.trim()),
+            child: Text(actionLabel),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    return value?.isEmpty == true ? null : value;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -74,6 +150,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
               onRetry: _viewModel.load,
             );
           }
+          final pendingSync = customer.externalId.startsWith('local:');
           return LayoutBuilder(
             builder: (context, constraints) {
               final padding = constraints.maxWidth >= 600 ? 32.0 : 20.0;
@@ -90,11 +167,19 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             _ProfileCard(customer: customer),
+                            if (pendingSync) ...[
+                              const SizedBox(height: 12),
+                              const _PendingCustomerNotice(),
+                            ],
                             const SizedBox(height: 12),
                             FilledButton.icon(
-                              onPressed: _edit,
+                              onPressed: pendingSync ? null : _edit,
                               icon: const Icon(Icons.edit_outlined),
-                              label: const Text('Editar cliente'),
+                              label: Text(
+                                pendingSync
+                                    ? 'Disponible al sincronizar'
+                                    : 'Editar cliente',
+                              ),
                             ),
                             const SizedBox(height: 12),
                             _StatusCard(
@@ -111,13 +196,25 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                               count: customer.reminders
                                   .where((reminder) => !reminder.completed)
                                   .length,
+                              onAdd: pendingSync || _viewModel.isBusy
+                                  ? null
+                                  : _addReminder,
+                              addTooltip: 'Nuevo recordatorio',
                             ),
                             const SizedBox(height: 10),
-                            _ReminderList(reminders: customer.reminders),
+                            _ReminderList(
+                              reminders: customer.reminders,
+                              enabled: !pendingSync && !_viewModel.isBusy,
+                              onComplete: _viewModel.completeReminder,
+                            ),
                             const SizedBox(height: 22),
                             _SectionTitle(
                               title: 'Notas',
                               count: customer.notes.length,
+                              onAdd: pendingSync || _viewModel.isBusy
+                                  ? null
+                                  : _addNote,
+                              addTooltip: 'Nueva nota',
                             ),
                             const SizedBox(height: 10),
                             _NoteList(notes: customer.notes),
@@ -297,7 +394,8 @@ class _StatusCard extends StatelessWidget {
                   ? customer.statusId
                   : null,
               hint: Text(customer.status.isEmpty ? 'Estado' : customer.status),
-              onChanged: viewModel.isBusy
+              onChanged:
+                  viewModel.isBusy || customer.externalId.startsWith('local:')
                   ? null
                   : (value) {
                       if (value == null) return;
@@ -323,10 +421,17 @@ class _StatusCard extends StatelessWidget {
 }
 
 class _SectionTitle extends StatelessWidget {
-  const _SectionTitle({required this.title, required this.count});
+  const _SectionTitle({
+    required this.title,
+    required this.count,
+    this.onAdd,
+    this.addTooltip,
+  });
 
   final String title;
   final int count;
+  final VoidCallback? onAdd;
+  final String? addTooltip;
 
   @override
   Widget build(BuildContext context) {
@@ -341,15 +446,29 @@ class _SectionTitle extends StatelessWidget {
           ),
         ),
         Text('$count', style: const TextStyle(color: Color(0xFF6F788A))),
+        if (addTooltip != null) ...[
+          const SizedBox(width: 4),
+          IconButton(
+            tooltip: addTooltip,
+            onPressed: onAdd,
+            icon: const Icon(Icons.add_circle_outline),
+          ),
+        ],
       ],
     );
   }
 }
 
 class _ReminderList extends StatelessWidget {
-  const _ReminderList({required this.reminders});
+  const _ReminderList({
+    required this.reminders,
+    required this.enabled,
+    required this.onComplete,
+  });
 
   final List<CustomerReminder> reminders;
+  final bool enabled;
+  final Future<bool> Function(String reminderExternalId) onComplete;
 
   @override
   Widget build(BuildContext context) {
@@ -369,13 +488,12 @@ class _ReminderList extends StatelessWidget {
             leading: const Icon(Icons.notifications_none),
             title: Text(reminder.text),
             subtitle: Text(_dateTime(reminder.reminderAtUtc)),
-            trailing: const Text(
-              'Pendiente',
-              style: TextStyle(
-                color: Color(0xFF825800),
-                fontSize: 11,
-                fontWeight: FontWeight.w900,
-              ),
+            trailing: IconButton(
+              tooltip: 'Marcar como completado',
+              onPressed: enabled && reminder.externalId != null
+                  ? () => onComplete(reminder.externalId!)
+                  : null,
+              icon: const Icon(Icons.check_circle_outline),
             ),
           ),
         );
@@ -430,6 +548,35 @@ class _EmptySection extends StatelessWidget {
           textAlign: TextAlign.center,
           style: const TextStyle(color: Color(0xFF6F788A)),
         ),
+      ),
+    );
+  }
+}
+
+class _PendingCustomerNotice extends StatelessWidget {
+  const _PendingCustomerNotice();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF7E6),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFF0CF8C)),
+      ),
+      child: const Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.cloud_upload_outlined, color: Color(0xFF825800)),
+          SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Este cliente está guardado en el dispositivo. Podrás editarlo, agregar notas y crear recordatorios después de sincronizarlo.',
+              style: TextStyle(color: Color(0xFF6A4A08)),
+            ),
+          ),
+        ],
       ),
     );
   }

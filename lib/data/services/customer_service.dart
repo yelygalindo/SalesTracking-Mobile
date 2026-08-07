@@ -119,6 +119,60 @@ class CustomerService {
     );
   }
 
+  Future<ResourceCreationResult> addNote(
+    String accessToken,
+    String externalId,
+    String text,
+    String clientRequestId,
+  ) async {
+    final response = await _request(
+      'POST',
+      _baseUrl.resolve(
+        '/api/customers/${Uri.encodeComponent(externalId)}/notes',
+      ),
+      accessToken,
+      payload: {'text': text.trim(), 'clientRequestId': clientRequestId},
+    );
+    return ResourceCreationResult.fromJson(_decodeObject(response.bodyBytes));
+  }
+
+  Future<ResourceCreationResult> addReminder(
+    String accessToken,
+    String externalId, {
+    required String text,
+    required DateTime reminderAtUtc,
+    String? assignedToId,
+  }) async {
+    final response = await _request(
+      'POST',
+      _baseUrl.resolve(
+        '/api/customers/${Uri.encodeComponent(externalId)}/reminders',
+      ),
+      accessToken,
+      payload: {
+        'text': text.trim(),
+        'reminderAtUtc': reminderAtUtc.toUtc().toIso8601String(),
+        'assignedToId': assignedToId,
+      },
+    );
+    return ResourceCreationResult.fromJson(_decodeObject(response.bodyBytes));
+  }
+
+  Future<void> completeReminder(
+    String accessToken,
+    String customerExternalId,
+    String reminderExternalId,
+  ) async {
+    await _request(
+      'PATCH',
+      _baseUrl.resolve(
+        '/api/customers/${Uri.encodeComponent(customerExternalId)}/reminders/'
+        '${Uri.encodeComponent(reminderExternalId)}/complete',
+      ),
+      accessToken,
+    );
+  }
+
   Future<http.Response> _request(
     String method,
     Uri uri,

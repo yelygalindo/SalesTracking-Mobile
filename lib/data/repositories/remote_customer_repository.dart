@@ -67,6 +67,51 @@ class RemoteCustomerRepository implements CustomerRepository {
     await _service.changeStatus(session.accessToken, externalId, statusId);
   }
 
+  @override
+  Future<ResourceCreationResult> addNote(
+    String externalId,
+    String text,
+    String clientRequestId,
+  ) async {
+    final session = await _session();
+    return _service.addNote(
+      session.accessToken,
+      externalId,
+      text,
+      clientRequestId,
+    );
+  }
+
+  @override
+  Future<ResourceCreationResult> addReminder(
+    String externalId, {
+    required String text,
+    required DateTime reminderAtUtc,
+    String? assignedToId,
+  }) async {
+    final session = await _session();
+    return _service.addReminder(
+      session.accessToken,
+      externalId,
+      text: text,
+      reminderAtUtc: reminderAtUtc,
+      assignedToId: assignedToId,
+    );
+  }
+
+  @override
+  Future<void> completeReminder(
+    String customerExternalId,
+    String reminderExternalId,
+  ) async {
+    final session = await _session();
+    await _service.completeReminder(
+      session.accessToken,
+      customerExternalId,
+      reminderExternalId,
+    );
+  }
+
   Future<AuthSession> _session() async {
     final session = await _authRepository.restoreSession();
     if (session == null) {

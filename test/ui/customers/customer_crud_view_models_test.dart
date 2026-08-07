@@ -54,6 +54,32 @@ void main() {
     expect(repository.changedStatusId, 2);
     expect(viewModel.customer?.status, 'Activo');
   });
+
+  test('adds notes, schedules reminders and completes them', () async {
+    final repository = _CrudCustomerRepository();
+    final viewModel = CustomerDetailViewModel(
+      repository,
+      'customer-id',
+      requestId: () => 'note-request-id',
+    );
+    await viewModel.load();
+    final reminderAt = DateTime.utc(2026, 8, 10, 14, 30);
+
+    expect(await viewModel.addNote('Seguimiento realizado'), isTrue);
+    expect(
+      await viewModel.addReminder(
+        text: 'Llamar al cliente',
+        reminderAtUtc: reminderAt,
+      ),
+      isTrue,
+    );
+    expect(await viewModel.completeReminder('reminder-id'), isTrue);
+
+    expect(repository.noteText, 'Seguimiento realizado');
+    expect(repository.noteRequestId, 'note-request-id');
+    expect(repository.reminderAtUtc, reminderAt);
+    expect(repository.completedReminderId, 'reminder-id');
+  });
 }
 
 class _CrudCustomerRepository implements CustomerRepository {
@@ -61,6 +87,40 @@ class _CrudCustomerRepository implements CustomerRepository {
   String? createdRequestId;
   int currentStatusId = 1;
   int? changedStatusId;
+  String? noteText;
+  String? noteRequestId;
+  DateTime? reminderAtUtc;
+  String? completedReminderId;
+
+  @override
+  Future<ResourceCreationResult> addNote(
+    String externalId,
+    String text,
+    String clientRequestId,
+  ) async {
+    noteText = text;
+    noteRequestId = clientRequestId;
+    return const ResourceCreationResult(id: 'note-id', message: 'Created');
+  }
+
+  @override
+  Future<ResourceCreationResult> addReminder(
+    String externalId, {
+    required String text,
+    required DateTime reminderAtUtc,
+    String? assignedToId,
+  }) async {
+    this.reminderAtUtc = reminderAtUtc;
+    return const ResourceCreationResult(id: 'reminder-id', message: 'Created');
+  }
+
+  @override
+  Future<void> completeReminder(
+    String customerExternalId,
+    String reminderExternalId,
+  ) async {
+    completedReminderId = reminderExternalId;
+  }
 
   @override
   Future<void> changeStatus(String externalId, int statusId) async {

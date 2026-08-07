@@ -200,4 +200,59 @@ void main() {
     expect(requests[2].url.path, '/api/customers/customer-id/status');
     expect(jsonDecode(requests[2].body), {'statusId': 3});
   });
+
+  test('sends note and reminder activity contracts', () async {
+    final requests = <http.Request>[];
+    final service = CustomerService(
+      Uri.parse('https://api.example.test'),
+      MockClient((request) async {
+        requests.add(request);
+        if (request.method == 'POST') {
+          return http.Response(
+            jsonEncode({'id': 'activity-id', 'message': 'Created'}),
+            201,
+          );
+        }
+        return http.Response(jsonEncode({'message': 'Completed'}), 200);
+      }),
+    );
+
+    await service.addNote(
+      'access-token',
+      'customer/id',
+      'Seguimiento realizado',
+      'note-request-id',
+    );
+    await service.addReminder(
+      'access-token',
+      'customer/id',
+      text: 'Llamar al cliente',
+      reminderAtUtc: DateTime.utc(2026, 8, 10, 14, 30),
+    );
+    await service.completeReminder(
+      'access-token',
+      'customer/id',
+      'reminder/id',
+    );
+
+    expect(requests.map((request) => request.method), [
+      'POST',
+      'POST',
+      'PATCH',
+    ]);
+    expect(requests[0].url.path, '/api/customers/customer%2Fid/notes');
+    expect(jsonDecode(requests[0].body), {
+      'text': 'Seguimiento realizado',
+      'clientRequestId': 'note-request-id',
+    });
+    expect(jsonDecode(requests[1].body), {
+      'text': 'Llamar al cliente',
+      'reminderAtUtc': '2026-08-10T14:30:00.000Z',
+      'assignedToId': null,
+    });
+    expect(
+      requests[2].url.path,
+      '/api/customers/customer%2Fid/reminders/reminder%2Fid/complete',
+    );
+  });
 }
