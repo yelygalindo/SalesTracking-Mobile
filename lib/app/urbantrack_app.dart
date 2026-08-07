@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../config/app_environment.dart';
 import '../data/repositories/auth_repository.dart';
-import '../ui/auth/auth_shell.dart';
+import '../routing/app_router.dart';
 import '../ui/auth/auth_view_model.dart';
 import '../ui/core/branding/brand_config.dart';
 import '../ui/core/branding/brand_scope.dart';
@@ -22,49 +23,53 @@ class UrbanTrackApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _AuthViewModelHost(
+    return _AppHost(
       authRepository: authRepository,
-      builder: (authViewModel) => BrandScope(
+      builder: (router) => BrandScope(
         brand: brand,
-        child: MaterialApp(
+        child: MaterialApp.router(
           debugShowCheckedModeBanner: false,
           title: brand.appName,
           theme: AppTheme.light(brand),
-          home: AuthShell(viewModel: authViewModel),
+          routerConfig: router,
         ),
       ),
     );
   }
 }
 
-class _AuthViewModelHost extends StatefulWidget {
-  const _AuthViewModelHost({
-    required this.authRepository,
-    required this.builder,
-  });
+class _AppHost extends StatefulWidget {
+  const _AppHost({required this.authRepository, required this.builder});
 
   final AuthRepository authRepository;
-  final Widget Function(AuthViewModel viewModel) builder;
+  final Widget Function(GoRouter router) builder;
 
   @override
-  State<_AuthViewModelHost> createState() => _AuthViewModelHostState();
+  State<_AppHost> createState() => _AppHostState();
 }
 
-class _AuthViewModelHostState extends State<_AuthViewModelHost> {
-  late final AuthViewModel _viewModel;
+class _AppHostState extends State<_AppHost> {
+  late final AuthViewModel _authViewModel;
+  late final GoRouter _router;
 
   @override
   void initState() {
     super.initState();
-    _viewModel = AuthViewModel(widget.authRepository)..restoreSession();
+    _authViewModel = AuthViewModel(widget.authRepository);
+    _router = AppRouter.create(
+      authViewModel: _authViewModel,
+      authRepository: widget.authRepository,
+    );
+    _authViewModel.restoreSession();
   }
 
   @override
   void dispose() {
-    _viewModel.dispose();
+    _router.dispose();
+    _authViewModel.dispose();
     super.dispose();
   }
 
   @override
-  Widget build(BuildContext context) => widget.builder(_viewModel);
+  Widget build(BuildContext context) => widget.builder(_router);
 }

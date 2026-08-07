@@ -76,6 +76,31 @@ void main() {
       expect(storage.session?.accessToken, 'rotated-access-token');
     },
   );
+
+  test('password recovery trims user-provided email and token', () async {
+    final requests = <Map<String, dynamic>>[];
+    final repository = RemoteAuthRepository(
+      AuthService(
+        Uri.parse('https://api.example.test'),
+        MockClient((request) async {
+          requests.add(jsonDecode(request.body) as Map<String, dynamic>);
+          return http.Response(jsonEncode({'message': 'Done.'}), 200);
+        }),
+      ),
+      _MemorySessionStorage(),
+      'android',
+    );
+
+    await repository.forgotPassword('  seller@example.test  ');
+    await repository.resetPassword(
+      token: '  reset-token  ',
+      newPassword: 'new-password',
+      confirmPassword: 'new-password',
+    );
+
+    expect(requests[0], {'email': 'seller@example.test'});
+    expect(requests[1]['token'], 'reset-token');
+  });
 }
 
 String _loginResponse() => jsonEncode({

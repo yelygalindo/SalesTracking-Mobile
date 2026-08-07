@@ -1,5 +1,7 @@
 import '../models/auth/auth_session.dart';
+import '../models/auth/forgot_password_request.dart';
 import '../models/auth/login_request.dart';
+import '../models/auth/reset_password_request.dart';
 import '../services/api_exception.dart';
 import '../services/auth_service.dart';
 import '../storage/session_storage.dart';
@@ -58,6 +60,28 @@ class RemoteAuthRepository implements AuthRepository {
       // will refresh the token once connectivity returns.
       return stored;
     }
+  }
+
+  @override
+  Future<String> forgotPassword(String email) {
+    return _authService.forgotPassword(
+      ForgotPasswordRequest(email: email.trim()),
+    );
+  }
+
+  @override
+  Future<String> resetPassword({
+    required String token,
+    required String newPassword,
+    required String confirmPassword,
+  }) {
+    return _authService.resetPassword(
+      ResetPasswordRequest(
+        token: token.trim(),
+        newPassword: newPassword,
+        confirmPassword: confirmPassword,
+      ),
+    );
   }
 
   @override

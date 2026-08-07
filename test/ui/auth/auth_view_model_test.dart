@@ -55,6 +55,9 @@ class _FakeAuthRepository implements AuthRepository {
   final Object? loginError;
 
   @override
+  Future<String> forgotPassword(String email) async => 'Instructions sent.';
+
+  @override
   Future<AuthSession?> restoreSession() async => session;
 
   @override
@@ -63,6 +66,13 @@ class _FakeAuthRepository implements AuthRepository {
     if (error != null) return Future.error(error);
     return Future.value(session ?? _session());
   }
+
+  @override
+  Future<String> resetPassword({
+    required String token,
+    required String newPassword,
+    required String confirmPassword,
+  }) async => 'Password updated.';
 
   @override
   Future<void> logout(AuthSession session) async {}

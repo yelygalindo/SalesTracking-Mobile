@@ -45,6 +45,10 @@ No se deben versionar usuarios, contraseñas, tokens, certificados ni llaves de 
 - Login conectado a `/api/auth/login` con manejo de errores.
 - Sesión y token de actualización almacenados de forma segura.
 - Restauración, rotación de tokens y cierre de sesión implementados.
+- Solicitud y confirmación de restablecimiento de contraseña implementadas.
+- Navegación declarativa preparada para `/reset-password?token=...`.
 - Pruebas de modelos, servicio REST, repositorio, view model y pantalla inicial.
 
-Los flujos de recuperación de contraseña, jornada y módulos comerciales se implementarán en los siguientes hitos.
+La activación de enlaces HTTPS desde el correo requiere configurar los archivos de asociación de Android/iOS en `urbantrack.io` cuando estén disponibles las cuentas y certificados de publicación. Mientras tanto, el token puede pegarse manualmente en la aplicación.
+
+Los flujos de jornada y módulos comerciales se implementarán en los siguientes hitos.

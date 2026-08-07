@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../routing/app_router.dart';
 import '../../core/branding/brand_scope.dart';
 import '../auth_view_model.dart';
 
@@ -136,7 +138,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
-                        onPressed: isLoading ? null : () {},
+                        onPressed: isLoading
+                            ? null
+                            : () => context.push(AppRoutes.forgotPassword),
                         child: const Text('¿Olvidaste tu contraseña?'),
                       ),
                     ),

@@ -5,8 +5,11 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 
 import '../models/auth/auth_session.dart';
+import '../models/auth/auth_message_response.dart';
+import '../models/auth/forgot_password_request.dart';
 import '../models/auth/login_request.dart';
 import '../models/auth/refresh_tokens.dart';
+import '../models/auth/reset_password_request.dart';
 import 'api_exception.dart';
 
 class AuthService {
@@ -30,6 +33,21 @@ class AuthService {
       'refreshToken': refreshToken,
     });
     return RefreshTokens.fromJson(_decodeObject(response.bodyBytes));
+  }
+
+  Future<String> forgotPassword(ForgotPasswordRequest request) async {
+    await _post('/api/auth/forgot-password', request.toJson());
+    return 'Si el correo está registrado, recibirás instrucciones para restablecer tu contraseña.';
+  }
+
+  Future<String> resetPassword(ResetPasswordRequest request) async {
+    final response = await _post('/api/auth/reset-password', request.toJson());
+    final result = AuthMessageResponse.fromJson(
+      _decodeObject(response.bodyBytes),
+    );
+    return result.message?.trim().isNotEmpty == true
+        ? result.message!.trim()
+        : 'Tu contraseña fue actualizada correctamente.';
   }
 
   Future<void> logout({

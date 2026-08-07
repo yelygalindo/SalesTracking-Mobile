@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:urbantrack/data/models/auth/forgot_password_request.dart';
 import 'package:urbantrack/data/models/auth/login_request.dart';
+import 'package:urbantrack/data/models/auth/reset_password_request.dart';
 import 'package:urbantrack/data/services/api_exception.dart';
 import 'package:urbantrack/data/services/auth_service.dart';
 
@@ -76,5 +78,53 @@ void main() {
             ),
       ),
     );
+  });
+
+  test('forgot password sends the documented email payload', () async {
+    final service = AuthService(
+      Uri.parse('https://api.example.test'),
+      MockClient((request) async {
+        expect(request.url.path, '/api/auth/forgot-password');
+        expect(jsonDecode(request.body), {'email': 'seller@example.test'});
+        return http.Response(
+          jsonEncode({'message': 'Instructions sent.'}),
+          200,
+        );
+      }),
+    );
+
+    final message = await service.forgotPassword(
+      const ForgotPasswordRequest(email: 'seller@example.test'),
+    );
+
+    expect(
+      message,
+      'Si el correo está registrado, recibirás instrucciones para restablecer tu contraseña.',
+    );
+  });
+
+  test('reset password sends token and matching passwords', () async {
+    final service = AuthService(
+      Uri.parse('https://api.example.test'),
+      MockClient((request) async {
+        expect(request.url.path, '/api/auth/reset-password');
+        expect(jsonDecode(request.body), {
+          'token': 'reset-token',
+          'newPassword': 'new-password',
+          'confirmPassword': 'new-password',
+        });
+        return http.Response(jsonEncode({'message': 'Password updated.'}), 200);
+      }),
+    );
+
+    final message = await service.resetPassword(
+      const ResetPasswordRequest(
+        token: 'reset-token',
+        newPassword: 'new-password',
+        confirmPassword: 'new-password',
+      ),
+    );
+
+    expect(message, 'Password updated.');
   });
 }
