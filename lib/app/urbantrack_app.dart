@@ -5,16 +5,18 @@ import 'package:go_router/go_router.dart';
 
 import '../config/app_environment.dart';
 import '../data/repositories/auth_repository.dart';
+import '../data/repositories/sync_repository.dart';
 import '../data/repositories/workday_repository.dart';
-import '../data/services/location_service.dart';
 import '../data/services/connectivity_sync_coordinator.dart';
+import '../data/services/location_service.dart';
 import '../data/services/network_status_service.dart';
 import '../routing/app_router.dart';
 import '../ui/auth/auth_view_model.dart';
-import '../ui/workday/workday_view_model.dart';
 import '../ui/core/branding/brand_config.dart';
 import '../ui/core/branding/brand_scope.dart';
 import '../ui/core/theme/app_theme.dart';
+import '../ui/sync/sync_view_model.dart';
+import '../ui/workday/workday_view_model.dart';
 
 class UrbanTrackApp extends StatelessWidget {
   const UrbanTrackApp({
@@ -24,6 +26,7 @@ class UrbanTrackApp extends StatelessWidget {
     required this.workdayRepository,
     required this.locationService,
     required this.networkStatusService,
+    required this.syncRepository,
     super.key,
   });
 
@@ -33,6 +36,7 @@ class UrbanTrackApp extends StatelessWidget {
   final WorkdayRepository workdayRepository;
   final LocationService locationService;
   final NetworkStatusService networkStatusService;
+  final SyncRepository syncRepository;
 
   @override
   Widget build(BuildContext context) {
@@ -41,6 +45,7 @@ class UrbanTrackApp extends StatelessWidget {
       workdayRepository: workdayRepository,
       locationService: locationService,
       networkStatusService: networkStatusService,
+      syncRepository: syncRepository,
       builder: (router) => BrandScope(
         brand: brand,
         child: MaterialApp.router(
@@ -60,6 +65,7 @@ class _AppHost extends StatefulWidget {
     required this.workdayRepository,
     required this.locationService,
     required this.networkStatusService,
+    required this.syncRepository,
     required this.builder,
   });
 
@@ -67,6 +73,7 @@ class _AppHost extends StatefulWidget {
   final WorkdayRepository workdayRepository;
   final LocationService locationService;
   final NetworkStatusService networkStatusService;
+  final SyncRepository syncRepository;
   final Widget Function(GoRouter router) builder;
 
   @override
@@ -76,6 +83,7 @@ class _AppHost extends StatefulWidget {
 class _AppHostState extends State<_AppHost> {
   late final AuthViewModel _authViewModel;
   late final WorkdayViewModel _workdayViewModel;
+  late final SyncViewModel _syncViewModel;
   late final ConnectivitySyncCoordinator _syncCoordinator;
   late final GoRouter _router;
 
@@ -87,15 +95,24 @@ class _AppHostState extends State<_AppHost> {
       widget.workdayRepository,
       widget.locationService,
     );
+    _syncViewModel = SyncViewModel(
+      widget.syncRepository,
+      widget.networkStatusService,
+    );
+    unawaited(_syncViewModel.initialize());
     _syncCoordinator = ConnectivitySyncCoordinator(
       widget.networkStatusService,
       widget.workdayRepository,
-      onSynced: _workdayViewModel.loadCurrent,
+      onSynced: () async {
+        await _workdayViewModel.loadCurrent();
+        await _syncViewModel.load();
+      },
     )..start();
     _router = AppRouter.create(
       authViewModel: _authViewModel,
       authRepository: widget.authRepository,
       workdayViewModel: _workdayViewModel,
+      syncViewModel: _syncViewModel,
     );
     _authViewModel.restoreSession();
   }
@@ -104,6 +121,7 @@ class _AppHostState extends State<_AppHost> {
   void dispose() {
     unawaited(_syncCoordinator.dispose());
     _router.dispose();
+    _syncViewModel.dispose();
     _workdayViewModel.dispose();
     _authViewModel.dispose();
     super.dispose();

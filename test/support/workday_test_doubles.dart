@@ -1,7 +1,9 @@
 import 'package:urbantrack/data/models/common/location_sample.dart';
+import 'package:urbantrack/data/models/sync/sync_queue_entry.dart';
 import 'package:urbantrack/data/models/workday/current_workday_response.dart';
 import 'package:urbantrack/data/models/workday/workday.dart';
 import 'package:urbantrack/data/repositories/workday_repository.dart';
+import 'package:urbantrack/data/repositories/sync_repository.dart';
 import 'package:urbantrack/data/services/location_service.dart';
 import 'package:urbantrack/data/services/network_status_service.dart';
 
@@ -52,4 +54,12 @@ class DisconnectedNetworkStatusService implements NetworkStatusService {
 
   @override
   Stream<bool> get changes => const Stream.empty();
+}
+
+class EmptySyncRepository implements SyncRepository {
+  @override
+  Future<List<SyncQueueEntry>> getPending() async => const [];
+
+  @override
+  Future<void> synchronize() async {}
 }

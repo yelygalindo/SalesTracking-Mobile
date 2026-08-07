@@ -10,6 +10,7 @@ import 'data/repositories/remote_auth_repository.dart';
 import 'data/repositories/offline_first_workday_repository.dart';
 import 'data/repositories/remote_workday_repository.dart';
 import 'data/repositories/sqflite_workday_local_store.dart';
+import 'data/repositories/workday_sync_repository.dart';
 import 'data/services/connectivity_network_status_service.dart';
 import 'data/services/geolocator_location_service.dart';
 import 'data/services/auth_service.dart';
@@ -32,10 +33,15 @@ void main() {
     WorkdayService(Uri.parse(environment.apiBaseUrl), http.Client()),
     authRepository,
   );
+  final workdayLocalStore = SqfliteWorkdayLocalStore();
   final workdayRepository = OfflineFirstWorkdayRepository(
     remoteWorkdayRepository,
-    SqfliteWorkdayLocalStore(),
+    workdayLocalStore,
     networkStatusService,
+  );
+  final syncRepository = WorkdaySyncRepository(
+    workdayLocalStore,
+    workdayRepository,
   );
 
   runApp(
@@ -46,6 +52,7 @@ void main() {
       workdayRepository: workdayRepository,
       locationService: const GeolocatorLocationService(),
       networkStatusService: networkStatusService,
+      syncRepository: syncRepository,
     ),
   );
 }

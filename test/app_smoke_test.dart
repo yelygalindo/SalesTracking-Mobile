@@ -17,6 +17,7 @@ void main() {
         workdayRepository: InactiveWorkdayRepository(),
         locationService: FixedLocationService(),
         networkStatusService: DisconnectedNetworkStatusService(),
+        syncRepository: EmptySyncRepository(),
       ),
     );
     await tester.pumpAndSettle();
@@ -36,6 +37,7 @@ void main() {
         workdayRepository: InactiveWorkdayRepository(),
         locationService: FixedLocationService(),
         networkStatusService: DisconnectedNetworkStatusService(),
+        syncRepository: EmptySyncRepository(),
       ),
     );
     await tester.pumpAndSettle();

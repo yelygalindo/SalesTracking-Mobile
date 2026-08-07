@@ -125,7 +125,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             ],
                             if (viewModel.hasPendingSync) ...[
                               const SizedBox(height: 16),
-                              _SyncBanner(count: viewModel.pendingCount),
+                              _SyncBanner(
+                                count: viewModel.pendingCount,
+                                onTap: () => context.push(AppRoutes.sync),
+                              ),
                             ],
                             const SizedBox(height: 20),
                             if (viewModel.status == WorkdayStatus.loading)
@@ -244,36 +247,45 @@ class _ClosedWorkdayCard extends StatelessWidget {
 }
 
 class _SyncBanner extends StatelessWidget {
-  const _SyncBanner({required this.count});
+  const _SyncBanner({required this.count, required this.onTap});
 
   final int count;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final noun = count == 1 ? 'operación guardada' : 'operaciones guardadas';
     final verb = count == 1 ? 'enviará' : 'enviarán';
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFF7E6),
+    return Material(
+      color: const Color(0xFFFFF7E6),
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFF0CF8C)),
+        side: const BorderSide(color: Color(0xFFF0CF8C)),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Icon(Icons.cloud_upload_outlined, color: Color(0xFF8A5B00)),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              '$count $noun. Se $verb automáticamente al recuperar conexión.',
-              style: const TextStyle(
-                color: Color(0xFF6B4800),
-                fontWeight: FontWeight.w700,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(Icons.cloud_upload_outlined, color: Color(0xFF8A5B00)),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  '$count $noun. Se $verb automáticamente al recuperar conexión.',
+                  style: const TextStyle(
+                    color: Color(0xFF6B4800),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ),
-            ),
+              const SizedBox(width: 6),
+              const Icon(Icons.chevron_right, color: Color(0xFF8A5B00)),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
