@@ -55,6 +55,8 @@ El workflow manual `.github/workflows/ios-compile.yml` compila una aplicación p
 
 No se ejecuta con cada push para evitar consumo accidental. En repositorios privados, los runners macOS usan la cuota incluida de GitHub Actions y el uso adicional tiene una tarifa mayor que Linux; se debe revisar el consumo antes de lanzarlo. El artefacto confirma que el proyecto compila para iOS, pero no se instala en un iPhone físico. Para probar en el iPhone y distribuir con TestFlight todavía se requieren la membresía Apple Developer, certificados y perfiles de aprovisionamiento.
 
+El workflow usa `macos-26` porque la versión actual de `connectivity_plus` compila contra APIs recientes de `Network.framework`. Un runner con un SDK de Xcode anterior puede fallar aunque el código Dart y las pruebas sean correctos.
+
 Identificadores actuales:
 
 - Android: `io.urbantrack.app`
