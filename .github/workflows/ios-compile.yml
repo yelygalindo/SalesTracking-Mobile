@@ -1,0 +1,59 @@
+name: iOS compile check
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-compile-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-ios-simulator:
+    name: Build iOS simulator app
+    runs-on: macos-15
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install Flutter 3.44.9
+        shell: bash
+        run: |
+          git clone \
+            --branch 3.44.9 \
+            --depth 1 \
+            https://github.com/flutter/flutter.git \
+            "$RUNNER_TEMP/flutter"
+          echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
+
+      - name: Resolve dependencies
+        run: |
+          flutter --version
+          flutter pub get
+
+      - name: Analyze and test
+        run: |
+          flutter analyze
+          flutter test
+
+      - name: Compile iOS simulator app
+        run: flutter build ios --debug --simulator
+
+      - name: Package simulator artifact
+        shell: bash
+        run: |
+          ditto -c -k --sequesterRsrc --keepParent \
+            build/ios/iphonesimulator/Runner.app \
+            urbantrack-ios-simulator.zip
+
+      - name: Upload simulator artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: urbantrack-ios-simulator
+          path: urbantrack-ios-simulator.zip
+          if-no-files-found: error
+          retention-days: 7

@@ -36,6 +36,17 @@ flutter build ios --release --no-codesign
 
 Para firmar y distribuir iOS se requiere configurar el equipo de Apple Developer en Xcode. Para publicar Android se debe proporcionar un keystore de producción y su configuración local; esos secretos no deben subirse al repositorio.
 
+### Comprobación iOS sin Mac local
+
+El workflow manual `.github/workflows/ios-compile.yml` compila una aplicación para el simulador iOS en un runner macOS:
+
+1. Abrir **Actions** en GitHub.
+2. Seleccionar **iOS compile check**.
+3. Pulsar **Run workflow**.
+4. Descargar el artefacto `urbantrack-ios-simulator` al finalizar.
+
+No se ejecuta con cada push para evitar consumo accidental. En repositorios privados, los runners macOS usan la cuota incluida de GitHub Actions y el uso adicional tiene una tarifa mayor que Linux; se debe revisar el consumo antes de lanzarlo. El artefacto confirma que el proyecto compila para iOS, pero no se instala en un iPhone físico. Para probar en el iPhone y distribuir con TestFlight todavía se requieren la membresía Apple Developer, certificados y perfiles de aprovisionamiento.
+
 Identificadores actuales:
 
 - Android: `io.urbantrack.app`
