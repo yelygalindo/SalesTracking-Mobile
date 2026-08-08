@@ -2,6 +2,7 @@ import '../models/auth/auth_session.dart';
 import '../models/project/project_detail.dart';
 import '../models/project/project_input.dart';
 import '../models/project/project_page.dart';
+import '../models/project/project_status.dart';
 import '../services/api_exception.dart';
 import '../services/project_service.dart';
 import 'auth_repository.dart';
@@ -36,6 +37,12 @@ class RemoteProjectRepository implements ProjectRepository {
   Future<ProjectDetail> getProject(String externalId) async {
     final session = await _session();
     return _service.getProject(session.accessToken, externalId);
+  }
+
+  @override
+  Future<List<ProjectStatus>> getStatuses() async {
+    final session = await _session();
+    return _service.getStatuses(session.accessToken);
   }
 
   @override

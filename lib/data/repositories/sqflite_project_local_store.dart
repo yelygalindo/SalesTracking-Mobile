@@ -5,6 +5,7 @@ import 'package:sqflite/sqflite.dart';
 import '../models/project/project_detail.dart';
 import '../models/project/project_page.dart';
 import '../models/project/project_summary.dart';
+import '../models/project/project_status.dart';
 import '../storage/app_database.dart';
 import 'project_local_store.dart';
 
@@ -119,6 +120,39 @@ class SqfliteProjectLocalStore implements ProjectLocalStore {
     return decoded is Map<String, dynamic>
         ? ProjectDetail.fromJson(decoded)
         : null;
+  }
+
+  @override
+  Future<void> cacheStatuses(List<ProjectStatus> statuses) async {
+    final database = await _database;
+    await database.transaction((transaction) async {
+      await transaction.delete('project_status_cache');
+      for (final status in statuses) {
+        await transaction.insert('project_status_cache', {
+          'value': status.value,
+          'payload': jsonEncode(status.toJson()),
+        });
+      }
+    });
+  }
+
+  @override
+  Future<List<ProjectStatus>> readStatuses() async {
+    final database = await _database;
+    final rows = await database.query(
+      'project_status_cache',
+      columns: ['payload'],
+      orderBy: 'value ASC',
+    );
+    return rows
+        .map((row) {
+          final decoded = jsonDecode(row['payload'] as String);
+          if (decoded is! Map<String, dynamic>) {
+            throw const FormatException('Invalid project status payload.');
+          }
+          return ProjectStatus.fromJson(decoded);
+        })
+        .toList(growable: false);
   }
 
   ProjectSummary _summary(String encoded) {

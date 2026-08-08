@@ -7,6 +7,35 @@ import 'package:urbantrack/data/models/project/project_input.dart';
 import 'package:urbantrack/data/services/project_service.dart';
 
 void main() {
+  test('lists the project status catalog', () async {
+    final service = ProjectService(
+      Uri.parse('https://api.example.test'),
+      MockClient((request) async {
+        expect(request.method, 'GET');
+        expect(request.url.path, '/api/projects/statuses');
+        expect(request.headers['Authorization'], 'Bearer access-token');
+        return http.Response(
+          jsonEncode([
+            {'value': 1, 'label': 'Borrador'},
+            {'value': 2, 'label': 'Activo'},
+            {'value': 3, 'label': 'En pausa'},
+            {'value': 4, 'label': 'Completado'},
+            {'value': 5, 'label': 'Cancelado'},
+          ]),
+          200,
+          headers: {'content-type': 'application/json; charset=utf-8'},
+        );
+      }),
+    );
+
+    final statuses = await service.getStatuses('access-token');
+
+    expect(statuses, hasLength(5));
+    expect(statuses.first.value, 1);
+    expect(statuses.first.label, 'Borrador');
+    expect(statuses.last.label, 'Cancelado');
+  });
+
   test('lists projects using the documented pagination envelope', () async {
     final service = ProjectService(
       Uri.parse('https://api.example.test'),
@@ -14,7 +43,7 @@ void main() {
         expect(request.method, 'GET');
         expect(request.url.path, '/api/projects');
         expect(request.url.queryParameters, {
-          'status': 'Activa',
+          'status': 'Activo',
           'customerId': 'customer-id',
           'sellerId': 'seller-id',
           'page': '2',
@@ -38,7 +67,7 @@ void main() {
 
     final page = await service.getProjects(
       'access-token',
-      status: 'Activa',
+      status: 'Activo',
       customerId: 'customer-id',
       sellerId: 'seller-id',
       page: 2,
@@ -108,7 +137,7 @@ final _projectJson = {
   'customerName': 'Constructora Horizonte',
   'sellerExternalId': 'seller-id',
   'sellerName': 'Carlos Gómez',
-  'status': 'Activa',
+  'status': 'Activo',
   'estimatedAmount': 185000.0,
   'startDateUtc': '2026-08-01T00:00:00Z',
   'expectedCloseDateUtc': '2026-10-30T00:00:00Z',

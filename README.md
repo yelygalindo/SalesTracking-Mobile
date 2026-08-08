@@ -106,6 +106,6 @@ La marca está desacoplada en `lib/ui/core/branding`. UrbanTrack es la distribuc
 
 ## Consideraciones actuales de la API
 
-- El Swagger expone `PATCH /api/projects/{externalId}/status` con un `statusId` numérico, pero no publica un catálogo equivalente a `/api/customers/statuses`. La app puede filtrar los estados de obra definidos por producto; el cambio de estado se habilitará cuando el backend entregue los IDs o un endpoint de catálogo.
-- El usuario vendedor de pruebas recibe `403` al consultar su propio `/api/sellers/{sellerExternalId}/timeline`. La app usa automáticamente `/api/visits` como respaldo para mantener visible el historial de visitas. Cuando el backend habilite el permiso del timeline, se mostrarán además los demás tipos de actividad sin cambios en el cliente.
+- La app obtiene los estados de obra desde `GET /api/projects/statuses`, los conserva localmente para consulta sin conexión y utiliza sus IDs al invocar `PATCH /api/projects/{externalId}/status`.
+- El historial personal consume `/api/sellers/{sellerExternalId}/timeline`. Se conserva `/api/visits` como respaldo de compatibilidad ante fallos transitorios o despliegues anteriores de la API.
 - La activación de enlaces HTTPS desde correos de recuperación requiere publicar los archivos de asociación de Android/iOS en `urbantrack.io`. Mientras tanto, el token se puede pegar manualmente en la pantalla de restablecimiento.

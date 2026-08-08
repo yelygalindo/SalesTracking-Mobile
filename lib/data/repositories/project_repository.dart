@@ -1,6 +1,7 @@
 import '../models/project/project_detail.dart';
 import '../models/project/project_input.dart';
 import '../models/project/project_page.dart';
+import '../models/project/project_status.dart';
 
 abstract interface class ProjectRepository {
   Future<ProjectPage> getProjects({
@@ -12,6 +13,8 @@ abstract interface class ProjectRepository {
   });
 
   Future<ProjectDetail> getProject(String externalId);
+
+  Future<List<ProjectStatus>> getStatuses();
 
   Future<ProjectDetail> createProject(
     ProjectInput input,

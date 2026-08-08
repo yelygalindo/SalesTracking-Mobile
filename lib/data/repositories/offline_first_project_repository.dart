@@ -1,6 +1,7 @@
 import '../models/project/project_detail.dart';
 import '../models/project/project_input.dart';
 import '../models/project/project_page.dart';
+import '../models/project/project_status.dart';
 import '../services/api_exception.dart';
 import '../services/network_status_service.dart';
 import 'project_local_store.dart';
@@ -61,6 +62,20 @@ class OfflineFirstProjectRepository implements ProjectRepository {
     throw const ApiException(
       message: 'Esta obra todavía no está disponible sin conexión.',
     );
+  }
+
+  @override
+  Future<List<ProjectStatus>> getStatuses() async {
+    if (await _network.isConnected) {
+      try {
+        final statuses = await _remote.getStatuses();
+        await _local.cacheStatuses(statuses);
+        return statuses;
+      } on ApiException catch (error) {
+        if (!_isTransient(error)) rethrow;
+      }
+    }
+    return _local.readStatuses();
   }
 
   @override

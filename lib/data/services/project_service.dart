@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import '../models/project/project_detail.dart';
 import '../models/project/project_input.dart';
 import '../models/project/project_page.dart';
+import '../models/project/project_status.dart';
 import 'api_exception.dart';
 
 class ProjectService {
@@ -55,6 +56,25 @@ class ProjectService {
       accessToken,
     );
     return ProjectDetail.fromJson(_decodeObject(response.bodyBytes));
+  }
+
+  Future<List<ProjectStatus>> getStatuses(String accessToken) async {
+    final response = await _request(
+      'GET',
+      _baseUrl.resolve('/api/projects/statuses'),
+      accessToken,
+    );
+    final decoded = _decode(response.bodyBytes);
+    if (decoded is List) {
+      return decoded
+          .whereType<Map<String, dynamic>>()
+          .map(ProjectStatus.fromJson)
+          .where((status) => status.value > 0 && status.label.isNotEmpty)
+          .toList(growable: false);
+    }
+    throw const ApiException(
+      message: 'El servidor devolvió estados de obra no válidos.',
+    );
   }
 
   Future<ProjectDetail> createProject(
@@ -147,15 +167,21 @@ class ProjectService {
   }
 
   Map<String, dynamic> _decodeObject(List<int> bytes) {
-    try {
-      final decoded = jsonDecode(utf8.decode(bytes));
-      if (decoded is Map<String, dynamic>) return decoded;
-    } on FormatException {
-      // Mapped below to a stable domain error.
-    }
+    final decoded = _decode(bytes);
+    if (decoded is Map<String, dynamic>) return decoded;
     throw const ApiException(
       message: 'El servidor devolvió una respuesta de obras no válida.',
     );
+  }
+
+  Object? _decode(List<int> bytes) {
+    try {
+      return jsonDecode(utf8.decode(bytes));
+    } on FormatException {
+      throw const ApiException(
+        message: 'El servidor devolvió una respuesta de obras no válida.',
+      );
+    }
   }
 
   String _errorMessage(int statusCode, List<int> bytes) {

@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 
 import '../../data/models/customer/customer_summary.dart';
 import '../../data/models/project/project_summary.dart';
+import '../../data/models/project/project_status.dart';
 import '../../data/repositories/customer_repository.dart';
 import '../../data/repositories/project_repository.dart';
 import '../../data/services/api_exception.dart';
@@ -18,6 +19,7 @@ class ProjectListViewModel extends ChangeNotifier {
   ProjectListViewStatus _status = ProjectListViewStatus.initial;
   List<ProjectSummary> _items = const [];
   List<CustomerSummary> _customerOptions = const [];
+  List<ProjectStatus> _statusOptions = const [];
   String? _selectedStatus;
   String? _selectedCustomerId;
   String? _errorMessage;
@@ -28,6 +30,7 @@ class ProjectListViewModel extends ChangeNotifier {
   ProjectListViewStatus get status => _status;
   List<ProjectSummary> get items => _items;
   List<CustomerSummary> get customerOptions => _customerOptions;
+  List<ProjectStatus> get statusOptions => _statusOptions;
   String? get selectedStatus => _selectedStatus;
   String? get selectedCustomerId => _selectedCustomerId;
   String? get errorMessage => _errorMessage;
@@ -42,8 +45,12 @@ class ProjectListViewModel extends ChangeNotifier {
         .getCustomers(pageSize: 100)
         .then((page) => page.customers)
         .catchError((_) => <CustomerSummary>[]);
+    final statusesFuture = _projects.getStatuses().catchError(
+      (_) => <ProjectStatus>[],
+    );
     await refresh();
     _customerOptions = await customersFuture;
+    _statusOptions = await statusesFuture;
     notifyListeners();
   }
 

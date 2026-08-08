@@ -111,7 +111,6 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
 class _ProjectFilters extends StatelessWidget {
   const _ProjectFilters({required this.viewModel});
 
-  static const statuses = ['Activa', 'Seguimiento', 'Finalizada'];
   final ProjectListViewModel viewModel;
 
   @override
@@ -123,8 +122,11 @@ class _ProjectFilters extends StatelessWidget {
           decoration: const InputDecoration(labelText: 'Estado'),
           items: [
             const DropdownMenuItem(value: null, child: Text('Todos')),
-            ...statuses.map(
-              (status) => DropdownMenuItem(value: status, child: Text(status)),
+            ...viewModel.statusOptions.map(
+              (status) => DropdownMenuItem(
+                value: status.label,
+                child: Text(status.label),
+              ),
             ),
           ],
           onChanged: viewModel.selectStatus,

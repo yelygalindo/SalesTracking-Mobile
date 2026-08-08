@@ -6,6 +6,7 @@ import 'package:urbantrack/data/models/customer/customer_status.dart';
 import 'package:urbantrack/data/models/project/project_detail.dart';
 import 'package:urbantrack/data/models/project/project_input.dart';
 import 'package:urbantrack/data/models/project/project_page.dart';
+import 'package:urbantrack/data/models/project/project_status.dart';
 import 'package:urbantrack/data/models/visit/current_visit.dart';
 import 'package:urbantrack/data/models/visit/visit_target_type.dart';
 import 'package:urbantrack/data/models/attachment/attachment_save_result.dart';
@@ -161,6 +162,9 @@ class EmptyProjectRepository implements ProjectRepository {
   Future<ProjectDetail> getProject(String externalId) {
     throw UnimplementedError();
   }
+
+  @override
+  Future<List<ProjectStatus>> getStatuses() async => const [];
 
   @override
   Future<ProjectPage> getProjects({

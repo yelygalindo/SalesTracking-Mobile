@@ -11,7 +11,7 @@ class AppDatabase {
     final root = await getDatabasesPath();
     return openDatabase(
       path.join(root, 'urbantrack.db'),
-      version: 5,
+      version: 6,
       onConfigure: (database) => database.execute('PRAGMA foreign_keys = ON'),
       onCreate: (database, version) async {
         await _createWorkdayTables(database);
@@ -19,12 +19,14 @@ class AppDatabase {
         await _createVisitTables(database);
         await _createAttachmentTables(database);
         await _createProjectTables(database);
+        await _createProjectStatusTable(database);
       },
       onUpgrade: (database, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createCustomerTables(database);
         if (oldVersion < 3) await _createVisitTables(database);
         if (oldVersion < 4) await _createAttachmentTables(database);
         if (oldVersion < 5) await _createProjectTables(database);
+        if (oldVersion < 6) await _createProjectStatusTable(database);
       },
     );
   }
@@ -172,6 +174,15 @@ class AppDatabase {
     await database.execute('''
       CREATE TABLE project_detail_cache (
         external_id TEXT PRIMARY KEY,
+        payload TEXT NOT NULL
+      )
+    ''');
+  }
+
+  static Future<void> _createProjectStatusTable(Database database) async {
+    await database.execute('''
+      CREATE TABLE project_status_cache (
+        value INTEGER PRIMARY KEY,
         payload TEXT NOT NULL
       )
     ''');

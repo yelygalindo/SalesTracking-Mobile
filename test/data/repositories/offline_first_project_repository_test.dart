@@ -3,6 +3,7 @@ import 'package:urbantrack/data/models/project/project_detail.dart';
 import 'package:urbantrack/data/models/project/project_input.dart';
 import 'package:urbantrack/data/models/project/project_page.dart';
 import 'package:urbantrack/data/models/project/project_summary.dart';
+import 'package:urbantrack/data/models/project/project_status.dart';
 import 'package:urbantrack/data/repositories/offline_first_project_repository.dart';
 import 'package:urbantrack/data/repositories/project_local_store.dart';
 import 'package:urbantrack/data/repositories/project_repository.dart';
@@ -25,7 +26,7 @@ void main() {
 
     network.connected = false;
     final offline = await repository.getProjects(
-      status: 'Activa',
+      status: 'Activo',
       customerId: 'customer-id',
     );
     final detail = await repository.getProject('project-id');
@@ -46,6 +47,24 @@ void main() {
     final page = await repository.getProjects();
 
     expect(page.projects.single.name, 'Obra Norte');
+  });
+
+  test('caches the project status catalog for offline use', () async {
+    final network = _MutableNetworkStatusService(true);
+    final local = _MemoryProjectLocalStore();
+    final repository = OfflineFirstProjectRepository(
+      _ProjectRemoteRepository(),
+      local,
+      network,
+    );
+
+    final online = await repository.getStatuses();
+    expect(online.single.label, 'Activo');
+    expect(local.statuses.single.value, 2);
+
+    network.connected = false;
+    final offline = await repository.getStatuses();
+    expect(offline.single.toJson(), {'value': 2, 'label': 'Activo'});
   });
 
   test('requires connectivity for project mutations', () async {
@@ -70,11 +89,16 @@ void main() {
   test('project models serialize cache payloads symmetrically', () {
     final summary = ProjectSummary.fromJson(_summary.toJson());
     final detail = ProjectDetail.fromJson(_detail.toJson());
+    final status = ProjectStatus.fromJson(
+      const ProjectStatus(value: 2, label: 'Activo').toJson(),
+    );
 
     expect(summary.externalId, _summary.externalId);
     expect(summary.startDateUtc, _summary.startDateUtc);
     expect(detail.externalId, _detail.externalId);
     expect(detail.expectedCloseDateUtc, _detail.expectedCloseDateUtc);
+    expect(status.value, 2);
+    expect(status.label, 'Activo');
   });
 }
 
@@ -93,6 +117,14 @@ class _MutableNetworkStatusService implements NetworkStatusService {
 class _MemoryProjectLocalStore implements ProjectLocalStore {
   final List<ProjectSummary> projects = [];
   final Map<String, ProjectDetail> details = {};
+  final List<ProjectStatus> statuses = [];
+
+  @override
+  Future<void> cacheStatuses(List<ProjectStatus> values) async {
+    statuses
+      ..clear()
+      ..addAll(values);
+  }
 
   @override
   Future<void> cacheProjects(List<ProjectSummary> values) async {
@@ -113,6 +145,10 @@ class _MemoryProjectLocalStore implements ProjectLocalStore {
   @override
   Future<ProjectDetail?> readDetail(String externalId) async =>
       details[externalId];
+
+  @override
+  Future<List<ProjectStatus>> readStatuses() async =>
+      List.unmodifiable(statuses);
 
   @override
   Future<ProjectPage> readProjects({
@@ -173,6 +209,11 @@ class _ProjectRemoteRepository implements ProjectRepository {
   Future<ProjectDetail> getProject(String externalId) async => _detail;
 
   @override
+  Future<List<ProjectStatus>> getStatuses() async => const [
+    ProjectStatus(value: 2, label: 'Activo'),
+  ];
+
+  @override
   Future<ProjectDetail> createProject(
     ProjectInput input,
     String clientRequestId,
@@ -209,7 +250,7 @@ final _summary = ProjectSummary(
   customerName: 'Constructora Horizonte',
   sellerExternalId: 'seller-id',
   sellerName: 'Carlos Gómez',
-  status: 'Activa',
+  status: 'Activo',
   estimatedAmount: 185000,
   startDateUtc: DateTime.utc(2026, 8, 1),
   expectedCloseDateUtc: DateTime.utc(2026, 10, 30),

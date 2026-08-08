@@ -9,6 +9,7 @@ import 'package:urbantrack/data/models/customer/customer_summary.dart';
 import 'package:urbantrack/data/models/project/project_detail.dart';
 import 'package:urbantrack/data/models/project/project_input.dart';
 import 'package:urbantrack/data/models/project/project_page.dart';
+import 'package:urbantrack/data/models/project/project_status.dart';
 import 'package:urbantrack/data/models/project/project_summary.dart';
 import 'package:urbantrack/data/repositories/customer_repository.dart';
 import 'package:urbantrack/data/repositories/project_repository.dart';
@@ -27,12 +28,12 @@ void main() {
     );
 
     await viewModel.initialize();
-    await viewModel.selectStatus('Activa');
+    await viewModel.selectStatus('Activo');
     await viewModel.selectCustomer('customer-id');
     await viewModel.loadMore();
 
     expect(viewModel.customerOptions.single.externalId, 'customer-id');
-    expect(projects.statuses.last, 'Activa');
+    expect(projects.statuses.last, 'Activo');
     expect(projects.customerIds.last, 'customer-id');
     expect(viewModel.items.length, 2);
   });
@@ -65,16 +66,26 @@ void main() {
     expect(viewModel.savedExternalId, 'project-id');
   });
 
-  test('loads project detail', () async {
-    final viewModel = ProjectDetailViewModel(
-      _RecordingProjectRepository(),
-      'project-id',
-    );
+  test('loads project detail and changes its status', () async {
+    final projects = _RecordingProjectRepository();
+    final viewModel = ProjectDetailViewModel(projects, 'project-id');
 
     await viewModel.load();
 
     expect(viewModel.project?.name, 'Obra Norte');
     expect(viewModel.project?.progressPercentage, 45);
+    expect(viewModel.statusOptions.map((status) => status.label), [
+      'Activo',
+      'Completado',
+    ]);
+
+    final changed = await viewModel.changeStatus(
+      const ProjectStatus(value: 4, label: 'Completado'),
+    );
+
+    expect(changed, isTrue);
+    expect(projects.changedStatusId, 4);
+    expect(viewModel.project?.status, 'Completado');
   });
 }
 
@@ -83,6 +94,8 @@ class _RecordingProjectRepository implements ProjectRepository {
   final List<String?> customerIds = [];
   ProjectInput? createdInput;
   String? createdRequestId;
+  int? changedStatusId;
+  String currentStatus = 'Activo';
 
   @override
   Future<ProjectPage> getProjects({
@@ -104,7 +117,14 @@ class _RecordingProjectRepository implements ProjectRepository {
   }
 
   @override
-  Future<ProjectDetail> getProject(String externalId) async => _detail;
+  Future<ProjectDetail> getProject(String externalId) async =>
+      ProjectDetail.fromJson({..._detail.toJson(), 'status': currentStatus});
+
+  @override
+  Future<List<ProjectStatus>> getStatuses() async => const [
+    ProjectStatus(value: 2, label: 'Activo'),
+    ProjectStatus(value: 4, label: 'Completado'),
+  ];
 
   @override
   Future<ProjectDetail> createProject(
@@ -120,7 +140,13 @@ class _RecordingProjectRepository implements ProjectRepository {
   Future<void> updateProject(String externalId, ProjectInput input) async {}
 
   @override
-  Future<void> changeStatus(String externalId, int statusId) async {}
+  Future<void> changeStatus(String externalId, int statusId) async {
+    changedStatusId = statusId;
+    currentStatus = switch (statusId) {
+      4 => 'Completado',
+      _ => currentStatus,
+    };
+  }
 }
 
 class _CustomerOptionsRepository implements CustomerRepository {
@@ -219,7 +245,7 @@ ProjectSummary _summary(int index) => ProjectSummary(
   customerName: 'Constructora Horizonte',
   sellerExternalId: 'seller-id',
   sellerName: 'Carlos',
-  status: 'Activa',
+  status: 'Activo',
   estimatedAmount: 185000,
   startDateUtc: DateTime.utc(2026, 8, 1),
   expectedCloseDateUtc: DateTime.utc(2026, 10, 30),
@@ -240,7 +266,7 @@ final _detail = ProjectDetail(
   customerName: 'Constructora Horizonte',
   sellerExternalId: 'seller-id',
   sellerName: 'Carlos',
-  status: 'Activa',
+  status: 'Activo',
   estimatedAmount: 185000,
   startDateUtc: DateTime.utc(2026, 8, 1),
   expectedCloseDateUtc: DateTime.utc(2026, 10, 30),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../data/models/project/project_detail.dart';
+import '../../data/models/project/project_status.dart';
 import '../../data/repositories/project_repository.dart';
 import '../../data/repositories/visit_repository.dart';
 import '../../data/models/visit/visit_target_type.dart';
@@ -47,6 +48,56 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
       AppRoutes.editProject(widget.externalId),
     );
     if (changed == true) await _viewModel.load();
+  }
+
+  Future<void> _changeStatus(ProjectDetail project) async {
+    final selected = await showModalBottomSheet<ProjectStatus>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Padding(
+              padding: EdgeInsets.fromLTRB(20, 4, 20, 10),
+              child: Text(
+                'Cambiar estado de la obra',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+              ),
+            ),
+            ..._viewModel.statusOptions.map((status) {
+              final selected =
+                  project.status.trim().toLowerCase() ==
+                  status.label.trim().toLowerCase();
+              return ListTile(
+                leading: Icon(
+                  selected ? Icons.check_circle : Icons.radio_button_unchecked,
+                ),
+                title: Text(status.label),
+                enabled: !selected,
+                onTap: selected
+                    ? null
+                    : () => Navigator.of(context).pop(status),
+              );
+            }),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+    if (selected == null) return;
+    final changed = await _viewModel.changeStatus(selected);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          changed
+              ? 'Estado actualizado a ${selected.label}.'
+              : _viewModel.errorMessage ?? 'No se cambió el estado.',
+        ),
+      ),
+    );
   }
 
   @override
@@ -110,6 +161,27 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                               onPressed: _edit,
                               icon: const Icon(Icons.edit_outlined),
                               label: const Text('Editar obra'),
+                            ),
+                            const SizedBox(height: 10),
+                            OutlinedButton.icon(
+                              onPressed:
+                                  _viewModel.statusOptions.isEmpty ||
+                                      _viewModel.changingStatus
+                                  ? null
+                                  : () => _changeStatus(project),
+                              icon: _viewModel.changingStatus
+                                  ? const SizedBox.square(
+                                      dimension: 18,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : const Icon(Icons.swap_horiz),
+                              label: Text(
+                                _viewModel.changingStatus
+                                    ? 'Actualizando estado…'
+                                    : 'Cambiar estado',
+                              ),
                             ),
                             const SizedBox(height: 10),
                             OutlinedButton.icon(

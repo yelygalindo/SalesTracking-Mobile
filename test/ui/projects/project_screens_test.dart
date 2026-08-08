@@ -4,6 +4,7 @@ import 'package:urbantrack/data/models/project/project_detail.dart';
 import 'package:urbantrack/data/models/project/project_input.dart';
 import 'package:urbantrack/data/models/project/project_page.dart';
 import 'package:urbantrack/data/models/project/project_summary.dart';
+import 'package:urbantrack/data/models/project/project_status.dart';
 import 'package:urbantrack/data/repositories/project_repository.dart';
 import 'package:urbantrack/ui/core/branding/brand_scope.dart';
 import 'package:urbantrack/ui/core/branding/urbantrack_brand.dart';
@@ -61,8 +62,20 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.text('Editar obra'), findsOneWidget);
+    expect(find.text('Cambiar estado'), findsOneWidget);
     expect(find.text('Bs 185000.00'), findsOneWidget);
     expect(tester.takeException(), isNull);
+
+    await tester.tap(find.text('Cambiar estado'));
+    await tester.pumpAndSettle();
+    expect(find.text('Cambiar estado de la obra'), findsOneWidget);
+    expect(find.text('Borrador'), findsOneWidget);
+    expect(find.text('En pausa'), findsOneWidget);
+    expect(find.text('Cancelado'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    await tester.tap(find.text('Cancelado'));
+    await tester.pumpAndSettle();
 
     await tester.pumpWidget(
       MaterialApp(
@@ -100,6 +113,15 @@ class _ProjectScreenRepository implements ProjectRepository {
   Future<ProjectDetail> getProject(String externalId) async => _detail;
 
   @override
+  Future<List<ProjectStatus>> getStatuses() async => const [
+    ProjectStatus(value: 1, label: 'Borrador'),
+    ProjectStatus(value: 2, label: 'Activo'),
+    ProjectStatus(value: 3, label: 'En pausa'),
+    ProjectStatus(value: 4, label: 'Completado'),
+    ProjectStatus(value: 5, label: 'Cancelado'),
+  ];
+
+  @override
   Future<ProjectDetail> createProject(
     ProjectInput input,
     String clientRequestId,
@@ -121,7 +143,7 @@ ProjectSummary _summary(int id, String name) => ProjectSummary(
   customerName: 'Constructora Horizonte',
   sellerExternalId: 'seller-id',
   sellerName: 'Carlos Gómez',
-  status: 'Activa',
+  status: 'Activo',
   estimatedAmount: 185000,
   startDateUtc: DateTime.utc(2026, 8, 1),
   expectedCloseDateUtc: DateTime.utc(2026, 10, 30),
@@ -142,7 +164,7 @@ final _detail = ProjectDetail(
   customerName: 'Constructora Horizonte',
   sellerExternalId: 'seller-id',
   sellerName: 'Carlos Gómez',
-  status: 'Activa',
+  status: 'Activo',
   estimatedAmount: 185000,
   startDateUtc: DateTime.utc(2026, 8, 1),
   expectedCloseDateUtc: DateTime.utc(2026, 10, 30),

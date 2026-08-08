@@ -1,6 +1,7 @@
 import '../models/project/project_detail.dart';
 import '../models/project/project_page.dart';
 import '../models/project/project_summary.dart';
+import '../models/project/project_status.dart';
 
 abstract interface class ProjectLocalStore {
   Future<void> cacheProjects(List<ProjectSummary> projects);
@@ -16,4 +17,8 @@ abstract interface class ProjectLocalStore {
   Future<void> cacheDetail(ProjectDetail project);
 
   Future<ProjectDetail?> readDetail(String externalId);
+
+  Future<void> cacheStatuses(List<ProjectStatus> statuses);
+
+  Future<List<ProjectStatus>> readStatuses();
 }

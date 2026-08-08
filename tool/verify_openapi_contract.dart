@@ -75,6 +75,7 @@ Future<void> main(List<String> arguments) async {
       query: ['status', 'customerId', 'sellerId', 'page', 'pageSize'],
     ),
     const _OperationExpectation('/api/projects', 'post'),
+    const _OperationExpectation('/api/projects/statuses', 'get'),
     const _OperationExpectation('/api/projects/{externalId}', 'get'),
     const _OperationExpectation('/api/projects/{externalId}', 'put'),
     const _OperationExpectation(
