@@ -1,7 +1,10 @@
 import '../models/project/project_detail.dart';
 import '../models/project/project_input.dart';
+import '../models/project/project_note.dart';
 import '../models/project/project_page.dart';
 import '../models/project/project_status.dart';
+import '../models/project/project_timeline_page.dart';
+import '../models/common/resource_creation_result.dart';
 import '../services/api_exception.dart';
 import '../services/network_status_service.dart';
 import 'project_local_store.dart';
@@ -76,6 +79,48 @@ class OfflineFirstProjectRepository implements ProjectRepository {
       }
     }
     return _local.readStatuses();
+  }
+
+  @override
+  Future<List<ProjectNote>> getNotes(String projectExternalId) async {
+    await _requireConnection(
+      'Necesitas conexión para consultar las notas de esta obra.',
+    );
+    return _remote.getNotes(projectExternalId);
+  }
+
+  @override
+  Future<ResourceCreationResult> addNote(
+    String projectExternalId, {
+    required String content,
+    required String clientRequestId,
+    required DateTime occurredAtUtc,
+  }) async {
+    await _requireConnection(
+      'Necesitas conexión para agregar una nota a esta obra.',
+    );
+    return _remote.addNote(
+      projectExternalId,
+      content: content,
+      clientRequestId: clientRequestId,
+      occurredAtUtc: occurredAtUtc,
+    );
+  }
+
+  @override
+  Future<ProjectTimelinePage> getTimeline(
+    String projectExternalId, {
+    int page = 1,
+    int pageSize = 50,
+  }) async {
+    await _requireConnection(
+      'Necesitas conexión para consultar el historial de esta obra.',
+    );
+    return _remote.getTimeline(
+      projectExternalId,
+      page: page,
+      pageSize: pageSize,
+    );
   }
 
   @override

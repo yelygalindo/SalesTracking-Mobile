@@ -78,6 +78,74 @@ void main() {
     expect(page.totalItems, 21);
   });
 
+  test(
+    'lists notes and timeline and sends the project note contract',
+    () async {
+      final requests = <http.Request>[];
+      final service = ProjectService(
+        Uri.parse('https://api.example.test'),
+        MockClient((request) async {
+          requests.add(request);
+          if (request.method == 'POST') {
+            return http.Response(
+              jsonEncode({'id': 'note-id', 'message': 'Created'}),
+              201,
+              headers: {'content-type': 'application/json; charset=utf-8'},
+            );
+          }
+          if (request.url.path.endsWith('/timeline')) {
+            return http.Response(
+              jsonEncode({
+                'items': [_timelineJson],
+                'pagination': {
+                  'page': 2,
+                  'pageSize': 25,
+                  'totalItems': 26,
+                  'totalPages': 2,
+                },
+              }),
+              200,
+              headers: {'content-type': 'application/json; charset=utf-8'},
+            );
+          }
+          return http.Response(
+            jsonEncode([_noteJson]),
+            200,
+            headers: {'content-type': 'application/json; charset=utf-8'},
+          );
+        }),
+      );
+
+      final notes = await service.getNotes('access-token', 'project/id');
+      final timeline = await service.getTimeline(
+        'access-token',
+        'project/id',
+        page: 2,
+        pageSize: 25,
+      );
+      final created = await service.addNote(
+        'access-token',
+        'project/id',
+        content: '  Avance confirmado  ',
+        clientRequestId: 'request-id',
+        occurredAtUtc: DateTime.utc(2026, 8, 11, 10, 35),
+      );
+
+      expect(notes.single.content, 'Avance confirmado');
+      expect(notes.single.createdBy?.name, 'Carlos Gómez');
+      expect(timeline.items.single.title, 'Visita finalizada');
+      expect(timeline.totalPages, 2);
+      expect(created.id, 'note-id');
+      expect(requests[0].url.path, '/api/projects/project%2Fid/notes');
+      expect(requests[1].url.queryParameters, {'Page': '2', 'PageSize': '25'});
+      expect(jsonDecode(requests[2].body), {
+        'content': 'Avance confirmado',
+        'clientRequestId': 'request-id',
+        'occurredAtUtc': '2026-08-11T10:35:00.000Z',
+      });
+    },
+  );
+
   test('sends create, update and status project contracts', () async {
     final requests = <http.Request>[];
     final service = ProjectService(
@@ -147,4 +215,30 @@ final _projectJson = {
   'latitude': -17.75,
   'longitude': -63.18,
   'createdAtUtc': '2026-08-01T12:00:00Z',
+};
+
+final _noteJson = {
+  'id': 1,
+  'externalId': 'note-id',
+  'content': 'Avance confirmado',
+  'createdBy': {'externalId': 'seller-id', 'name': 'Carlos Gómez'},
+  'createdAtUtc': '2026-08-11T10:36:00Z',
+  'occurredAtUtc': '2026-08-11T10:35:00Z',
+  'receivedAtUtc': '2026-08-11T10:36:00Z',
+  'updatedBy': null,
+  'updatedAtUtc': null,
+};
+
+final _timelineJson = {
+  'externalId': 'event-id',
+  'eventTypeId': 2,
+  'eventTypeName': 'ProjectVisitCompleted',
+  'title': 'Visita finalizada',
+  'description': 'Se verificó el avance del segundo piso.',
+  'occurredAtUtc': '2026-08-11T11:00:00Z',
+  'createdBy': {'externalId': 'seller-id', 'name': 'Carlos Gómez'},
+  'relatedEntityType': 'Visit',
+  'relatedEntityId': 22,
+  'metadataJson': null,
+  'visitExternalId': 'visit-id',
 };

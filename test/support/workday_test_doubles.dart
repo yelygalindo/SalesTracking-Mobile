@@ -5,8 +5,10 @@ import 'package:urbantrack/data/models/customer/customer_input.dart';
 import 'package:urbantrack/data/models/customer/customer_status.dart';
 import 'package:urbantrack/data/models/project/project_detail.dart';
 import 'package:urbantrack/data/models/project/project_input.dart';
+import 'package:urbantrack/data/models/project/project_note.dart';
 import 'package:urbantrack/data/models/project/project_page.dart';
 import 'package:urbantrack/data/models/project/project_status.dart';
+import 'package:urbantrack/data/models/project/project_timeline_page.dart';
 import 'package:urbantrack/data/models/visit/current_visit.dart';
 import 'package:urbantrack/data/models/visit/visit_target_type.dart';
 import 'package:urbantrack/data/models/attachment/attachment_save_result.dart';
@@ -148,6 +150,14 @@ class EmptyCustomerRepository implements CustomerRepository {
 
 class EmptyProjectRepository implements ProjectRepository {
   @override
+  Future<ResourceCreationResult> addNote(
+    String projectExternalId, {
+    required String content,
+    required String clientRequestId,
+    required DateTime occurredAtUtc,
+  }) async => const ResourceCreationResult(id: 'note-id', message: 'Created');
+
+  @override
   Future<void> changeStatus(String externalId, int statusId) async {}
 
   @override
@@ -164,7 +174,24 @@ class EmptyProjectRepository implements ProjectRepository {
   }
 
   @override
+  Future<List<ProjectNote>> getNotes(String projectExternalId) async =>
+      const [];
+
+  @override
   Future<List<ProjectStatus>> getStatuses() async => const [];
+
+  @override
+  Future<ProjectTimelinePage> getTimeline(
+    String projectExternalId, {
+    int page = 1,
+    int pageSize = 50,
+  }) async => ProjectTimelinePage(
+    items: const [],
+    page: page,
+    pageSize: pageSize,
+    totalItems: 0,
+    totalPages: 0,
+  );
 
   @override
   Future<ProjectPage> getProjects({

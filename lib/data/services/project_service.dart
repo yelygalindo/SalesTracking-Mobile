@@ -6,8 +6,11 @@ import 'package:http/http.dart' as http;
 
 import '../models/project/project_detail.dart';
 import '../models/project/project_input.dart';
+import '../models/project/project_note.dart';
 import '../models/project/project_page.dart';
 import '../models/project/project_status.dart';
+import '../models/project/project_timeline_page.dart';
+import '../models/common/resource_creation_result.dart';
 import 'api_exception.dart';
 
 class ProjectService {
@@ -75,6 +78,66 @@ class ProjectService {
     throw const ApiException(
       message: 'El servidor devolvió estados de obra no válidos.',
     );
+  }
+
+  Future<List<ProjectNote>> getNotes(
+    String accessToken,
+    String projectExternalId,
+  ) async {
+    final response = await _request(
+      'GET',
+      _baseUrl.resolve(
+        '/api/projects/${Uri.encodeComponent(projectExternalId)}/notes',
+      ),
+      accessToken,
+    );
+    final decoded = _decode(response.bodyBytes);
+    if (decoded is List) {
+      return decoded
+          .whereType<Map<String, dynamic>>()
+          .map(ProjectNote.fromJson)
+          .toList(growable: false);
+    }
+    throw const ApiException(
+      message: 'El servidor devolvió notas de obra no válidas.',
+    );
+  }
+
+  Future<ResourceCreationResult> addNote(
+    String accessToken,
+    String projectExternalId, {
+    required String content,
+    required String clientRequestId,
+    required DateTime occurredAtUtc,
+  }) async {
+    final response = await _request(
+      'POST',
+      _baseUrl.resolve(
+        '/api/projects/${Uri.encodeComponent(projectExternalId)}/notes',
+      ),
+      accessToken,
+      payload: {
+        'content': content.trim(),
+        'clientRequestId': clientRequestId,
+        'occurredAtUtc': occurredAtUtc.toUtc().toIso8601String(),
+      },
+    );
+    return ResourceCreationResult.fromJson(_decodeObject(response.bodyBytes));
+  }
+
+  Future<ProjectTimelinePage> getTimeline(
+    String accessToken,
+    String projectExternalId, {
+    int page = 1,
+    int pageSize = 50,
+  }) async {
+    final uri = _baseUrl
+        .resolve(
+          '/api/projects/${Uri.encodeComponent(projectExternalId)}/timeline',
+        )
+        .replace(queryParameters: {'Page': '$page', 'PageSize': '$pageSize'});
+    final response = await _request('GET', uri, accessToken);
+    return ProjectTimelinePage.fromJson(_decodeObject(response.bodyBytes));
   }
 
   Future<ProjectDetail> createProject(

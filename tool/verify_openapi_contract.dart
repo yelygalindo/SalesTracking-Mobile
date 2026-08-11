@@ -84,6 +84,20 @@ Future<void> main(List<String> arguments) async {
       body: ['statusId'],
     ),
     const _OperationExpectation(
+      '/api/projects/{projectExternalId}/notes',
+      'get',
+    ),
+    const _OperationExpectation(
+      '/api/projects/{projectExternalId}/notes',
+      'post',
+      body: ['content', 'clientRequestId', 'occurredAtUtc'],
+    ),
+    const _OperationExpectation(
+      '/api/projects/{projectExternalId}/timeline',
+      'get',
+      query: ['Page', 'PageSize'],
+    ),
+    const _OperationExpectation(
       '/api/customers/{customerExternalId}/visits',
       'post',
       body: ['checkInAtUtc', 'latitude', 'longitude', 'clientRequestId'],
@@ -165,6 +179,24 @@ Future<void> main(List<String> arguments) async {
     'description',
     'occurredAtUtc',
   ], failures);
+  _verifyResponse(spec, '/api/projects/{projectExternalId}/notes', 'get', [
+    'externalId',
+    'content',
+    'createdBy',
+    'createdAtUtc',
+    'occurredAtUtc',
+    'receivedAtUtc',
+  ], failures);
+  _verifyResponse(spec, '/api/projects/{projectExternalId}/timeline', 'get', [
+    'externalId',
+    'eventTypeId',
+    'eventTypeName',
+    'title',
+    'description',
+    'occurredAtUtc',
+    'createdBy',
+    'visitExternalId',
+  ], failures);
 
   if (failures.isNotEmpty) {
     stderr.writeln('OpenAPI contract verification failed:');
@@ -176,7 +208,7 @@ Future<void> main(List<String> arguments) async {
   }
   stdout.writeln(
     'OpenAPI contract OK: ${operations.length} operations and '
-    '3 response schemas verified.',
+    '5 response schemas verified.',
   );
 }
 

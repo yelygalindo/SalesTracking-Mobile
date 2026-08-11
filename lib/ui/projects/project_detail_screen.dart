@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../data/models/project/project_detail.dart';
+import '../../data/models/project/project_note.dart';
 import '../../data/models/project/project_status.dart';
+import '../../data/models/project/project_timeline_item.dart';
 import '../../data/repositories/project_repository.dart';
 import '../../data/repositories/visit_repository.dart';
 import '../../data/models/visit/visit_target_type.dart';
@@ -95,6 +97,28 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
           changed
               ? 'Estado actualizado a ${selected.label}.'
               : _viewModel.errorMessage ?? 'No se cambió el estado.',
+        ),
+      ),
+    );
+  }
+
+  Future<void> _addNote() async {
+    final content = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (context) => const _AddProjectNoteSheet(),
+    );
+    if (content == null) return;
+    final saved = await _viewModel.addNote(content);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          saved
+              ? 'Nota agregada a la obra.'
+              : _viewModel.activityErrorMessage ??
+                    'No pudimos agregar la nota.',
         ),
       ),
     );
@@ -218,6 +242,11 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                                 ),
                               ),
                             ],
+                            const SizedBox(height: 16),
+                            _ProjectActivitySection(
+                              viewModel: _viewModel,
+                              onAddNote: _addNote,
+                            ),
                           ],
                         ),
                       ),
@@ -381,3 +410,355 @@ String _date(DateTime? date) {
 
 String _amount(double? amount) =>
     amount == null ? '' : 'Bs ${amount.toStringAsFixed(2)}';
+
+class _ProjectActivitySection extends StatelessWidget {
+  const _ProjectActivitySection({
+    required this.viewModel,
+    required this.onAddNote,
+  });
+
+  final ProjectDetailViewModel viewModel;
+  final VoidCallback onAddNote;
+
+  @override
+  Widget build(BuildContext context) {
+    final loading = viewModel.loadingActivity;
+    final hasContent =
+        viewModel.notes.isNotEmpty || viewModel.timeline.isNotEmpty;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                'Seguimiento de la obra',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+              ),
+            ),
+            TextButton.icon(
+              onPressed: viewModel.savingNote ? null : onAddNote,
+              icon: viewModel.savingNote
+                  ? const SizedBox.square(
+                      dimension: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.add_comment_outlined),
+              label: const Text('Agregar nota'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        if (loading && !hasContent)
+          const Card(
+            child: Padding(
+              padding: EdgeInsets.all(30),
+              child: Center(child: CircularProgressIndicator()),
+            ),
+          )
+        else ...[
+          if (viewModel.activityErrorMessage case final message?) ...[
+            _ActivityError(
+              message: message,
+              onRetry: loading ? null : viewModel.reloadActivity,
+            ),
+            const SizedBox(height: 12),
+          ],
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final wide = constraints.maxWidth >= 720;
+              final notes = _ProjectNotesPanel(notes: viewModel.notes);
+              final timeline = _ProjectTimelinePanel(items: viewModel.timeline);
+              if (!wide) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [notes, const SizedBox(height: 12), timeline],
+                );
+              }
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: notes),
+                  const SizedBox(width: 12),
+                  Expanded(child: timeline),
+                ],
+              );
+            },
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _ProjectNotesPanel extends StatelessWidget {
+  const _ProjectNotesPanel({required this.notes});
+
+  final List<ProjectNote> notes;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Row(
+              children: [
+                Icon(Icons.sticky_note_2_outlined),
+                SizedBox(width: 9),
+                Text(
+                  'Notas',
+                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            if (notes.isEmpty)
+              const Text(
+                'Todavía no hay notas registradas.',
+                style: TextStyle(color: Color(0xFF6F788A)),
+              )
+            else
+              ...notes.indexed.map((entry) {
+                final (index, note) = entry;
+                return Padding(
+                  padding: EdgeInsets.only(
+                    bottom: index == notes.length - 1 ? 0 : 14,
+                  ),
+                  child: _ActivityItem(
+                    title: note.content,
+                    metadata: _activityMetadata(
+                      note.occurredAtUtc,
+                      note.createdBy?.name,
+                    ),
+                  ),
+                );
+              }),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ProjectTimelinePanel extends StatelessWidget {
+  const _ProjectTimelinePanel({required this.items});
+
+  final List<ProjectTimelineItem> items;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Row(
+              children: [
+                Icon(Icons.history_outlined),
+                SizedBox(width: 9),
+                Text(
+                  'Historial',
+                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            if (items.isEmpty)
+              const Text(
+                'Todavía no hay actividad registrada.',
+                style: TextStyle(color: Color(0xFF6F788A)),
+              )
+            else
+              ...items.indexed.map((entry) {
+                final (index, item) = entry;
+                return Padding(
+                  padding: EdgeInsets.only(
+                    bottom: index == items.length - 1 ? 0 : 14,
+                  ),
+                  child: _ActivityItem(
+                    title: item.title.isEmpty ? item.eventTypeName : item.title,
+                    description: item.description,
+                    metadata: _activityMetadata(
+                      item.occurredAtUtc,
+                      item.createdBy?.name,
+                    ),
+                  ),
+                );
+              }),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ActivityItem extends StatelessWidget {
+  const _ActivityItem({
+    required this.title,
+    required this.metadata,
+    this.description = '',
+  });
+
+  final String title;
+  final String description;
+  final String metadata;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 9,
+          height: 9,
+          margin: const EdgeInsets.only(top: 5),
+          decoration: BoxDecoration(
+            color: BrandScope.of(context).primaryColor,
+            shape: BoxShape.circle,
+          ),
+        ),
+        const SizedBox(width: 11),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
+              if (description.trim().isNotEmpty) ...[
+                const SizedBox(height: 3),
+                Text(description.trim()),
+              ],
+              const SizedBox(height: 4),
+              Text(
+                metadata,
+                style: const TextStyle(color: Color(0xFF6F788A), fontSize: 11),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ActivityError extends StatelessWidget {
+  const _ActivityError({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback? onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: EdgeInsets.zero,
+      color: const Color(0xFFFFF2E8),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          children: [
+            const Icon(Icons.cloud_off_outlined),
+            const SizedBox(width: 10),
+            Expanded(child: Text(message)),
+            TextButton(onPressed: onRetry, child: const Text('Reintentar')),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AddProjectNoteSheet extends StatefulWidget {
+  const _AddProjectNoteSheet();
+
+  @override
+  State<_AddProjectNoteSheet> createState() => _AddProjectNoteSheetState();
+}
+
+class _AddProjectNoteSheetState extends State<_AddProjectNoteSheet> {
+  final _formKey = GlobalKey<FormState>();
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        20,
+        4,
+        20,
+        20 + MediaQuery.viewInsetsOf(context).bottom,
+      ),
+      child: SafeArea(
+        top: false,
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'Nueva nota de obra',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'Se conservará la fecha y hora real del dispositivo.',
+                style: TextStyle(color: Color(0xFF6F788A)),
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _controller,
+                autofocus: true,
+                minLines: 3,
+                maxLines: 6,
+                textCapitalization: TextCapitalization.sentences,
+                decoration: const InputDecoration(
+                  labelText: 'Nota',
+                  hintText: 'Ej. Se confirmó el avance del segundo piso.',
+                  alignLabelWithHint: true,
+                ),
+                validator: (value) => value?.trim().isEmpty ?? true
+                    ? 'Escribe una nota antes de guardarla.'
+                    : null,
+              ),
+              const SizedBox(height: 16),
+              FilledButton.icon(
+                onPressed: () {
+                  if (_formKey.currentState?.validate() != true) return;
+                  Navigator.of(context).pop(_controller.text.trim());
+                },
+                icon: const Icon(Icons.save_outlined),
+                label: const Text('Guardar nota'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+String _activityMetadata(DateTime date, String? author) {
+  final local = date.toLocal();
+  final formatted =
+      '${local.day.toString().padLeft(2, '0')}/'
+      '${local.month.toString().padLeft(2, '0')}/${local.year} · '
+      '${local.hour.toString().padLeft(2, '0')}:'
+      '${local.minute.toString().padLeft(2, '0')}';
+  final normalizedAuthor = author?.trim() ?? '';
+  return normalizedAuthor.isEmpty
+      ? formatted
+      : '$formatted · $normalizedAuthor';
+}

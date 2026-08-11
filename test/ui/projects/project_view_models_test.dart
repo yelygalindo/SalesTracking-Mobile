@@ -8,9 +8,13 @@ import 'package:urbantrack/data/models/customer/customer_status.dart';
 import 'package:urbantrack/data/models/customer/customer_summary.dart';
 import 'package:urbantrack/data/models/project/project_detail.dart';
 import 'package:urbantrack/data/models/project/project_input.dart';
+import 'package:urbantrack/data/models/project/project_note.dart';
 import 'package:urbantrack/data/models/project/project_page.dart';
 import 'package:urbantrack/data/models/project/project_status.dart';
 import 'package:urbantrack/data/models/project/project_summary.dart';
+import 'package:urbantrack/data/models/project/project_timeline_item.dart';
+import 'package:urbantrack/data/models/project/project_timeline_page.dart';
+import 'package:urbantrack/data/models/common/user_reference.dart';
 import 'package:urbantrack/data/repositories/customer_repository.dart';
 import 'package:urbantrack/data/repositories/project_repository.dart';
 import 'package:urbantrack/data/services/location_service.dart';
@@ -68,7 +72,13 @@ void main() {
 
   test('loads project detail and changes its status', () async {
     final projects = _RecordingProjectRepository();
-    final viewModel = ProjectDetailViewModel(projects, 'project-id');
+    final occurredAtUtc = DateTime.utc(2026, 8, 11, 14, 20);
+    final viewModel = ProjectDetailViewModel(
+      projects,
+      'project-id',
+      requestId: () => 'note-request-id',
+      now: () => occurredAtUtc,
+    );
 
     await viewModel.load();
 
@@ -78,6 +88,15 @@ void main() {
       'Activo',
       'Completado',
     ]);
+    expect(viewModel.notes.single.content, 'Avance confirmado');
+    expect(viewModel.timeline.single.title, 'Nota agregada');
+
+    final noteAdded = await viewModel.addNote('  Revisar materiales  ');
+
+    expect(noteAdded, isTrue);
+    expect(projects.addedNoteContent, 'Revisar materiales');
+    expect(projects.addedNoteRequestId, 'note-request-id');
+    expect(projects.addedNoteOccurredAtUtc, occurredAtUtc);
 
     final changed = await viewModel.changeStatus(
       const ProjectStatus(value: 4, label: 'Completado'),
@@ -96,6 +115,22 @@ class _RecordingProjectRepository implements ProjectRepository {
   String? createdRequestId;
   int? changedStatusId;
   String currentStatus = 'Activo';
+  String? addedNoteContent;
+  String? addedNoteRequestId;
+  DateTime? addedNoteOccurredAtUtc;
+
+  @override
+  Future<ResourceCreationResult> addNote(
+    String projectExternalId, {
+    required String content,
+    required String clientRequestId,
+    required DateTime occurredAtUtc,
+  }) async {
+    addedNoteContent = content;
+    addedNoteRequestId = clientRequestId;
+    addedNoteOccurredAtUtc = occurredAtUtc;
+    return const ResourceCreationResult(id: 'note-id', message: 'Created');
+  }
 
   @override
   Future<ProjectPage> getProjects({
@@ -121,10 +156,28 @@ class _RecordingProjectRepository implements ProjectRepository {
       ProjectDetail.fromJson({..._detail.toJson(), 'status': currentStatus});
 
   @override
+  Future<List<ProjectNote>> getNotes(String projectExternalId) async => [
+    _projectNote,
+  ];
+
+  @override
   Future<List<ProjectStatus>> getStatuses() async => const [
     ProjectStatus(value: 2, label: 'Activo'),
     ProjectStatus(value: 4, label: 'Completado'),
   ];
+
+  @override
+  Future<ProjectTimelinePage> getTimeline(
+    String projectExternalId, {
+    int page = 1,
+    int pageSize = 50,
+  }) async => ProjectTimelinePage(
+    items: [_projectTimelineItem],
+    page: page,
+    pageSize: pageSize,
+    totalItems: 1,
+    totalPages: 1,
+  );
 
   @override
   Future<ProjectDetail> createProject(
@@ -276,4 +329,32 @@ final _detail = ProjectDetail(
   latitude: -17.75,
   longitude: -63.18,
   createdAtUtc: DateTime.utc(2026, 8, 1),
+);
+
+const _projectAuthor = UserReference(externalId: 'seller-id', name: 'Carlos');
+
+final _projectNote = ProjectNote(
+  id: 1,
+  externalId: 'note-id',
+  content: 'Avance confirmado',
+  createdBy: _projectAuthor,
+  createdAtUtc: DateTime.utc(2026, 8, 11, 10, 30),
+  occurredAtUtc: DateTime.utc(2026, 8, 11, 10, 30),
+  receivedAtUtc: DateTime.utc(2026, 8, 11, 10, 31),
+  updatedBy: null,
+  updatedAtUtc: null,
+);
+
+final _projectTimelineItem = ProjectTimelineItem(
+  externalId: 'event-id',
+  eventTypeId: 2,
+  eventTypeName: 'ProjectNoteCreated',
+  title: 'Nota agregada',
+  description: 'Avance confirmado',
+  occurredAtUtc: DateTime.utc(2026, 8, 11, 10, 30),
+  createdBy: _projectAuthor,
+  relatedEntityType: 'ProjectNote',
+  relatedEntityId: 1,
+  metadataJson: null,
+  visitExternalId: null,
 );

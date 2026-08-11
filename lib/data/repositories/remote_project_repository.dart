@@ -1,8 +1,11 @@
 import '../models/auth/auth_session.dart';
 import '../models/project/project_detail.dart';
 import '../models/project/project_input.dart';
+import '../models/project/project_note.dart';
 import '../models/project/project_page.dart';
 import '../models/project/project_status.dart';
+import '../models/project/project_timeline_page.dart';
+import '../models/common/resource_creation_result.dart';
 import '../services/api_exception.dart';
 import '../services/project_service.dart';
 import 'auth_repository.dart';
@@ -43,6 +46,44 @@ class RemoteProjectRepository implements ProjectRepository {
   Future<List<ProjectStatus>> getStatuses() async {
     final session = await _session();
     return _service.getStatuses(session.accessToken);
+  }
+
+  @override
+  Future<List<ProjectNote>> getNotes(String projectExternalId) async {
+    final session = await _session();
+    return _service.getNotes(session.accessToken, projectExternalId);
+  }
+
+  @override
+  Future<ResourceCreationResult> addNote(
+    String projectExternalId, {
+    required String content,
+    required String clientRequestId,
+    required DateTime occurredAtUtc,
+  }) async {
+    final session = await _session();
+    return _service.addNote(
+      session.accessToken,
+      projectExternalId,
+      content: content,
+      clientRequestId: clientRequestId,
+      occurredAtUtc: occurredAtUtc,
+    );
+  }
+
+  @override
+  Future<ProjectTimelinePage> getTimeline(
+    String projectExternalId, {
+    int page = 1,
+    int pageSize = 50,
+  }) async {
+    final session = await _session();
+    return _service.getTimeline(
+      session.accessToken,
+      projectExternalId,
+      page: page,
+      pageSize: pageSize,
+    );
   }
 
   @override

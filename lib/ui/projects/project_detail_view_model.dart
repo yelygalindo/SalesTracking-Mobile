@@ -1,33 +1,56 @@
 import 'package:flutter/foundation.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../data/models/project/project_detail.dart';
+import '../../data/models/project/project_note.dart';
 import '../../data/models/project/project_status.dart';
+import '../../data/models/project/project_timeline_item.dart';
+import '../../data/models/project/project_timeline_page.dart';
 import '../../data/repositories/project_repository.dart';
 import '../../data/services/api_exception.dart';
 
 enum ProjectDetailViewStatus { initial, loading, ready }
 
 class ProjectDetailViewModel extends ChangeNotifier {
-  ProjectDetailViewModel(this._repository, this.externalId);
+  ProjectDetailViewModel(
+    this._repository,
+    this.externalId, {
+    String Function()? requestId,
+    DateTime Function()? now,
+  }) : _requestId = requestId ?? const Uuid().v4,
+       _now = now ?? DateTime.now;
 
   final ProjectRepository _repository;
   final String externalId;
+  final String Function() _requestId;
+  final DateTime Function() _now;
 
   ProjectDetailViewStatus _status = ProjectDetailViewStatus.initial;
   ProjectDetail? _project;
   List<ProjectStatus> _statusOptions = const [];
+  List<ProjectNote> _notes = const [];
+  List<ProjectTimelineItem> _timeline = const [];
   String? _errorMessage;
+  String? _activityErrorMessage;
   bool _changingStatus = false;
+  bool _loadingActivity = false;
+  bool _savingNote = false;
 
   ProjectDetailViewStatus get status => _status;
   ProjectDetail? get project => _project;
   List<ProjectStatus> get statusOptions => _statusOptions;
+  List<ProjectNote> get notes => _notes;
+  List<ProjectTimelineItem> get timeline => _timeline;
   String? get errorMessage => _errorMessage;
+  String? get activityErrorMessage => _activityErrorMessage;
   bool get changingStatus => _changingStatus;
+  bool get loadingActivity => _loadingActivity;
+  bool get savingNote => _savingNote;
 
   Future<void> load() async {
     _status = ProjectDetailViewStatus.loading;
     _errorMessage = null;
+    _loadingActivity = true;
     notifyListeners();
     try {
       final statusesFuture = _repository.getStatuses().catchError(
@@ -36,6 +59,7 @@ class ProjectDetailViewModel extends ChangeNotifier {
       final results = await Future.wait<Object?>([
         _repository.getProject(externalId),
         statusesFuture,
+        _loadActivity(),
       ]);
       _project = results[0] as ProjectDetail;
       _statusOptions = results[1] as List<ProjectStatus>;
@@ -44,8 +68,50 @@ class ProjectDetailViewModel extends ChangeNotifier {
     } catch (_) {
       _errorMessage = 'No pudimos consultar la obra.';
     }
+    _loadingActivity = false;
     _status = ProjectDetailViewStatus.ready;
     notifyListeners();
+  }
+
+  Future<void> reloadActivity() async {
+    if (_loadingActivity) return;
+    _loadingActivity = true;
+    notifyListeners();
+    await _loadActivity();
+    _loadingActivity = false;
+    notifyListeners();
+  }
+
+  Future<bool> addNote(String content) async {
+    final normalized = content.trim();
+    if (normalized.isEmpty) {
+      _activityErrorMessage = 'Escribe una nota antes de guardarla.';
+      notifyListeners();
+      return false;
+    }
+    if (_savingNote) return false;
+    _savingNote = true;
+    _activityErrorMessage = null;
+    notifyListeners();
+    try {
+      await _repository.addNote(
+        externalId,
+        content: normalized,
+        clientRequestId: _requestId(),
+        occurredAtUtc: _now().toUtc(),
+      );
+      await _loadActivity();
+      _savingNote = false;
+      notifyListeners();
+      return true;
+    } on ApiException catch (error) {
+      _activityErrorMessage = error.message;
+    } catch (_) {
+      _activityErrorMessage = 'No pudimos agregar la nota a esta obra.';
+    }
+    _savingNote = false;
+    notifyListeners();
+    return false;
   }
 
   Future<bool> changeStatus(ProjectStatus status) async {
@@ -72,5 +138,21 @@ class ProjectDetailViewModel extends ChangeNotifier {
     _changingStatus = false;
     notifyListeners();
     return false;
+  }
+
+  Future<void> _loadActivity() async {
+    _activityErrorMessage = null;
+    try {
+      final results = await Future.wait<Object>([
+        _repository.getNotes(externalId),
+        _repository.getTimeline(externalId),
+      ]);
+      _notes = results[0] as List<ProjectNote>;
+      _timeline = (results[1] as ProjectTimelinePage).items;
+    } on ApiException catch (error) {
+      _activityErrorMessage = error.message;
+    } catch (_) {
+      _activityErrorMessage = 'No pudimos consultar la actividad de la obra.';
+    }
   }
 }

@@ -70,6 +70,7 @@ Identificadores actuales:
 - Listado, detalle, creación y edición de clientes.
 - Estados de clientes, notas y recordatorios.
 - Listado, detalle, creación y edición de obras.
+- Notas e historial cronológico dentro del detalle de cada obra.
 - Consulta offline de clientes y obras previamente sincronizados.
 - Check-in/check-out de visitas a clientes y obras con hora, GPS, notas, resultado y duración.
 - Cámara y galería para evidencias fotográficas asociadas a visitas de obra.

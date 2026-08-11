@@ -1,7 +1,10 @@
 import '../models/project/project_detail.dart';
 import '../models/project/project_input.dart';
+import '../models/project/project_note.dart';
 import '../models/project/project_page.dart';
 import '../models/project/project_status.dart';
+import '../models/project/project_timeline_page.dart';
+import '../models/common/resource_creation_result.dart';
 
 abstract interface class ProjectRepository {
   Future<ProjectPage> getProjects({
@@ -15,6 +18,21 @@ abstract interface class ProjectRepository {
   Future<ProjectDetail> getProject(String externalId);
 
   Future<List<ProjectStatus>> getStatuses();
+
+  Future<List<ProjectNote>> getNotes(String projectExternalId);
+
+  Future<ResourceCreationResult> addNote(
+    String projectExternalId, {
+    required String content,
+    required String clientRequestId,
+    required DateTime occurredAtUtc,
+  });
+
+  Future<ProjectTimelinePage> getTimeline(
+    String projectExternalId, {
+    int page = 1,
+    int pageSize = 50,
+  });
 
   Future<ProjectDetail> createProject(
     ProjectInput input,

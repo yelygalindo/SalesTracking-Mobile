@@ -1,9 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:urbantrack/data/models/project/project_detail.dart';
 import 'package:urbantrack/data/models/project/project_input.dart';
+import 'package:urbantrack/data/models/project/project_note.dart';
 import 'package:urbantrack/data/models/project/project_page.dart';
 import 'package:urbantrack/data/models/project/project_summary.dart';
 import 'package:urbantrack/data/models/project/project_status.dart';
+import 'package:urbantrack/data/models/project/project_timeline_page.dart';
+import 'package:urbantrack/data/models/common/resource_creation_result.dart';
 import 'package:urbantrack/data/repositories/offline_first_project_repository.dart';
 import 'package:urbantrack/data/repositories/project_local_store.dart';
 import 'package:urbantrack/data/repositories/project_repository.dart';
@@ -76,6 +79,21 @@ void main() {
 
     expect(
       () => repository.createProject(_input, 'request-id'),
+      throwsA(
+        isA<ApiException>().having(
+          (error) => error.message,
+          'message',
+          contains('conexión'),
+        ),
+      ),
+    );
+    expect(
+      () => repository.addNote(
+        'project-id',
+        content: 'Avance confirmado',
+        clientRequestId: 'note-request-id',
+        occurredAtUtc: DateTime.utc(2026, 8, 11, 10),
+      ),
       throwsA(
         isA<ApiException>().having(
           (error) => error.message,
@@ -186,6 +204,14 @@ class _ProjectRemoteRepository implements ProjectRepository {
   final bool failTransiently;
 
   @override
+  Future<ResourceCreationResult> addNote(
+    String projectExternalId, {
+    required String content,
+    required String clientRequestId,
+    required DateTime occurredAtUtc,
+  }) async => const ResourceCreationResult(id: 'note-id', message: 'Created');
+
+  @override
   Future<ProjectPage> getProjects({
     String? status,
     String? customerId,
@@ -209,9 +235,26 @@ class _ProjectRemoteRepository implements ProjectRepository {
   Future<ProjectDetail> getProject(String externalId) async => _detail;
 
   @override
+  Future<List<ProjectNote>> getNotes(String projectExternalId) async =>
+      const [];
+
+  @override
   Future<List<ProjectStatus>> getStatuses() async => const [
     ProjectStatus(value: 2, label: 'Activo'),
   ];
+
+  @override
+  Future<ProjectTimelinePage> getTimeline(
+    String projectExternalId, {
+    int page = 1,
+    int pageSize = 50,
+  }) async => ProjectTimelinePage(
+    items: const [],
+    page: page,
+    pageSize: pageSize,
+    totalItems: 0,
+    totalPages: 0,
+  );
 
   @override
   Future<ProjectDetail> createProject(

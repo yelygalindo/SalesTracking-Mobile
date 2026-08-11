@@ -2,9 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:urbantrack/data/models/project/project_detail.dart';
 import 'package:urbantrack/data/models/project/project_input.dart';
+import 'package:urbantrack/data/models/project/project_note.dart';
 import 'package:urbantrack/data/models/project/project_page.dart';
 import 'package:urbantrack/data/models/project/project_summary.dart';
 import 'package:urbantrack/data/models/project/project_status.dart';
+import 'package:urbantrack/data/models/project/project_timeline_item.dart';
+import 'package:urbantrack/data/models/project/project_timeline_page.dart';
+import 'package:urbantrack/data/models/common/resource_creation_result.dart';
+import 'package:urbantrack/data/models/common/user_reference.dart';
 import 'package:urbantrack/data/repositories/project_repository.dart';
 import 'package:urbantrack/ui/core/branding/brand_scope.dart';
 import 'package:urbantrack/ui/core/branding/urbantrack_brand.dart';
@@ -77,6 +82,32 @@ void main() {
     await tester.tap(find.text('Cancelado'));
     await tester.pumpAndSettle();
 
+    await tester.scrollUntilVisible(find.text('Seguimiento de la obra'), 500);
+    expect(find.text('Avance confirmado'), findsOneWidget);
+    expect(find.text('Visita finalizada'), findsOneWidget);
+
+    await tester.ensureVisible(find.text('Agregar nota'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Agregar nota'));
+    await tester.pumpAndSettle();
+    expect(find.text('Nueva nota de obra'), findsOneWidget);
+    await tester.enterText(
+      find.byType(TextFormField),
+      'Confirmar llegada de materiales',
+    );
+    await tester.tap(find.text('Guardar nota'));
+    await tester.pumpAndSettle();
+    expect(find.text('Confirmar llegada de materiales'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Seguimiento de la obra'));
+    await tester.pumpAndSettle();
+    expect(find.text('Notas'), findsOneWidget);
+    expect(find.text('Historial'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
     await tester.pumpWidget(
       MaterialApp(
         home: ProjectFormScreen(
@@ -94,6 +125,32 @@ void main() {
 }
 
 class _ProjectScreenRepository implements ProjectRepository {
+  final List<ProjectNote> notes = [_note];
+
+  @override
+  Future<ResourceCreationResult> addNote(
+    String projectExternalId, {
+    required String content,
+    required String clientRequestId,
+    required DateTime occurredAtUtc,
+  }) async {
+    notes.insert(
+      0,
+      ProjectNote(
+        id: notes.length + 2,
+        externalId: 'note-${notes.length + 2}',
+        content: content,
+        createdBy: _author,
+        createdAtUtc: occurredAtUtc,
+        occurredAtUtc: occurredAtUtc,
+        receivedAtUtc: occurredAtUtc,
+        updatedBy: null,
+        updatedAtUtc: null,
+      ),
+    );
+    return const ResourceCreationResult(id: 'note-new', message: 'Created');
+  }
+
   @override
   Future<ProjectPage> getProjects({
     String? status,
@@ -113,6 +170,10 @@ class _ProjectScreenRepository implements ProjectRepository {
   Future<ProjectDetail> getProject(String externalId) async => _detail;
 
   @override
+  Future<List<ProjectNote>> getNotes(String projectExternalId) async =>
+      List.unmodifiable(notes);
+
+  @override
   Future<List<ProjectStatus>> getStatuses() async => const [
     ProjectStatus(value: 1, label: 'Borrador'),
     ProjectStatus(value: 2, label: 'Activo'),
@@ -120,6 +181,19 @@ class _ProjectScreenRepository implements ProjectRepository {
     ProjectStatus(value: 4, label: 'Completado'),
     ProjectStatus(value: 5, label: 'Cancelado'),
   ];
+
+  @override
+  Future<ProjectTimelinePage> getTimeline(
+    String projectExternalId, {
+    int page = 1,
+    int pageSize = 50,
+  }) async => ProjectTimelinePage(
+    items: [_timelineItem],
+    page: page,
+    pageSize: pageSize,
+    totalItems: 1,
+    totalPages: 1,
+  );
 
   @override
   Future<ProjectDetail> createProject(
@@ -174,4 +248,36 @@ final _detail = ProjectDetail(
   latitude: -17.75,
   longitude: -63.18,
   createdAtUtc: DateTime.utc(2026, 8, 1),
+);
+
+const _author = UserReference(
+  id: 7,
+  externalId: 'seller-id',
+  name: 'Carlos Gómez',
+);
+
+final _note = ProjectNote(
+  id: 1,
+  externalId: 'note-1',
+  content: 'Avance confirmado',
+  createdBy: _author,
+  createdAtUtc: DateTime.utc(2026, 8, 11, 10, 35),
+  occurredAtUtc: DateTime.utc(2026, 8, 11, 10, 35),
+  receivedAtUtc: DateTime.utc(2026, 8, 11, 10, 36),
+  updatedBy: null,
+  updatedAtUtc: null,
+);
+
+final _timelineItem = ProjectTimelineItem(
+  externalId: 'event-1',
+  eventTypeId: 2,
+  eventTypeName: 'ProjectVisitCompleted',
+  title: 'Visita finalizada',
+  description: 'Se verificó el avance del segundo piso.',
+  occurredAtUtc: DateTime.utc(2026, 8, 11, 11),
+  createdBy: _author,
+  relatedEntityType: 'Visit',
+  relatedEntityId: 22,
+  metadataJson: null,
+  visitExternalId: 'visit-id',
 );
