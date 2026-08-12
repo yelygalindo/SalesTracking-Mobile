@@ -48,12 +48,12 @@ jobs:
         run: |
           ditto -c -k --sequesterRsrc --keepParent \
             build/ios/iphonesimulator/Runner.app \
-            urbantrack-ios-simulator.zip
+            urbantrackcrm-ios-simulator.zip
 
       - name: Upload simulator artifact
         uses: actions/upload-artifact@v7
         with:
-          name: urbantrack-ios-simulator
-          path: urbantrack-ios-simulator.zip
+          name: urbantrackcrm-ios-simulator
+          path: urbantrackcrm-ios-simulator.zip
           if-no-files-found: error
           retention-days: 7

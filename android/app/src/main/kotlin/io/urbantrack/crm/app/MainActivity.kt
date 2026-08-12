@@ -1,4 +1,4 @@
-package io.urbantrack.app
+package io.urbantrack.crm.app
 
 import io.flutter.embedding.android.FlutterActivity
 

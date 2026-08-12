@@ -1,4 +1,4 @@
-# UrbanTrack Mobile
+# UrbanTrackCRM Mobile
 
 MVP móvil en Flutter para seguimiento comercial y operativo en campo. Comparte una sola base de código para Android e iOS y consume la API REST de UrbanTrack.
 
@@ -51,7 +51,7 @@ El workflow manual `.github/workflows/ios-compile.yml` compila una aplicación p
 1. Abrir **Actions** en GitHub.
 2. Seleccionar **iOS compile check**.
 3. Pulsar **Run workflow**.
-4. Descargar el artefacto `urbantrack-ios-simulator` al finalizar.
+4. Descargar el artefacto `urbantrackcrm-ios-simulator` al finalizar.
 
 No se ejecuta con cada push para evitar consumo accidental. En repositorios privados, los runners macOS usan la cuota incluida de GitHub Actions y el uso adicional tiene una tarifa mayor que Linux; se debe revisar el consumo antes de lanzarlo. El artefacto confirma que el proyecto compila para iOS, pero no se instala en un iPhone físico. Para probar en el iPhone y distribuir con TestFlight todavía se requieren la membresía Apple Developer, certificados y perfiles de aprovisionamiento.
 
@@ -59,8 +59,8 @@ El workflow usa `macos-26` porque la versión actual de `connectivity_plus` comp
 
 Identificadores actuales:
 
-- Android: `io.urbantrack.app`
-- iOS: `io.urbantrack.app`
+- Android: `io.urbantrack.crm.app`
+- iOS: `io.urbantrack.crm.app`
 
 ## Funcionalidades implementadas
 
@@ -103,7 +103,7 @@ La aplicación solicita ubicación cuando una jornada o visita requiere capturar
 - `lib/data/storage`: sesión segura, SQLite y archivos pendientes.
 - `lib/config`: parámetros no sensibles por entorno.
 
-La marca está desacoplada en `lib/ui/core/branding`. UrbanTrack es la distribución inicial; otra distribución puede proporcionar un `BrandConfig`, nombre y recursos propios sin modificar la lógica de clientes, obras, visitas o sincronización.
+La marca está desacoplada en `lib/ui/core/branding`. UrbanTrackCRM es la distribución inicial; otra distribución puede proporcionar un `BrandConfig`, nombre y recursos propios sin modificar la lógica de clientes, obras, visitas o sincronización.
 
 ## Consideraciones actuales de la API
 

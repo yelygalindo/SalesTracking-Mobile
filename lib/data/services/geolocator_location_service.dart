@@ -32,7 +32,7 @@ class GeolocatorLocationService implements LocationService {
     if (permission == LocationPermission.deniedForever) {
       throw const LocationFailure(
         LocationFailureType.deniedForever,
-        'Habilita el permiso de ubicación para UrbanTrack en los ajustes del dispositivo.',
+        'Habilita el permiso de ubicación para UrbanTrackCRM en los ajustes del dispositivo.',
       );
     }
 

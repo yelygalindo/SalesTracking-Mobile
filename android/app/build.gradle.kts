@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "io.urbantrack.app"
+    namespace = "io.urbantrack.crm.app"
     compileSdk = 37
     ndkVersion = flutter.ndkVersion
 
@@ -15,7 +15,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "io.urbantrack.app"
+        applicationId = "io.urbantrack.crm.app"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

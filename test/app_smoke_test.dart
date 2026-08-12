@@ -8,7 +8,7 @@ import 'package:urbantrack/ui/core/branding/urbantrack_brand.dart';
 import 'support/workday_test_doubles.dart';
 
 void main() {
-  testWidgets('shows the UrbanTrack login shell', (tester) async {
+  testWidgets('shows the UrbanTrackCRM login shell', (tester) async {
     await tester.pumpWidget(
       UrbanTrackApp(
         brand: UrbanTrackBrand.config,
@@ -27,7 +27,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Bienvenido a UrbanTrack'), findsOneWidget);
+    expect(find.text('Bienvenido a UrbanTrackCRM'), findsOneWidget);
     expect(find.text('Correo electrónico'), findsOneWidget);
     expect(find.text('Contraseña'), findsOneWidget);
     expect(find.text('Ingresar'), findsOneWidget);

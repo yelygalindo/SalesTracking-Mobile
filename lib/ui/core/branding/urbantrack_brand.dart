@@ -4,8 +4,8 @@ import 'brand_config.dart';
 
 abstract final class UrbanTrackBrand {
   static final config = BrandConfig(
-    id: 'urbantrack',
-    appName: 'UrbanTrack',
+    id: 'urbantrack-crm',
+    appName: 'UrbanTrackCRM',
     monogram: 'UT',
     website: Uri.parse('https://urbantrack.io/'),
     primaryColor: const Color(0xFFF97316),
