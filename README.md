@@ -28,6 +28,13 @@ flutter test
 flutter build apk --release
 ```
 
+Para validar en un dispositivo Android el recorrido principal sin usar cuentas
+ni datos reales de la API:
+
+```powershell
+flutter drive --driver=test_driver/integration_test.dart --target=integration_test/app_navigation_test.dart -d <device-id>
+```
+
 Para comprobar que el Swagger aún conserva los endpoints, parámetros y campos consumidos por la aplicación:
 
 ```powershell

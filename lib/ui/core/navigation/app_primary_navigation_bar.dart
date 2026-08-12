@@ -22,21 +22,25 @@ class AppPrimaryNavigationBar extends StatelessWidget {
       },
       destinations: const [
         NavigationDestination(
+          key: ValueKey('primary-nav-home'),
           icon: Icon(Icons.home_outlined),
           selectedIcon: Icon(Icons.home),
           label: 'Inicio',
         ),
         NavigationDestination(
+          key: ValueKey('primary-nav-customers'),
           icon: Icon(Icons.people_outline),
           selectedIcon: Icon(Icons.people),
           label: 'Clientes',
         ),
         NavigationDestination(
+          key: ValueKey('primary-nav-projects'),
           icon: Icon(Icons.apartment_outlined),
           selectedIcon: Icon(Icons.apartment),
           label: 'Obras',
         ),
         NavigationDestination(
+          key: ValueKey('primary-nav-history'),
           icon: Icon(Icons.history_outlined),
           selectedIcon: Icon(Icons.history),
           label: 'Historial',

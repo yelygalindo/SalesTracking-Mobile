@@ -66,6 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         actions: [
           IconButton(
+            key: const ValueKey('logout-button'),
             tooltip: 'Cerrar sesión',
             onPressed: widget.authViewModel.logout,
             icon: const Icon(Icons.logout),
