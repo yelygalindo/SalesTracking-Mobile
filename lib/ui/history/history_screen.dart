@@ -101,6 +101,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           const SizedBox(height: 18),
                           OutlinedButton.icon(
                             key: const ValueKey('history-date-picker'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: const Color(0xFF9A3412),
+                              side: const BorderSide(color: Color(0xFF9A3412)),
+                            ),
                             onPressed: _pickDate,
                             icon: const Icon(Icons.calendar_today_outlined),
                             label: Text(_longDate(_viewModel.selectedDate)),

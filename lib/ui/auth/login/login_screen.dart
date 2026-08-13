@@ -85,7 +85,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 8),
                     const Text(
                       'Ingresa con tu cuenta para comenzar tu jornada.',
-                      style: TextStyle(color: Color(0xFF6F788A)),
+                      style: TextStyle(color: Color(0xFF596273)),
                     ),
                     const SizedBox(height: 28),
                     TextFormField(
@@ -120,6 +120,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         labelText: 'Contraseña',
                         prefixIcon: const Icon(Icons.lock_outline),
                         suffixIcon: IconButton(
+                          tooltip: _obscurePassword
+                              ? 'Mostrar contraseña'
+                              : 'Ocultar contraseña',
                           onPressed: () => setState(
                             () => _obscurePassword = !_obscurePassword,
                           ),
@@ -138,6 +141,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
+                        style: TextButton.styleFrom(
+                          foregroundColor: const Color(0xFF9A3412),
+                        ),
                         onPressed: isLoading
                             ? null
                             : () => context.push(AppRoutes.forgotPassword),

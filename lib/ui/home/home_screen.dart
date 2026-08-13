@@ -41,7 +41,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       appBar: AppBar(
         title: Row(
-          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
               width: 34,
@@ -61,7 +60,13 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             const SizedBox(width: 9),
-            Text(brand.appName),
+            Flexible(
+              child: Text(
+                brand.appName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ],
         ),
         actions: [
@@ -231,6 +236,7 @@ class _ClosedWorkdayCard extends StatelessWidget {
             FilledButton.icon(
               style: FilledButton.styleFrom(
                 backgroundColor: brand.primaryColor,
+                foregroundColor: brand.inkColor,
               ),
               onPressed: starting || pending ? null : viewModel.startWorkday,
               icon: starting

@@ -86,7 +86,7 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                             const Text(
                               'CRM',
                               style: TextStyle(
-                                color: Color(0xFF6F788A),
+                                color: Color(0xFF596273),
                                 fontSize: 11,
                                 fontWeight: FontWeight.w900,
                                 letterSpacing: .7,
