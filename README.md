@@ -59,6 +59,9 @@ El comando valida login, jornada y visita actuales, catálogos, clientes, obras,
 historial y opciones de adjuntos. Solo ejecuta `GET` después del login y nunca
 imprime credenciales, tokens ni cuerpos de respuesta.
 
+La autenticación admite hasta 45 segundos porque el contenedor público puede
+necesitar más de 20 segundos para responder después de un arranque en frío.
+
 En macOS:
 
 ```bash

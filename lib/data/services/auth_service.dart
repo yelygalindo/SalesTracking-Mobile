@@ -16,7 +16,7 @@ class AuthService {
   AuthService(
     this._baseUrl,
     this._client, {
-    this.timeout = const Duration(seconds: 20),
+    this.timeout = const Duration(seconds: 45),
   });
 
   final Uri _baseUrl;

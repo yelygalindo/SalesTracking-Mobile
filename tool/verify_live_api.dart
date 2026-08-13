@@ -32,7 +32,7 @@ Future<void> main() async {
         LoginRequest(
           email: email,
           password: password,
-          deviceType: 'qa-readonly',
+          deviceType: 'android',
           deviceId: 'urbantrack-readonly-smoke',
         ),
       );
@@ -45,50 +45,76 @@ Future<void> main() async {
     final visits = VisitService(baseUrl, client);
     final history = HistoryService(baseUrl, client);
     final attachments = ProjectAttachmentService(baseUrl, client);
+    final failures = <String>[];
 
-    await _verify('Current workday', () => workdays.getCurrent(token));
-    await _verify('Current visit', () => visits.getCurrent(token));
-    await _verify('Customer statuses', () => customers.getStatuses(token));
-    final customerPage = await _verify(
+    await _check('Current workday', () => workdays.getCurrent(token), failures);
+    await _check('Current visit', () => visits.getCurrent(token), failures);
+    await _check(
+      'Customer statuses',
+      () => customers.getStatuses(token),
+      failures,
+    );
+    final customerPage = await _check(
       'Customer list',
       () => customers.getCustomers(token, pageSize: 5),
+      failures,
     );
-    if (customerPage.customers.firstOrNull case final customer?) {
-      await _verify(
+    if (customerPage?.customers.firstOrNull case final customer?) {
+      await _check(
         'Customer detail',
         () => customers.getCustomer(token, customer.externalId),
+        failures,
       );
     } else {
-      _skip('Customer detail', 'the seller has no visible customers');
+      _skip(
+        'Customer detail',
+        customerPage == null
+            ? 'the customer list check failed'
+            : 'the seller has no visible customers',
+      );
     }
 
-    await _verify('Project statuses', () => projects.getStatuses(token));
-    final projectPage = await _verify(
+    await _check(
+      'Project statuses',
+      () => projects.getStatuses(token),
+      failures,
+    );
+    final projectPage = await _check(
       'Project list',
       () => projects.getProjects(token, pageSize: 5),
+      failures,
     );
-    await _verify('Attachment options', () => attachments.getOptions(token));
+    await _check(
+      'Attachment options',
+      () => attachments.getOptions(token),
+      failures,
+    );
 
-    if (projectPage.projects.firstOrNull case final project?) {
-      await _verify(
+    if (projectPage?.projects.firstOrNull case final project?) {
+      await _check(
         'Project detail',
         () => projects.getProject(token, project.externalId),
+        failures,
       );
-      await _verify(
+      await _check(
         'Project notes',
         () => projects.getNotes(token, project.externalId),
+        failures,
       );
-      await _verify(
+      await _check(
         'Project timeline',
         () => projects.getTimeline(token, project.externalId, pageSize: 5),
+        failures,
       );
-      await _verify(
+      await _check(
         'Project visits',
         () => history.getProjectVisits(token, project.externalId),
+        failures,
       );
-      await _verify(
+      await _check(
         'Project attachments',
         () => attachments.getAttachments(token, project.externalId),
+        failures,
       );
     } else {
       for (final check in const [
@@ -98,7 +124,12 @@ Future<void> main() async {
         'Project visits',
         'Project attachments',
       ]) {
-        _skip(check, 'the seller has no visible projects');
+        _skip(
+          check,
+          projectPage == null
+              ? 'the project list check failed'
+              : 'the seller has no visible projects',
+        );
       }
     }
 
@@ -112,8 +143,17 @@ Future<void> main() async {
       history,
       accessToken: token,
       sellerExternalId: sellerExternalId,
+      failures: failures,
     );
 
+    if (failures.isNotEmpty) {
+      stderr.writeln(
+        'Live API read-only smoke verification completed with '
+        '${failures.length} failed check(s): ${failures.join(', ')}.',
+      );
+      exitCode = 1;
+      return;
+    }
     stdout.writeln('Live API read-only smoke verification passed.');
   } on ApiException catch (error) {
     stderr.writeln(
@@ -133,6 +173,7 @@ Future<void> _verifySellerHistory(
   HistoryService history, {
   required String accessToken,
   required String sellerExternalId,
+  required List<String> failures,
 }) async {
   try {
     await _verify(
@@ -141,20 +182,47 @@ Future<void> _verifySellerHistory(
           history.getSellerTimeline(accessToken, sellerExternalId, pageSize: 5),
     );
   } on ApiException catch (error) {
-    if (error.statusCode != 403) rethrow;
-    await _verify(
-      'Seller visit history fallback',
-      () => history.getVisits(accessToken, sellerExternalId: sellerExternalId),
-    );
+    if (error.statusCode == 403) {
+      await _check(
+        'Seller visit history fallback',
+        () =>
+            history.getVisits(accessToken, sellerExternalId: sellerExternalId),
+        failures,
+      );
+      return;
+    }
+    failures.add('Seller timeline${_status(error.statusCode)}');
+  }
+}
+
+Future<T?> _check<T>(
+  String label,
+  Future<T> Function() request,
+  List<String> failures,
+) async {
+  try {
+    return await _verify(label, request);
+  } on ApiException catch (error) {
+    failures.add('$label${_status(error.statusCode)}');
+    return null;
   }
 }
 
 Future<T> _verify<T>(String label, Future<T> Function() request) async {
   final stopwatch = Stopwatch()..start();
-  final value = await request();
-  stopwatch.stop();
-  stdout.writeln('[OK] $label (${stopwatch.elapsedMilliseconds} ms)');
-  return value;
+  try {
+    final value = await request();
+    stopwatch.stop();
+    stdout.writeln('[OK] $label (${stopwatch.elapsedMilliseconds} ms)');
+    return value;
+  } on ApiException catch (error) {
+    stopwatch.stop();
+    stderr.writeln(
+      '[FAIL] $label${_status(error.statusCode)} '
+      '(${stopwatch.elapsedMilliseconds} ms)',
+    );
+    rethrow;
+  }
 }
 
 void _skip(String label, String reason) {

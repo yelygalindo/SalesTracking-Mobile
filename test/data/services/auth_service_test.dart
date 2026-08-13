@@ -10,6 +10,15 @@ import 'package:urbantrack/data/services/api_exception.dart';
 import 'package:urbantrack/data/services/auth_service.dart';
 
 void main() {
+  test('allows the public API cold-start window by default', () {
+    final service = AuthService(
+      Uri.parse('https://api.example.test'),
+      MockClient((_) async => http.Response('{}', 200)),
+    );
+
+    expect(service.timeout, const Duration(seconds: 45));
+  });
+
   test('login sends the documented contract and parses a session', () async {
     final client = MockClient((request) async {
       expect(request.method, 'POST');
