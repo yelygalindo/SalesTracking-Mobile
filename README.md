@@ -43,6 +43,22 @@ dart run tool/verify_openapi_contract.dart
 
 Este chequeo consulta únicamente el documento OpenAPI público; no usa usuarios, contraseñas ni tokens.
 
+Para comprobar autenticación y consultas reales sin crear ni modificar datos,
+el smoke test autenticado lee las credenciales solo desde variables de entorno.
+En PowerShell, `Get-Credential` evita que la contraseña quede visible:
+
+```powershell
+$smokeCredential = Get-Credential
+$env:URBANTRACK_SMOKE_EMAIL = $smokeCredential.UserName
+$env:URBANTRACK_SMOKE_PASSWORD = $smokeCredential.GetNetworkCredential().Password
+dart run tool/verify_live_api.dart
+Remove-Item Env:URBANTRACK_SMOKE_EMAIL, Env:URBANTRACK_SMOKE_PASSWORD
+```
+
+El comando valida login, jornada y visita actuales, catálogos, clientes, obras,
+historial y opciones de adjuntos. Solo ejecuta `GET` después del login y nunca
+imprime credenciales, tokens ni cuerpos de respuesta.
+
 En macOS:
 
 ```bash
