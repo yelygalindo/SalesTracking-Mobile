@@ -88,6 +88,9 @@ Identificadores actuales:
 - Android: `io.urbantrack.crm.app`
 - iOS: `io.urbantrack.crm.app`
 
+El procedimiento de QA, firma, pruebas cerradas, TestFlight y publicación está
+documentado en [`docs/qa-and-release-runbook.md`](docs/qa-and-release-runbook.md).
+
 ## Funcionalidades implementadas
 
 - Login, cierre de sesión, persistencia segura y renovación de tokens.
