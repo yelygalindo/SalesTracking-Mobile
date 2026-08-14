@@ -9,6 +9,7 @@ import '../data/repositories/project_attachment_repository.dart';
 import '../data/repositories/history_repository.dart';
 import '../data/models/visit/visit_target_type.dart';
 import '../data/services/location_service.dart';
+import '../data/services/attachment_picker_service.dart';
 import '../ui/auth/auth_view_model.dart';
 import '../ui/auth/forgot_password/forgot_password_screen.dart';
 import '../ui/auth/login/login_screen.dart';
@@ -98,6 +99,7 @@ abstract final class AppRouter {
     required ProjectAttachmentRepository attachmentRepository,
     required HistoryRepository historyRepository,
     required LocationService locationService,
+    AttachmentPickerService? attachmentPickerService,
     String initialLocation = AppRoutes.splash,
   }) {
     return GoRouter(
@@ -216,6 +218,7 @@ abstract final class AppRouter {
             repository: attachmentRepository,
             projectExternalId: state.pathParameters['externalId']!,
             visitExternalId: state.uri.queryParameters['visitId'] ?? '',
+            pickerService: attachmentPickerService,
           ),
         ),
         GoRoute(

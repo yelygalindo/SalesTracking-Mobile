@@ -19,6 +19,9 @@ No sustituye los formularios ni las revisiones de Google Play o Apple.
 - [x] Ciclo de interfaz check-in/check-out de cliente validado en emulador
       Android con resultado obligatorio, notas, hora móvil, ubicación inyectada
       e identificadores de solicitud únicos.
+- [x] Visita de obra con fuentes simuladas de cámara y galería validada en
+      emulador Android: los archivos quedan persistidos y encolados sin conexión
+      con dependencia explícita del check-in pendiente.
 - [ ] Comprobar en dispositivo el ciclo completo de inicio/cierre de jornada
       con ubicación GPS.
 - [ ] Recibir e integrar logotipo, icono y recursos definitivos.

@@ -256,6 +256,7 @@ class _ProjectCard extends StatelessWidget {
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
+        key: ValueKey('project-card-${project.externalId}'),
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.all(17),

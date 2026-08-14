@@ -14,6 +14,7 @@ import '../data/repositories/workday_repository.dart';
 import '../data/repositories/history_repository.dart';
 import '../data/services/connectivity_sync_coordinator.dart';
 import '../data/services/location_service.dart';
+import '../data/services/attachment_picker_service.dart';
 import '../data/services/network_status_service.dart';
 import '../routing/app_router.dart';
 import '../ui/auth/auth_view_model.dart';
@@ -37,6 +38,7 @@ class UrbanTrackApp extends StatelessWidget {
     required this.visitRepository,
     required this.attachmentRepository,
     required this.historyRepository,
+    this.attachmentPickerService,
     super.key,
   });
 
@@ -52,6 +54,7 @@ class UrbanTrackApp extends StatelessWidget {
   final VisitRepository visitRepository;
   final ProjectAttachmentRepository attachmentRepository;
   final HistoryRepository historyRepository;
+  final AttachmentPickerService? attachmentPickerService;
 
   @override
   Widget build(BuildContext context) {
@@ -66,6 +69,7 @@ class UrbanTrackApp extends StatelessWidget {
       visitRepository: visitRepository,
       attachmentRepository: attachmentRepository,
       historyRepository: historyRepository,
+      attachmentPickerService: attachmentPickerService,
       builder: (router) => BrandScope(
         brand: brand,
         child: MaterialApp.router(
@@ -91,6 +95,7 @@ class _AppHost extends StatefulWidget {
     required this.visitRepository,
     required this.attachmentRepository,
     required this.historyRepository,
+    this.attachmentPickerService,
     required this.builder,
   });
 
@@ -104,6 +109,7 @@ class _AppHost extends StatefulWidget {
   final VisitRepository visitRepository;
   final ProjectAttachmentRepository attachmentRepository;
   final HistoryRepository historyRepository;
+  final AttachmentPickerService? attachmentPickerService;
   final Widget Function(GoRouter router) builder;
 
   @override
@@ -149,6 +155,7 @@ class _AppHostState extends State<_AppHost> {
       attachmentRepository: widget.attachmentRepository,
       historyRepository: widget.historyRepository,
       locationService: widget.locationService,
+      attachmentPickerService: widget.attachmentPickerService,
     );
     _authViewModel.restoreSession();
   }

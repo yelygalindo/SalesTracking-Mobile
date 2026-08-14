@@ -2,24 +2,26 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:mime/mime.dart';
 
 import '../../data/models/attachment/attachment_source_file.dart';
 import '../../data/models/attachment/attachment_upload_options.dart';
 import '../../data/repositories/project_attachment_repository.dart';
+import '../../data/services/attachment_picker_service.dart';
+import '../../data/services/image_picker_attachment_service.dart';
 
 class ProjectAttachmentScreen extends StatefulWidget {
   const ProjectAttachmentScreen({
     required this.repository,
     required this.projectExternalId,
     required this.visitExternalId,
+    this.pickerService,
     super.key,
   });
 
   final ProjectAttachmentRepository repository;
   final String projectExternalId;
   final String visitExternalId;
+  final AttachmentPickerService? pickerService;
 
   @override
   State<ProjectAttachmentScreen> createState() =>
@@ -27,9 +29,9 @@ class ProjectAttachmentScreen extends StatefulWidget {
 }
 
 class _ProjectAttachmentScreenState extends State<ProjectAttachmentScreen> {
-  final _picker = ImagePicker();
   final _caption = TextEditingController();
-  final List<XFile> _images = [];
+  final List<AttachmentSourceFile> _images = [];
+  late final AttachmentPickerService _picker;
   AttachmentUploadOptions? _options;
   String _attachmentType = 'photo';
   bool _loading = true;
@@ -39,6 +41,7 @@ class _ProjectAttachmentScreenState extends State<ProjectAttachmentScreen> {
   @override
   void initState() {
     super.initState();
+    _picker = widget.pickerService ?? ImagePickerAttachmentService();
     _initialize();
   }
 
@@ -58,9 +61,8 @@ class _ProjectAttachmentScreenState extends State<ProjectAttachmentScreen> {
 
   Future<void> _recoverLostImages() async {
     try {
-      final response = await _picker.retrieveLostData();
-      final files = response.files;
-      if (files != null && mounted) _images.addAll(files);
+      final images = await _picker.recoverLostImages();
+      if (mounted) _images.addAll(images);
     } catch (_) {
       // There is no lost picker state on platforms without this capability.
     }
@@ -74,11 +76,7 @@ class _ProjectAttachmentScreenState extends State<ProjectAttachmentScreen> {
 
   Future<void> _takePhoto() async {
     try {
-      final image = await _picker.pickImage(
-        source: ImageSource.camera,
-        imageQuality: 90,
-        requestFullMetadata: false,
-      );
+      final image = await _picker.takePhoto();
       if (image != null && mounted) setState(() => _images.add(image));
     } catch (_) {
       if (mounted) setState(() => _error = 'No pudimos abrir la cámara.');
@@ -87,10 +85,7 @@ class _ProjectAttachmentScreenState extends State<ProjectAttachmentScreen> {
 
   Future<void> _pickGallery() async {
     try {
-      final images = await _picker.pickMultiImage(
-        imageQuality: 90,
-        requestFullMetadata: false,
-      );
+      final images = await _picker.pickFromGallery();
       if (images.isNotEmpty && mounted) setState(() => _images.addAll(images));
     } catch (_) {
       if (mounted) setState(() => _error = 'No pudimos abrir la galería.');
@@ -107,22 +102,13 @@ class _ProjectAttachmentScreenState extends State<ProjectAttachmentScreen> {
       _error = null;
     });
     try {
-      final sources = <AttachmentSourceFile>[];
-      for (final image in _images) {
-        final source = AttachmentSourceFile(
-          path: image.path,
-          fileName: image.name,
-          contentType:
-              image.mimeType ?? lookupMimeType(image.path) ?? 'image/jpeg',
-          sizeBytes: await image.length(),
-        );
+      for (final source in _images) {
         _validate(source);
-        sources.add(source);
       }
       await widget.repository.saveAttachments(
         projectExternalId: widget.projectExternalId,
         visitExternalId: widget.visitExternalId,
-        sources: sources,
+        sources: _images,
         attachmentType: _attachmentType,
         caption: _caption.text,
       );
@@ -232,6 +218,7 @@ class _ProjectAttachmentScreenState extends State<ProjectAttachmentScreen> {
                             if ((_options?.attachmentTypes.length ?? 0) > 1)
                               const SizedBox(height: 12),
                             TextField(
+                              key: const ValueKey('attachment-caption'),
                               controller: _caption,
                               enabled: !_saving,
                               decoration: const InputDecoration(
@@ -240,6 +227,7 @@ class _ProjectAttachmentScreenState extends State<ProjectAttachmentScreen> {
                             ),
                             const SizedBox(height: 18),
                             FilledButton.icon(
+                              key: const ValueKey('save-attachments-button'),
                               onPressed: _saving ? null : _save,
                               icon: _saving
                                   ? const SizedBox.square(
@@ -269,7 +257,7 @@ class _ProjectAttachmentScreenState extends State<ProjectAttachmentScreen> {
 class _PhotoGrid extends StatelessWidget {
   const _PhotoGrid({required this.images, required this.onRemove});
 
-  final List<XFile> images;
+  final List<AttachmentSourceFile> images;
   final ValueChanged<int> onRemove;
 
   @override
@@ -317,6 +305,7 @@ class _PickerActions extends StatelessWidget {
       children: [
         Expanded(
           child: OutlinedButton.icon(
+            key: const ValueKey('take-photo-button'),
             onPressed: onCamera,
             icon: const Icon(Icons.photo_camera_outlined),
             label: const Text('Cámara'),
@@ -325,6 +314,7 @@ class _PickerActions extends StatelessWidget {
         const SizedBox(width: 10),
         Expanded(
           child: OutlinedButton.icon(
+            key: const ValueKey('pick-gallery-button'),
             onPressed: onGallery,
             icon: const Icon(Icons.photo_library_outlined),
             label: const Text('Galería'),

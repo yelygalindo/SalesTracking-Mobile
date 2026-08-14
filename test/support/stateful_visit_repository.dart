@@ -4,6 +4,9 @@ import 'package:urbantrack/data/models/visit/visit_target_type.dart';
 import 'package:urbantrack/data/repositories/visit_repository.dart';
 
 class StatefulVisitRepository implements VisitRepository {
+  StatefulVisitRepository({this.useLocalIds = false});
+
+  final bool useLocalIds;
   CurrentVisit? current;
   int checkInCalls = 0;
   int checkOutCalls = 0;
@@ -37,7 +40,7 @@ class StatefulVisitRepository implements VisitRepository {
     checkInNote = note;
     current = CurrentVisit(
       type: targetType,
-      externalId: 'visit-test-id',
+      externalId: useLocalIds ? 'local:$clientRequestId' : 'visit-test-id',
       targetExternalId: targetExternalId,
       targetName: targetName,
       checkInAtUtc: checkInAtUtc,
