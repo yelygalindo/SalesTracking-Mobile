@@ -63,6 +63,81 @@ class InactiveWorkdayRepository implements WorkdayRepository {
   }
 }
 
+class StatefulWorkdayRepository implements WorkdayRepository {
+  Workday? current;
+  int startCalls = 0;
+  int closeCalls = 0;
+  DateTime? startedAtUtc;
+  DateTime? endedAtUtc;
+  LocationSample? startLocation;
+  LocationSample? closeLocation;
+  String? startRequestId;
+  String? closeRequestId;
+
+  @override
+  Future<void> syncPending() async {}
+
+  @override
+  Future<int> pendingCount() async => 0;
+
+  @override
+  Future<CurrentWorkdayResponse> getCurrent() async => CurrentWorkdayResponse(
+    hasOpenWorkday: current?.isOpen == true,
+    workday: current?.isOpen == true ? current : null,
+  );
+
+  @override
+  Future<Workday> start({
+    required DateTime startedAtUtc,
+    required LocationSample location,
+    required String clientRequestId,
+    String? note,
+  }) async {
+    startCalls += 1;
+    this.startedAtUtc = startedAtUtc;
+    startLocation = location;
+    startRequestId = clientRequestId;
+    current = Workday(
+      externalId: 'workday-test-id',
+      status: 'open',
+      startedAtUtc: startedAtUtc,
+      startedReceivedAtUtc: startedAtUtc.add(const Duration(seconds: 2)),
+      startLatitude: location.latitude,
+      startLongitude: location.longitude,
+      note: note,
+    );
+    return current!;
+  }
+
+  @override
+  Future<Workday> close({
+    required String externalId,
+    required DateTime endedAtUtc,
+    required LocationSample location,
+    required String clientRequestId,
+  }) async {
+    closeCalls += 1;
+    this.endedAtUtc = endedAtUtc;
+    closeLocation = location;
+    closeRequestId = clientRequestId;
+    final open = current!;
+    current = Workday(
+      externalId: externalId,
+      status: 'closed',
+      startedAtUtc: open.startedAtUtc,
+      startedReceivedAtUtc: open.startedReceivedAtUtc,
+      startLatitude: open.startLatitude,
+      startLongitude: open.startLongitude,
+      note: open.note,
+      endedAtUtc: endedAtUtc,
+      endedReceivedAtUtc: endedAtUtc.add(const Duration(seconds: 2)),
+      endLatitude: location.latitude,
+      endLongitude: location.longitude,
+    );
+    return current!;
+  }
+}
+
 class FixedLocationService implements LocationService {
   @override
   Future<LocationSample> captureCurrent() async => const LocationSample(

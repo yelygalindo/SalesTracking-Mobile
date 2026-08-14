@@ -12,8 +12,12 @@ No sustituye los formularios ni las revisiones de Google Play o Apple.
 - [x] Contrato público OpenAPI verificado automáticamente.
 - [x] Login y consultas de clientes, obras, visitas, historial y adjuntos
       validados contra la API publicada.
-- [ ] Corregir el HTTP 403 del vendedor en `GET /api/workdays/current` y
-      comprobar inicio/cierre de jornada.
+- [x] Acceso del vendedor a `GET /api/workdays/current` corregido y validado
+      contra la API publicada.
+- [x] Ciclo de interfaz iniciar/cerrar jornada validado en emulador Android con
+      hora móvil, ubicación inyectada e identificadores de solicitud únicos.
+- [ ] Comprobar en dispositivo el ciclo completo de inicio/cierre de jornada
+      con ubicación GPS.
 - [ ] Recibir e integrar logotipo, icono y recursos definitivos.
 - [ ] Completar y verificar las cuentas de Google Play y Apple Developer.
 - [ ] Configurar claves de firma de producción; actualmente Android `release`
@@ -160,4 +164,3 @@ API pasa y los flujos críticos fueron aprobados. Si aparece un defecto durante
 la prueba, detener la promoción, conservar el build anterior disponible,
 corregir en Git, incrementar el build number y distribuir un artefacto nuevo.
 Nunca sobrescribir o reutilizar el número de un build ya cargado.
-

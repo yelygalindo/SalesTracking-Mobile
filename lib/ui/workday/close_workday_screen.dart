@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -17,9 +19,11 @@ class _CloseWorkdayScreenState extends State<CloseWorkdayScreen> {
   @override
   void initState() {
     super.initState();
-    if (widget.viewModel.hasOpenWorkday) {
-      widget.viewModel.prepareCloseLocation();
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && widget.viewModel.hasOpenWorkday) {
+        unawaited(widget.viewModel.prepareCloseLocation());
+      }
+    });
   }
 
   Future<void> _close() async {
@@ -170,6 +174,7 @@ class _CloseWorkdayScreenState extends State<CloseWorkdayScreen> {
                         ],
                         const SizedBox(height: 18),
                         FilledButton.icon(
+                          key: const ValueKey('close-workday-button'),
                           style: FilledButton.styleFrom(
                             backgroundColor: const Color(0xFFDC3E4D),
                           ),

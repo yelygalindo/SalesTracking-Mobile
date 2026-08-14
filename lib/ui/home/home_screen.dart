@@ -234,6 +234,7 @@ class _ClosedWorkdayCard extends StatelessWidget {
             ),
             const SizedBox(height: 22),
             FilledButton.icon(
+              key: const ValueKey('start-workday-button'),
               style: FilledButton.styleFrom(
                 backgroundColor: brand.primaryColor,
                 foregroundColor: brand.inkColor,
@@ -379,6 +380,7 @@ class _ActiveWorkdayCard extends StatelessWidget {
         ),
         const SizedBox(height: 14),
         OutlinedButton.icon(
+          key: const ValueKey('finish-workday-button'),
           onPressed: onClose,
           icon: const Icon(Icons.stop_circle_outlined),
           label: const Text('Finalizar jornada'),
