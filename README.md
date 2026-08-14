@@ -33,6 +33,7 @@ ni datos reales de la API:
 
 ```powershell
 flutter drive --driver=test_driver/integration_test.dart --target=integration_test/app_navigation_test.dart -d <device-id>
+flutter drive --driver=test_driver/integration_test.dart --target=integration_test/customer_lifecycle_test.dart -d <device-id>
 flutter drive --driver=test_driver/integration_test.dart --target=integration_test/workday_lifecycle_test.dart -d <device-id>
 flutter drive --driver=test_driver/integration_test.dart --target=integration_test/visit_lifecycle_test.dart -d <device-id>
 flutter drive --driver=test_driver/integration_test.dart --target=integration_test/project_photo_lifecycle_test.dart -d <device-id>

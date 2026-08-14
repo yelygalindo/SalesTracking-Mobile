@@ -56,6 +56,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
       title: 'Nueva nota',
       label: 'Nota',
       actionLabel: 'Guardar nota',
+      fieldKey: const ValueKey('customer-note-field'),
     );
     if (text == null || !mounted) return;
     await _viewModel.addNote(text);
@@ -66,6 +67,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
       title: 'Nuevo recordatorio',
       label: '¿Qué necesitas recordar?',
       actionLabel: 'Elegir fecha',
+      fieldKey: const ValueKey('customer-reminder-field'),
     );
     if (text == null || !mounted) return;
     final now = DateTime.now();
@@ -98,32 +100,17 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
     required String title,
     required String label,
     required String actionLabel,
+    required Key fieldKey,
   }) async {
-    final controller = TextEditingController();
     final value = await showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          minLines: 2,
-          maxLines: 4,
-          decoration: InputDecoration(labelText: label),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, controller.text.trim()),
-            child: Text(actionLabel),
-          ),
-        ],
+      builder: (context) => _ActivityTextDialog(
+        title: title,
+        label: label,
+        actionLabel: actionLabel,
+        fieldKey: fieldKey,
       ),
     );
-    controller.dispose();
     return value?.isEmpty == true ? null : value;
   }
 
@@ -185,6 +172,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                             ),
                             const SizedBox(height: 12),
                             FilledButton.icon(
+                              key: const ValueKey('edit-customer-button'),
                               onPressed: pendingSync ? null : _edit,
                               icon: const Icon(Icons.edit_outlined),
                               label: Text(
@@ -211,6 +199,9 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                               onAdd: pendingSync || _viewModel.isBusy
                                   ? null
                                   : _addReminder,
+                              addKey: const ValueKey(
+                                'add-customer-reminder-button',
+                              ),
                               addTooltip: 'Nuevo recordatorio',
                             ),
                             const SizedBox(height: 10),
@@ -226,6 +217,9 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                               onAdd: pendingSync || _viewModel.isBusy
                                   ? null
                                   : _addNote,
+                              addKey: const ValueKey(
+                                'add-customer-note-button',
+                              ),
                               addTooltip: 'Nueva nota',
                             ),
                             const SizedBox(height: 10),
@@ -241,6 +235,58 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
           );
         },
       ),
+    );
+  }
+}
+
+class _ActivityTextDialog extends StatefulWidget {
+  const _ActivityTextDialog({
+    required this.title,
+    required this.label,
+    required this.actionLabel,
+    required this.fieldKey,
+  });
+
+  final String title;
+  final String label;
+  final String actionLabel;
+  final Key fieldKey;
+
+  @override
+  State<_ActivityTextDialog> createState() => _ActivityTextDialogState();
+}
+
+class _ActivityTextDialogState extends State<_ActivityTextDialog> {
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(widget.title),
+      content: TextField(
+        key: widget.fieldKey,
+        controller: _controller,
+        autofocus: true,
+        minLines: 2,
+        maxLines: 4,
+        decoration: InputDecoration(labelText: widget.label),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancelar'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(context, _controller.text.trim()),
+          child: Text(widget.actionLabel),
+        ),
+      ],
     );
   }
 }
@@ -399,6 +445,7 @@ class _StatusCard extends StatelessWidget {
             ),
             const SizedBox(width: 12),
             DropdownButton<int>(
+              key: const ValueKey('customer-status-dropdown'),
               value:
                   viewModel.statuses.any(
                     (status) => status.value == customer.statusId,
@@ -437,12 +484,14 @@ class _SectionTitle extends StatelessWidget {
     required this.title,
     required this.count,
     this.onAdd,
+    this.addKey,
     this.addTooltip,
   });
 
   final String title;
   final int count;
   final VoidCallback? onAdd;
+  final Key? addKey;
   final String? addTooltip;
 
   @override
@@ -461,6 +510,7 @@ class _SectionTitle extends StatelessWidget {
         if (addTooltip != null) ...[
           const SizedBox(width: 4),
           IconButton(
+            key: addKey,
             tooltip: addTooltip,
             onPressed: onAdd,
             icon: const Icon(Icons.add_circle_outline),
@@ -501,6 +551,7 @@ class _ReminderList extends StatelessWidget {
             title: Text(reminder.text),
             subtitle: Text(_dateTime(reminder.reminderAtUtc)),
             trailing: IconButton(
+              key: ValueKey('complete-reminder-${reminder.externalId}'),
               tooltip: 'Marcar como completado',
               onPressed: enabled && reminder.externalId != null
                   ? () => onComplete(reminder.externalId!)

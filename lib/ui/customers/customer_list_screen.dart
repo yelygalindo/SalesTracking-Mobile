@@ -54,6 +54,7 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        key: const ValueKey('new-customer-button'),
         tooltip: 'Nuevo cliente',
         onPressed: _createCustomer,
         child: const Icon(Icons.add),

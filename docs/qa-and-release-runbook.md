@@ -19,6 +19,8 @@ No sustituye los formularios ni las revisiones de Google Play o Apple.
 - [x] Ciclo de interfaz check-in/check-out de cliente validado en emulador
       Android con resultado obligatorio, notas, hora móvil, ubicación inyectada
       e identificadores de solicitud únicos.
+- [x] Gestión completa de clientes validada en emulador Android: alta con
+      ubicación inyectada, edición, estado, nota, recordatorio y finalización.
 - [x] Visita de obra con fuentes simuladas de cámara y galería validada en
       emulador Android: los archivos quedan persistidos y encolados sin conexión
       con dependencia explícita del check-in pendiente.

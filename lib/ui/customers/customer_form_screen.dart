@@ -126,6 +126,7 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
                           ],
                           const SizedBox(height: 18),
                           TextFormField(
+                            key: const ValueKey('customer-name-field'),
                             controller: _nameController,
                             textCapitalization: TextCapitalization.words,
                             decoration: const InputDecoration(
@@ -136,6 +137,7 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
                           ),
                           const SizedBox(height: 14),
                           TextFormField(
+                            key: const ValueKey('customer-company-field'),
                             controller: _companyController,
                             textCapitalization: TextCapitalization.words,
                             decoration: const InputDecoration(
@@ -151,6 +153,7 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
                           ),
                           const SizedBox(height: 14),
                           TextFormField(
+                            key: const ValueKey('customer-address-field'),
                             controller: _addressController,
                             textCapitalization: TextCapitalization.sentences,
                             decoration: const InputDecoration(
@@ -183,6 +186,7 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
                           ),
                           const SizedBox(height: 18),
                           FilledButton.icon(
+                            key: const ValueKey('save-customer-button'),
                             onPressed: _viewModel.isBusy ? null : _save,
                             icon:
                                 _viewModel.status ==
@@ -229,6 +233,7 @@ class _ContactFields extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final phone = TextFormField(
+          key: const ValueKey('customer-phone-field'),
           controller: phoneController,
           keyboardType: TextInputType.phone,
           decoration: const InputDecoration(
@@ -238,6 +243,7 @@ class _ContactFields extends StatelessWidget {
           validator: _required,
         );
         final email = TextFormField(
+          key: const ValueKey('customer-email-field'),
           controller: emailController,
           keyboardType: TextInputType.emailAddress,
           decoration: const InputDecoration(
@@ -312,6 +318,7 @@ class _LocationCard extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(13),
             child: OutlinedButton.icon(
+              key: const ValueKey('capture-customer-location-button'),
               onPressed: viewModel.isBusy ? null : viewModel.captureLocation,
               icon: locating
                   ? const SizedBox.square(
