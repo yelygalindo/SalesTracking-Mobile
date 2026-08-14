@@ -98,6 +98,7 @@ class _VisitCheckInScreenState extends State<VisitCheckInScreen> {
                           ],
                           const SizedBox(height: 14),
                           TextField(
+                            key: const ValueKey('visit-check-in-note'),
                             controller: _note,
                             minLines: 3,
                             maxLines: 5,
@@ -108,6 +109,7 @@ class _VisitCheckInScreenState extends State<VisitCheckInScreen> {
                           ),
                           const SizedBox(height: 18),
                           FilledButton.icon(
+                            key: const ValueKey('confirm-visit-check-in'),
                             onPressed: _viewModel.isBusy ? null : _submit,
                             icon: _viewModel.status == VisitCheckInStatus.saving
                                 ? const SizedBox.square(

@@ -16,6 +16,9 @@ No sustituye los formularios ni las revisiones de Google Play o Apple.
       contra la API publicada.
 - [x] Ciclo de interfaz iniciar/cerrar jornada validado en emulador Android con
       hora móvil, ubicación inyectada e identificadores de solicitud únicos.
+- [x] Ciclo de interfaz check-in/check-out de cliente validado en emulador
+      Android con resultado obligatorio, notas, hora móvil, ubicación inyectada
+      e identificadores de solicitud únicos.
 - [ ] Comprobar en dispositivo el ciclo completo de inicio/cierre de jornada
       con ubicación GPS.
 - [ ] Recibir e integrar logotipo, icono y recursos definitivos.

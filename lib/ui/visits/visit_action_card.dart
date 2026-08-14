@@ -121,6 +121,7 @@ class _VisitActionCardState extends State<VisitActionCard> {
               const SizedBox(height: 12),
               if (widget.targetType == VisitTargetType.project) ...[
                 OutlinedButton.icon(
+                  key: const ValueKey('add-visit-photos-button'),
                   onPressed: () => _addPhotos(current),
                   icon: const Icon(Icons.photo_camera_outlined),
                   label: const Text('Agregar fotos'),
@@ -128,6 +129,7 @@ class _VisitActionCardState extends State<VisitActionCard> {
                 const SizedBox(height: 8),
               ],
               FilledButton.icon(
+                key: const ValueKey('finish-visit-button'),
                 onPressed: _finish,
                 icon: const Icon(Icons.stop_circle_outlined),
                 label: const Text('Finalizar visita'),
@@ -157,6 +159,7 @@ class _VisitActionCardState extends State<VisitActionCard> {
           const SizedBox(height: 8),
         ],
         FilledButton.icon(
+          key: const ValueKey('start-visit-button'),
           onPressed: _start,
           icon: const Icon(Icons.play_arrow),
           label: const Text('Iniciar visita'),

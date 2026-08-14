@@ -92,6 +92,7 @@ class _VisitCheckOutScreenState extends State<VisitCheckOutScreen> {
                           ],
                           const SizedBox(height: 18),
                           TextField(
+                            key: const ValueKey('visit-check-out-result'),
                             controller: _result,
                             decoration: const InputDecoration(
                               labelText: 'Resultado *',
@@ -100,6 +101,7 @@ class _VisitCheckOutScreenState extends State<VisitCheckOutScreen> {
                           ),
                           const SizedBox(height: 12),
                           TextField(
+                            key: const ValueKey('visit-check-out-note'),
                             controller: _note,
                             minLines: 3,
                             maxLines: 5,
@@ -109,6 +111,7 @@ class _VisitCheckOutScreenState extends State<VisitCheckOutScreen> {
                           ),
                           const SizedBox(height: 18),
                           FilledButton.icon(
+                            key: const ValueKey('confirm-visit-check-out'),
                             onPressed: visit == null || _viewModel.isBusy
                                 ? null
                                 : _submit,

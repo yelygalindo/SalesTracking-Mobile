@@ -254,6 +254,7 @@ class _CustomerCard extends StatelessWidget {
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
+        key: ValueKey('customer-card-${customer.externalId}'),
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.all(15),
