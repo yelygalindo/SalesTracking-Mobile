@@ -30,6 +30,9 @@ No sustituye los formularios ni las revisiones de Google Play o Apple.
 - [x] Ciclo completo de inicio/cierre de jornada con GPS real validado en dos
       dispositivos Android físicos, utilizando repositorios en memoria para no
       transmitir coordenadas ni crear datos en la API.
+- [x] Errores reales de ubicación validados en Android: servicio GPS desactivado
+      y permiso rechazado desde el diálogo nativo mantienen la jornada cerrada
+      y muestran una instrucción recuperable al vendedor.
 - [ ] Recibir e integrar logotipo, icono y recursos definitivos.
 - [ ] Completar y verificar las cuentas de Google Play y Apple Developer.
 - [ ] Configurar claves de firma de producción; actualmente Android `release`

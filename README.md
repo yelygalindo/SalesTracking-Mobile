@@ -50,6 +50,20 @@ flutter drive --driver=test_driver/integration_test.dart --target=integration_te
 Esta prueba usa repositorios en memoria; ninguna jornada ni coordenada se envía
 al servidor.
 
+Los estados nativos de error también tienen recorridos reproducibles:
+
+```powershell
+# Ejecutar con la ubicación del dispositivo temporalmente desactivada.
+flutter drive --driver=test_driver/integration_test.dart --target=integration_test/location_services_disabled_test.dart -d <device-id>
+
+# Ejecutar sin permisos previos y elegir "No permitir" en el diálogo nativo.
+flutter drive --driver=test_driver/integration_test.dart --target=integration_test/location_permission_denied_test.dart -d <device-id>
+```
+
+En ambos casos la jornada debe permanecer cerrada y la interfaz debe explicar
+cómo corregir el problema. Restaura la ubicación del dispositivo después del
+primer recorrido.
+
 En Windows, las herramientas Android pueden fallar con `Illegal byte sequence`
 si la ruta del proyecto contiene caracteres acentuados. En ese caso, ejecutar
 los comandos desde un clon o enlace de directorio cuya ruta use únicamente
