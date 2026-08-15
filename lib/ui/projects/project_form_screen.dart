@@ -160,6 +160,7 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
                           ],
                           const SizedBox(height: 18),
                           TextFormField(
+                            key: const ValueKey('project-name-field'),
                             controller: _name,
                             decoration: const InputDecoration(
                               labelText: 'Nombre *',
@@ -170,6 +171,7 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
                           ),
                           const SizedBox(height: 12),
                           TextFormField(
+                            key: const ValueKey('project-description-field'),
                             controller: _description,
                             minLines: 3,
                             maxLines: 5,
@@ -178,59 +180,64 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
                             ),
                           ),
                           const SizedBox(height: 12),
-                          DropdownButtonFormField<String>(
-                            key: ValueKey(
-                              'customer-${_customerExternalId ?? 'none'}-'
-                              '${_viewModel.customerOptions.length}',
-                            ),
-                            initialValue: _customerExternalId,
-                            isExpanded: true,
-                            decoration: const InputDecoration(
-                              labelText: 'Cliente *',
-                            ),
-                            items: [
-                              if (_customerExternalId != null &&
-                                  !_viewModel.customerOptions.any(
-                                    (customer) =>
-                                        customer.externalId ==
-                                        _customerExternalId,
-                                  ))
-                                DropdownMenuItem(
-                                  value: _customerExternalId,
-                                  child: Text(
-                                    _viewModel.project?.customerName ??
-                                        'Cliente actual',
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ..._viewModel.customerOptions
-                                  .where(
-                                    (customer) =>
-                                        customer.externalId.isNotEmpty &&
-                                        !customer.externalId.startsWith(
-                                          'local:',
-                                        ),
-                                  )
-                                  .map(
-                                    (customer) => DropdownMenuItem(
-                                      value: customer.externalId,
-                                      child: Text(
-                                        customer.companyName.isEmpty
-                                            ? customer.name
-                                            : customer.companyName,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
+                          Container(
+                            key: const ValueKey('project-customer-dropdown'),
+                            child: DropdownButtonFormField<String>(
+                              key: ValueKey(
+                                'customer-${_customerExternalId ?? 'none'}-'
+                                '${_viewModel.customerOptions.length}',
+                              ),
+                              initialValue: _customerExternalId,
+                              isExpanded: true,
+                              decoration: const InputDecoration(
+                                labelText: 'Cliente *',
+                              ),
+                              items: [
+                                if (_customerExternalId != null &&
+                                    !_viewModel.customerOptions.any(
+                                      (customer) =>
+                                          customer.externalId ==
+                                          _customerExternalId,
+                                    ))
+                                  DropdownMenuItem(
+                                    value: _customerExternalId,
+                                    child: Text(
+                                      _viewModel.project?.customerName ??
+                                          'Cliente actual',
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
-                            ],
-                            onChanged: (value) =>
-                                setState(() => _customerExternalId = value),
-                            validator: (value) =>
-                                value == null ? 'Selecciona un cliente.' : null,
+                                ..._viewModel.customerOptions
+                                    .where(
+                                      (customer) =>
+                                          customer.externalId.isNotEmpty &&
+                                          !customer.externalId.startsWith(
+                                            'local:',
+                                          ),
+                                    )
+                                    .map(
+                                      (customer) => DropdownMenuItem(
+                                        value: customer.externalId,
+                                        child: Text(
+                                          customer.companyName.isEmpty
+                                              ? customer.name
+                                              : customer.companyName,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ),
+                              ],
+                              onChanged: (value) =>
+                                  setState(() => _customerExternalId = value),
+                              validator: (value) => value == null
+                                  ? 'Selecciona un cliente.'
+                                  : null,
+                            ),
                           ),
                           const SizedBox(height: 12),
                           _ResponsiveRow(
                             first: TextFormField(
+                              key: const ValueKey('project-amount-field'),
                               controller: _amount,
                               keyboardType:
                                   const TextInputType.numberWithOptions(
@@ -241,6 +248,7 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
                               ),
                             ),
                             second: TextFormField(
+                              key: const ValueKey('project-progress-field'),
                               controller: _progress,
                               keyboardType: TextInputType.number,
                               decoration: const InputDecoration(
@@ -271,6 +279,7 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
                           ),
                           const SizedBox(height: 12),
                           TextFormField(
+                            key: const ValueKey('project-address-field'),
                             controller: _address,
                             decoration: const InputDecoration(
                               labelText: 'Dirección',
@@ -280,6 +289,7 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
                           _LocationCard(viewModel: _viewModel),
                           const SizedBox(height: 18),
                           FilledButton.icon(
+                            key: const ValueKey('save-project-button'),
                             onPressed: _viewModel.isBusy ? null : _save,
                             icon:
                                 _viewModel.status ==
@@ -389,6 +399,7 @@ class _LocationCard extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             OutlinedButton.icon(
+              key: const ValueKey('capture-project-location-button'),
               onPressed: viewModel.isBusy ? null : viewModel.captureLocation,
               icon: locating
                   ? const SizedBox.square(

@@ -73,6 +73,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                   project.status.trim().toLowerCase() ==
                   status.label.trim().toLowerCase();
               return ListTile(
+                key: ValueKey('project-status-${status.value}'),
                 leading: Icon(
                   selected ? Icons.check_circle : Icons.radio_button_unchecked,
                 ),
@@ -182,12 +183,16 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                             ),
                             const SizedBox(height: 12),
                             FilledButton.icon(
+                              key: const ValueKey('edit-project-button'),
                               onPressed: _edit,
                               icon: const Icon(Icons.edit_outlined),
                               label: const Text('Editar obra'),
                             ),
                             const SizedBox(height: 10),
                             OutlinedButton.icon(
+                              key: const ValueKey(
+                                'change-project-status-button',
+                              ),
                               onPressed:
                                   _viewModel.statusOptions.isEmpty ||
                                       _viewModel.changingStatus
@@ -439,6 +444,7 @@ class _ProjectActivitySection extends StatelessWidget {
               ),
             ),
             TextButton.icon(
+              key: const ValueKey('add-project-note-button'),
               onPressed: viewModel.savingNote ? null : onAddNote,
               icon: viewModel.savingNote
                   ? const SizedBox.square(
@@ -719,6 +725,7 @@ class _AddProjectNoteSheetState extends State<_AddProjectNoteSheet> {
               ),
               const SizedBox(height: 16),
               TextFormField(
+                key: const ValueKey('project-note-field'),
                 controller: _controller,
                 autofocus: true,
                 minLines: 3,
@@ -735,6 +742,7 @@ class _AddProjectNoteSheetState extends State<_AddProjectNoteSheet> {
               ),
               const SizedBox(height: 16),
               FilledButton.icon(
+                key: const ValueKey('save-project-note-button'),
                 onPressed: () {
                   if (_formKey.currentState?.validate() != true) return;
                   Navigator.of(context).pop(_controller.text.trim());

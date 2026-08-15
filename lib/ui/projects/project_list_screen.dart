@@ -63,6 +63,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        key: const ValueKey('new-project-button'),
         tooltip: 'Nueva obra',
         onPressed: _create,
         child: const Icon(Icons.add),

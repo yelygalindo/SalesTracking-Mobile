@@ -24,6 +24,9 @@ No sustituye los formularios ni las revisiones de Google Play o Apple.
 - [x] Visita de obra con fuentes simuladas de cámara y galería validada en
       emulador Android: los archivos quedan persistidos y encolados sin conexión
       con dependencia explícita del check-in pendiente.
+- [x] Gestión completa de obras validada en un dispositivo Android real: alta
+      con validaciones y ubicación inyectada, edición, estado, nota, historial y
+      visita con check-in/check-out, resultado, notas y ubicación.
 - [ ] Comprobar en dispositivo el ciclo completo de inicio/cierre de jornada
       con ubicación GPS.
 - [ ] Recibir e integrar logotipo, icono y recursos definitivos.
