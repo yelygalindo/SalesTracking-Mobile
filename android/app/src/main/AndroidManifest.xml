@@ -41,6 +41,12 @@
 
          In particular, this is used by the Flutter engine in io.flutter.plugin.text.ProcessTextPlugin. -->
     <queries>
+        <!-- image_picker resolves camera handlers before granting its temporary
+             output URI. Android 11+ hides those handlers unless this intent is
+             declared, which can leave Samsung camera captures as zero-byte files. -->
+        <intent>
+            <action android:name="android.media.action.IMAGE_CAPTURE"/>
+        </intent>
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>

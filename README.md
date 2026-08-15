@@ -50,6 +50,26 @@ flutter drive --driver=test_driver/integration_test.dart --target=integration_te
 Esta prueba usa repositorios en memoria; ninguna jornada ni coordenada se envía
 al servidor.
 
+Para validar cámara y galería reales sin usar cuentas ni datos de la API,
+ejecuta cada recorrido por separado en un dispositivo Android físico:
+
+```powershell
+flutter drive --driver=test_driver/integration_test.dart --target=integration_test/real_camera_attachment_test.dart -d <device-id>
+flutter drive --driver=test_driver/integration_test.dart --target=integration_test/real_gallery_attachment_test.dart -d <device-id>
+```
+
+La prueba de cámara espera que se tome una fotografía y se confirme en la vista
+previa nativa. La prueba de galería espera que se seleccione al menos una
+imagen. En ambos casos se comprueba que el archivo tenga contenido, se copie a
+la carpeta persistente de adjuntos y quede en la cola offline; no se llama al
+servidor. El archivo de prueba persistido se elimina al terminar y la aplicación
+temporal puede cerrarse automáticamente cuando `flutter drive` finaliza.
+
+En Android 11 o posterior, el manifiesto declara la consulta del intent
+`android.media.action.IMAGE_CAPTURE`. `image_picker` necesita resolver la
+aplicación de cámara antes de concederle acceso de escritura al archivo temporal;
+sin esa declaración, algunas cámaras Samsung pueden devolver un archivo vacío.
+
 Los estados nativos de error también tienen recorridos reproducibles:
 
 ```powershell
@@ -65,9 +85,19 @@ cómo corregir el problema. Restaura la ubicación del dispositivo después del
 primer recorrido.
 
 En Windows, las herramientas Android pueden fallar con `Illegal byte sequence`
-si la ruta del proyecto contiene caracteres acentuados. En ese caso, ejecutar
-los comandos desde un clon o enlace de directorio cuya ruta use únicamente
-caracteres ASCII; no es necesario duplicar el proyecto.
+si la ruta del proyecto contiene caracteres acentuados. Un junction puede no
+ser suficiente porque el compilador AOT resuelve la ruta original. Usa un clon
+físico con ruta ASCII o asigna temporalmente una letra de unidad al proyecto:
+
+```powershell
+subst S: "<ruta-del-proyecto>"
+Push-Location S:\
+flutter build apk --release
+Pop-Location
+subst S: /d
+```
+
+La letra elegida debe estar libre y la asignación debe retirarse al terminar.
 
 Para comprobar que el Swagger aún conserva los endpoints, parámetros y campos consumidos por la aplicación:
 

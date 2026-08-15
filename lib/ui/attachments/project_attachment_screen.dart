@@ -272,6 +272,7 @@ class _PhotoGrid extends StatelessWidget {
       ),
       itemCount: images.length,
       itemBuilder: (context, index) => Stack(
+        key: ValueKey('attachment-preview-$index'),
         fit: StackFit.expand,
         children: [
           ClipRRect(
