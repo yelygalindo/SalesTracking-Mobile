@@ -40,6 +40,16 @@ flutter drive --driver=test_driver/integration_test.dart --target=integration_te
 flutter drive --driver=test_driver/integration_test.dart --target=integration_test/project_lifecycle_test.dart -d <device-id>
 ```
 
+Para comprobar la captura de GPS real sin escribir datos en la API, usa un
+dispositivo físico con ubicación activa y permisos de ubicación concedidos:
+
+```powershell
+flutter drive --driver=test_driver/integration_test.dart --target=integration_test/real_gps_workday_test.dart -d <device-id>
+```
+
+Esta prueba usa repositorios en memoria; ninguna jornada ni coordenada se envía
+al servidor.
+
 En Windows, las herramientas Android pueden fallar con `Illegal byte sequence`
 si la ruta del proyecto contiene caracteres acentuados. En ese caso, ejecutar
 los comandos desde un clon o enlace de directorio cuya ruta use únicamente

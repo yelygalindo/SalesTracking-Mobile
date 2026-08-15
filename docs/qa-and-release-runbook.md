@@ -27,8 +27,9 @@ No sustituye los formularios ni las revisiones de Google Play o Apple.
 - [x] Gestión completa de obras validada en un dispositivo Android real: alta
       con validaciones y ubicación inyectada, edición, estado, nota, historial y
       visita con check-in/check-out, resultado, notas y ubicación.
-- [ ] Comprobar en dispositivo el ciclo completo de inicio/cierre de jornada
-      con ubicación GPS.
+- [x] Ciclo completo de inicio/cierre de jornada con GPS real validado en dos
+      dispositivos Android físicos, utilizando repositorios en memoria para no
+      transmitir coordenadas ni crear datos en la API.
 - [ ] Recibir e integrar logotipo, icono y recursos definitivos.
 - [ ] Completar y verificar las cuentas de Google Play y Apple Developer.
 - [ ] Configurar claves de firma de producción; actualmente Android `release`
