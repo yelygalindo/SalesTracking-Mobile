@@ -8,6 +8,9 @@ No sustituye los formularios ni las revisiones de Google Play o Apple.
 
 - [x] Identificadores Android e iOS: `io.urbantrack.crm.app`.
 - [x] Compilación Android de depuración validada en un dispositivo real.
+- [x] APK Android `release` con firma temporal de depuración validado en frío
+      en un Galaxy A21s de 720x1600: paquete `io.urbantrack.crm.app`, versión
+      `1.0.0+1` y pantalla de acceso sin errores nativos ni desbordes.
 - [x] Compilación iOS para simulador validada en GitHub Actions.
 - [x] Contrato público OpenAPI verificado automáticamente.
 - [x] Login y consultas de clientes, obras, visitas, historial y adjuntos
@@ -24,6 +27,10 @@ No sustituye los formularios ni las revisiones de Google Play o Apple.
 - [x] Visita de obra con fuentes simuladas de cámara y galería validada en
       emulador Android: los archivos quedan persistidos y encolados sin conexión
       con dependencia explícita del check-in pendiente.
+- [x] Cámara y galería nativas validadas en un Galaxy S10 físico: cada archivo
+      real contiene datos, se copia al almacenamiento privado y queda encolado
+      sin enviar información a la API. La consulta del intent de cámara para
+      Android 11+ evita archivos vacíos en la cámara Samsung.
 - [x] Gestión completa de obras validada en un dispositivo Android real: alta
       con validaciones y ubicación inyectada, edición, estado, nota, historial y
       visita con check-in/check-out, resultado, notas y ubicación.
@@ -33,6 +40,8 @@ No sustituye los formularios ni las revisiones de Google Play o Apple.
 - [x] Errores reales de ubicación validados en Android: servicio GPS desactivado
       y permiso rechazado desde el diálogo nativo mantienen la jornada cerrada
       y muestran una instrucción recuperable al vendedor.
+- [x] Navegación principal autenticada y cierre de sesión validados con
+      repositorios aislados en un Galaxy A21s físico de 720x1600.
 - [ ] Recibir e integrar logotipo, icono y recursos definitivos.
 - [ ] Completar y verificar las cuentas de Google Play y Apple Developer.
 - [ ] Configurar claves de firma de producción; actualmente Android `release`

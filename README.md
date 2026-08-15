@@ -185,7 +185,13 @@ Los IDs locales de visitas se reconcilian con los IDs definitivos del servidor a
 
 ## Permisos del dispositivo
 
-La aplicación solicita ubicación cuando una jornada o visita requiere capturar GPS. En iOS están declarados los mensajes de uso de cámara y fototeca. Android no requiere configuración adicional para `image_picker`; las fotos tomadas se copian desde la caché a almacenamiento persistente antes de sincronizarse.
+La aplicación solicita ubicación cuando una jornada o visita requiere capturar
+GPS. En iOS están declarados los mensajes de uso de cámara y fototeca. En
+Android, cámara y galería se abren mediante actividades del sistema y no
+requieren un permiso multimedia propio de la aplicación; el manifiesto sí
+declara la consulta del intent de cámara necesaria en Android 11 o posterior.
+Las fotos tomadas se copian desde la caché a almacenamiento persistente antes
+de sincronizarse.
 
 ## Arquitectura
 
