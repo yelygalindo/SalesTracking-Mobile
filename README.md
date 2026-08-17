@@ -181,7 +181,7 @@ Las operaciones críticas no dependen de mantener la pantalla o la aplicación a
 3. Check-in/check-out de visitas.
 4. Fotografías vinculadas a visitas de obra.
 
-Los IDs locales de visitas se reconcilian con los IDs definitivos del servidor antes de enviar operaciones dependientes. Las fotografías seleccionadas se copian al almacenamiento privado de la aplicación antes de encolarse. Como el endpoint de adjuntos no recibe `clientRequestId`, los reintentos comparan nombre estable, tamaño y visita remota antes de volver a cargar el archivo para evitar duplicados.
+Los IDs locales de visitas se reconcilian con los IDs definitivos del servidor antes de enviar operaciones dependientes. Las fotografías seleccionadas se copian al almacenamiento privado de la aplicación antes de encolarse. Cada fotografía conserva un `ClientRequestId` UUID y su `OccurredAtUtc`; ambos valores se reutilizan en todos los reintentos para que el backend responda de forma idempotente sin crear duplicados.
 
 ## Permisos del dispositivo
 

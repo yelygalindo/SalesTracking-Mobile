@@ -141,7 +141,15 @@ Future<void> main(List<String> arguments) async {
     const _OperationExpectation(
       '/api/projects/{projectExternalId}/attachments',
       'post',
-      body: ['File', 'AttachmentType', 'Caption', 'IsCover', 'VisitExternalId'],
+      body: [
+        'File',
+        'AttachmentType',
+        'Caption',
+        'IsCover',
+        'VisitExternalId',
+        'OccurredAtUtc',
+        'ClientRequestId',
+      ],
     ),
   ];
 

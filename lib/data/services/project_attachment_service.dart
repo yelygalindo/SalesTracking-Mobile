@@ -56,6 +56,8 @@ class ProjectAttachmentService {
     required String projectExternalId,
     required AttachmentSourceFile source,
     required String attachmentType,
+    required String clientRequestId,
+    required DateTime occurredAtUtc,
     String? visitExternalId,
     String? caption,
     bool isCover = false,
@@ -71,6 +73,8 @@ class ProjectAttachmentService {
     request.fields['AttachmentType'] = attachmentType;
     request.fields['Caption'] = caption?.trim() ?? '';
     request.fields['IsCover'] = '$isCover';
+    request.fields['ClientRequestId'] = clientRequestId;
+    request.fields['OccurredAtUtc'] = occurredAtUtc.toUtc().toIso8601String();
     if (visitExternalId?.isNotEmpty == true) {
       request.fields['VisitExternalId'] = visitExternalId!;
     }

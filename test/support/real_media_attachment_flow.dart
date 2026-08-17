@@ -205,6 +205,8 @@ class _OptionsOnlyAttachmentRepository implements ProjectAttachmentRepository {
     String? visitExternalId,
     String? caption,
     bool isCover = false,
+    String? clientRequestId,
+    DateTime? occurredAtUtc,
   }) => throw StateError('La prueba física no debe llamar al servidor.');
 
   @override

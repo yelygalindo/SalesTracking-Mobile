@@ -116,6 +116,8 @@ class RecordingAttachmentRemoteRepository
     String? visitExternalId,
     String? caption,
     bool isCover = false,
+    String? clientRequestId,
+    DateTime? occurredAtUtc,
   }) async {
     saveCalls += 1;
     return AttachmentSaveResult(savedCount: sources.length, pendingCount: 0);

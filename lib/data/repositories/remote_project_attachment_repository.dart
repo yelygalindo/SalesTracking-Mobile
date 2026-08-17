@@ -1,3 +1,5 @@
+import 'package:uuid/uuid.dart';
+
 import '../models/attachment/attachment_save_result.dart';
 import '../models/attachment/attachment_source_file.dart';
 import '../models/attachment/attachment_upload_options.dart';
@@ -36,7 +38,14 @@ class RemoteProjectAttachmentRepository implements ProjectAttachmentRepository {
     String? visitExternalId,
     String? caption,
     bool isCover = false,
+    String? clientRequestId,
+    DateTime? occurredAtUtc,
   }) async {
+    if (clientRequestId != null && sources.length != 1) {
+      throw ArgumentError(
+        'clientRequestId solo puede reutilizarse para un adjunto individual.',
+      );
+    }
     final session = await _session();
     for (final source in sources) {
       await _service.upload(
@@ -44,6 +53,8 @@ class RemoteProjectAttachmentRepository implements ProjectAttachmentRepository {
         projectExternalId: projectExternalId,
         source: source,
         attachmentType: attachmentType,
+        clientRequestId: clientRequestId ?? const Uuid().v4(),
+        occurredAtUtc: occurredAtUtc ?? DateTime.now().toUtc(),
         visitExternalId: visitExternalId,
         caption: caption,
         isCover: isCover,

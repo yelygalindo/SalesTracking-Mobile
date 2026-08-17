@@ -15,6 +15,8 @@ abstract interface class ProjectAttachmentRepository {
     String? visitExternalId,
     String? caption,
     bool isCover = false,
+    String? clientRequestId,
+    DateTime? occurredAtUtc,
   });
 
   Future<int> pendingCount();

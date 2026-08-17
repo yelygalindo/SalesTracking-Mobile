@@ -90,6 +90,8 @@ void main() {
         sizeBytes: 4,
       ),
       attachmentType: 'photo',
+      clientRequestId: '123e4567-e89b-12d3-a456-426614174000',
+      occurredAtUtc: DateTime.utc(2026, 8, 17, 15, 30),
       visitExternalId: 'visit-id',
       caption: 'Fachada',
     );
@@ -102,6 +104,10 @@ void main() {
     expect(body, contains('photo'));
     expect(body, contains('name="VisitExternalId"'));
     expect(body, contains('visit-id'));
+    expect(body, contains('name="ClientRequestId"'));
+    expect(body, contains('123e4567-e89b-12d3-a456-426614174000'));
+    expect(body, contains('name="OccurredAtUtc"'));
+    expect(body, contains('2026-08-17T15:30:00.000Z'));
     expect(body, contains('filename="stable-photo.jpg"'));
     expect(body.toLowerCase(), contains('content-type: image/jpeg'));
   });

@@ -10,6 +10,7 @@ import 'package:urbantrack/data/repositories/attachment_local_store.dart';
 import 'package:urbantrack/data/repositories/offline_first_project_attachment_repository.dart';
 import 'package:urbantrack/data/repositories/project_attachment_repository.dart';
 import 'package:urbantrack/data/repositories/visit_local_store.dart';
+import 'package:urbantrack/data/services/api_exception.dart';
 import 'package:urbantrack/data/services/network_status_service.dart';
 import 'package:urbantrack/data/storage/attachment_file_store.dart';
 
@@ -48,28 +49,15 @@ void main() {
 
       expect(remote.savedVisitId, 'server-visit-id');
       expect(remote.savedSources.single.fileName, 'durable-photo.jpg');
+      expect(remote.savedRequestIds, ['photo-request-id']);
+      expect(remote.savedOccurredAtUtc, [DateTime.utc(2026, 8, 7, 17)]);
       expect(await repository.pendingCount(), 0);
       expect(files.deletedPaths, ['/durable/durable-photo.jpg']);
     },
   );
 
-  test('reconciles an already uploaded photo without duplicating it', () async {
-    final remote = _RecordingAttachmentRepository(
-      attachments: [
-        ProjectAttachment(
-          externalId: 'attachment-id',
-          fileName: 'durable-photo.jpg',
-          contentType: 'image/jpeg',
-          sizeBytes: 4,
-          attachmentType: 'photo',
-          caption: null,
-          isCover: false,
-          downloadUrl: null,
-          createdAtUtc: DateTime.utc(2026, 8, 7, 17),
-          visitExternalId: 'server-visit-id',
-        ),
-      ],
-    );
+  test('retries a photo with stable idempotency metadata', () async {
+    final remote = _RecordingAttachmentRepository(failuresBeforeSuccess: 1);
     final local = _MemoryAttachmentLocalStore()
       ..operations.add(
         PendingAttachmentOperation(
@@ -95,9 +83,17 @@ void main() {
       _MutableNetworkStatusService(true),
     );
 
+    await expectLater(repository.syncPending(), throwsA(isA<ApiException>()));
+    expect(await repository.pendingCount(), 1);
+
     await repository.syncPending();
 
-    expect(remote.saveCalls, 0);
+    expect(remote.saveCalls, 2);
+    expect(remote.savedRequestIds, ['photo-request-id', 'photo-request-id']);
+    expect(
+      remote.savedOccurredAtUtc,
+      everyElement(DateTime.utc(2026, 8, 7, 17)),
+    );
     expect(await repository.pendingCount(), 0);
   });
 }
@@ -161,17 +157,19 @@ class _MemoryAttachmentLocalStore implements AttachmentLocalStore {
 }
 
 class _RecordingAttachmentRepository implements ProjectAttachmentRepository {
-  _RecordingAttachmentRepository({this.attachments = const []});
+  _RecordingAttachmentRepository({this.failuresBeforeSuccess = 0});
 
-  final List<ProjectAttachment> attachments;
+  int failuresBeforeSuccess;
   int saveCalls = 0;
   String? savedVisitId;
   List<AttachmentSourceFile> savedSources = const [];
+  final List<String?> savedRequestIds = [];
+  final List<DateTime?> savedOccurredAtUtc = [];
 
   @override
   Future<List<ProjectAttachment>> getAttachments(
     String projectExternalId,
-  ) async => attachments;
+  ) async => const [];
 
   @override
   Future<AttachmentUploadOptions> getOptions() async =>
@@ -189,10 +187,18 @@ class _RecordingAttachmentRepository implements ProjectAttachmentRepository {
     String? visitExternalId,
     String? caption,
     bool isCover = false,
+    String? clientRequestId,
+    DateTime? occurredAtUtc,
   }) async {
     saveCalls += 1;
     savedVisitId = visitExternalId;
     savedSources = sources;
+    savedRequestIds.add(clientRequestId);
+    savedOccurredAtUtc.add(occurredAtUtc);
+    if (failuresBeforeSuccess > 0) {
+      failuresBeforeSuccess -= 1;
+      throw const ApiException(message: 'Respuesta temporal perdida.');
+    }
     return AttachmentSaveResult(savedCount: sources.length, pendingCount: 0);
   }
 

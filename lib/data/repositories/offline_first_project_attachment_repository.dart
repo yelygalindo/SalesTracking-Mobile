@@ -53,20 +53,27 @@ class OfflineFirstProjectAttachmentRepository
     String? visitExternalId,
     String? caption,
     bool isCover = false,
+    String? clientRequestId,
+    DateTime? occurredAtUtc,
   }) async {
+    if (clientRequestId != null && sources.length != 1) {
+      throw ArgumentError(
+        'clientRequestId solo puede reutilizarse para un adjunto individual.',
+      );
+    }
     var saved = 0;
     for (final source in sources) {
       final durable = await _files.persist(source);
       await _local.enqueue(
         PendingAttachmentOperation(
-          requestId: _requestId(),
+          requestId: clientRequestId ?? _requestId(),
           projectExternalId: projectExternalId,
           visitExternalId: visitExternalId,
           source: durable,
           attachmentType: attachmentType,
           caption: caption?.trim().isEmpty == true ? null : caption?.trim(),
           isCover: isCover && saved == 0,
-          createdAtUtc: _now().toUtc(),
+          createdAtUtc: (occurredAtUtc ?? _now()).toUtc(),
         ),
       );
       saved += 1;
@@ -105,25 +112,16 @@ class OfflineFirstProjectAttachmentRepository
         final resolvedVisitId = await _resolvedVisitId(
           operation.visitExternalId,
         );
-        final remoteItems = await _remote.getAttachments(
-          operation.projectExternalId,
+        await _remote.saveAttachments(
+          projectExternalId: operation.projectExternalId,
+          sources: [operation.source],
+          attachmentType: operation.attachmentType,
+          visitExternalId: resolvedVisitId,
+          caption: operation.caption,
+          isCover: operation.isCover,
+          clientRequestId: operation.requestId,
+          occurredAtUtc: operation.createdAtUtc,
         );
-        final alreadyUploaded = remoteItems.any(
-          (item) =>
-              item.fileName == operation.source.fileName &&
-              item.sizeBytes == operation.source.sizeBytes &&
-              item.visitExternalId == resolvedVisitId,
-        );
-        if (!alreadyUploaded) {
-          await _remote.saveAttachments(
-            projectExternalId: operation.projectExternalId,
-            sources: [operation.source],
-            attachmentType: operation.attachmentType,
-            visitExternalId: resolvedVisitId,
-            caption: operation.caption,
-            isCover: operation.isCover,
-          );
-        }
         await _local.markSynced(operation.requestId);
         await _files.delete(operation.source.path);
       } on ApiException catch (error) {

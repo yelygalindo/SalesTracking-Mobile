@@ -345,6 +345,8 @@ class EmptyAttachmentRepository implements ProjectAttachmentRepository {
     String? visitExternalId,
     String? caption,
     bool isCover = false,
+    String? clientRequestId,
+    DateTime? occurredAtUtc,
   }) async => AttachmentSaveResult(savedCount: sources.length, pendingCount: 0);
 
   @override
