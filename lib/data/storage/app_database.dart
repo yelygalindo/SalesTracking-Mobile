@@ -7,11 +7,32 @@ class AppDatabase {
 
   final Future<Database> database;
 
+  Future<void> clearCachedState() async {
+    final db = await database;
+    await db.transaction((transaction) async {
+      for (final table in const [
+        'workday_cache',
+        'workday_id_map',
+        'customer_summary_cache',
+        'customer_detail_cache',
+        'customer_status_cache',
+        'customer_id_map',
+        'visit_cache',
+        'visit_id_map',
+        'project_summary_cache',
+        'project_detail_cache',
+        'project_status_cache',
+      ]) {
+        await transaction.delete(table);
+      }
+    });
+  }
+
   static Future<Database> _openDatabase() async {
     final root = await getDatabasesPath();
     return openDatabase(
       path.join(root, 'urbantrack.db'),
-      version: 6,
+      version: 7,
       onConfigure: (database) => database.execute('PRAGMA foreign_keys = ON'),
       onCreate: (database, version) async {
         await _createWorkdayTables(database);
@@ -27,6 +48,7 @@ class AppDatabase {
         if (oldVersion < 4) await _createAttachmentTables(database);
         if (oldVersion < 5) await _createProjectTables(database);
         if (oldVersion < 6) await _createProjectStatusTable(database);
+        if (oldVersion < 7) await _clearLegacyUnscopedCaches(database);
       },
     );
   }
@@ -186,5 +208,25 @@ class AppDatabase {
         payload TEXT NOT NULL
       )
     ''');
+  }
+
+  static Future<void> _clearLegacyUnscopedCaches(Database database) async {
+    await database.rawDelete('''
+      DELETE FROM workday_cache
+      WHERE NOT EXISTS (SELECT 1 FROM workday_sync_operations)
+    ''');
+    await database.delete('customer_summary_cache', where: 'is_pending = 0');
+    await database.delete(
+      'customer_detail_cache',
+      where: "external_id NOT LIKE 'local:%'",
+    );
+    await database.delete('customer_status_cache');
+    await database.rawDelete('''
+      DELETE FROM visit_cache
+      WHERE NOT EXISTS (SELECT 1 FROM visit_sync_operations)
+    ''');
+    await database.delete('project_summary_cache');
+    await database.delete('project_detail_cache');
+    await database.delete('project_status_cache');
   }
 }

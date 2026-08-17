@@ -9,6 +9,7 @@ import 'config/app_environment.dart';
 import 'data/repositories/composite_sync_repository.dart';
 import 'data/repositories/attachment_sync_repository.dart';
 import 'data/repositories/customer_sync_repository.dart';
+import 'data/repositories/sync_repository.dart';
 import 'data/repositories/offline_first_customer_repository.dart';
 import 'data/repositories/offline_first_workday_repository.dart';
 import 'data/repositories/offline_first_visit_repository.dart';
@@ -29,6 +30,7 @@ import 'data/repositories/sqflite_attachment_local_store.dart';
 import 'data/repositories/visit_sync_repository.dart';
 import 'data/repositories/workday_sync_repository.dart';
 import 'data/services/auth_service.dart';
+import 'data/services/api_exception.dart';
 import 'data/services/connectivity_network_status_service.dart';
 import 'data/services/customer_service.dart';
 import 'data/services/geolocator_location_service.dart';
@@ -47,13 +49,27 @@ void main() {
 
   final environment = AppEnvironment.current;
   final authHttpClient = http.Client();
-  final authRepository = RemoteAuthRepository(
-    AuthService(Uri.parse(environment.apiBaseUrl), authHttpClient),
-    SecureSessionStorage(const FlutterSecureStorage()),
-    Platform.isIOS ? 'ios' : 'android',
-  );
+  final sessionStorage = SecureSessionStorage(const FlutterSecureStorage());
   final networkStatusService = ConnectivityNetworkStatusService();
   final appDatabase = AppDatabase();
+  late final SyncRepository syncRepository;
+  final authRepository = RemoteAuthRepository(
+    AuthService(Uri.parse(environment.apiBaseUrl), authHttpClient),
+    sessionStorage,
+    Platform.isIOS ? 'ios' : 'android',
+    onPrepareForUser: (previousUserId, nextUserId) async {
+      final pending = await syncRepository.getPending();
+      if (pending.isNotEmpty) {
+        throw ApiException(
+          message:
+              'Este dispositivo conserva ${pending.length} operación(es) '
+              'pendiente(s) de la cuenta anterior. Sincronízalas con esa '
+              'cuenta antes de cambiar de usuario.',
+        );
+      }
+      await appDatabase.clearCachedState();
+    },
+  );
   final remoteWorkdayRepository = RemoteWorkdayRepository(
     WorkdayService(Uri.parse(environment.apiBaseUrl), http.Client()),
     authRepository,
@@ -114,7 +130,7 @@ void main() {
     HistoryService(Uri.parse(environment.apiBaseUrl), http.Client()),
     authRepository,
   );
-  final syncRepository = CompositeSyncRepository([
+  syncRepository = CompositeSyncRepository([
     workdaySyncRepository,
     CustomerSyncRepository(customerLocalStore, customerRepository),
     VisitSyncRepository(visitLocalStore, visitRepository),

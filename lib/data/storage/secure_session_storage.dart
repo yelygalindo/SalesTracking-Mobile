@@ -11,6 +11,7 @@ class SecureSessionStorage implements SessionStorage {
 
   static const _sessionKey = 'urbantrack.auth.session.v1';
   static const _deviceIdKey = 'urbantrack.installation.id.v1';
+  static const _lastUserIdKey = 'urbantrack.auth.last-user-id.v1';
 
   final FlutterSecureStorage _storage;
 
@@ -39,6 +40,17 @@ class SecureSessionStorage implements SessionStorage {
 
   @override
   Future<void> clearSession() => _storage.delete(key: _sessionKey);
+
+  @override
+  Future<String?> readLastAuthenticatedUserId() async {
+    final value = await _storage.read(key: _lastUserIdKey);
+    return value?.trim().isNotEmpty == true ? value!.trim() : null;
+  }
+
+  @override
+  Future<void> writeLastAuthenticatedUserId(String userId) {
+    return _storage.write(key: _lastUserIdKey, value: userId);
+  }
 
   @override
   Future<String> readOrCreateDeviceId() async {

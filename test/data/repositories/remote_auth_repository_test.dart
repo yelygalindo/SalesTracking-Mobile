@@ -28,7 +28,34 @@ void main() {
 
     expect(session.user.displayName, 'Seller Example');
     expect(storage.session, same(session));
+    expect(storage.lastAuthenticatedUserId, 'user:1');
     expect(storage.deviceIdReadCount, 1);
+  });
+
+  test('prepares local state before persisting a different user', () async {
+    final storage = _MemorySessionStorage(lastAuthenticatedUserId: 'user:2');
+    final changes = <String>[];
+    final repository = RemoteAuthRepository(
+      AuthService(
+        Uri.parse('https://api.example.test'),
+        MockClient((_) async => http.Response(_loginResponse(), 200)),
+      ),
+      storage,
+      'android',
+      onPrepareForUser: (previousUserId, nextUserId) async {
+        changes.add('$previousUserId->$nextUserId');
+        expect(storage.session, isNull);
+      },
+    );
+
+    await repository.login(
+      email: 'seller@example.test',
+      password: 'password-for-test',
+    );
+
+    expect(changes, ['user:2->user:1']);
+    expect(storage.lastAuthenticatedUserId, 'user:1');
+    expect(storage.session, isNotNull);
   });
 
   test(
@@ -116,13 +143,18 @@ String _loginResponse() => jsonEncode({
 });
 
 class _MemorySessionStorage implements SessionStorage {
-  _MemorySessionStorage({this.session});
+  _MemorySessionStorage({this.session, this.lastAuthenticatedUserId});
 
   AuthSession? session;
+  String? lastAuthenticatedUserId;
   int deviceIdReadCount = 0;
 
   @override
   Future<void> clearSession() async => session = null;
+
+  @override
+  Future<String?> readLastAuthenticatedUserId() async =>
+      lastAuthenticatedUserId;
 
   @override
   Future<String> readOrCreateDeviceId() async {
@@ -136,5 +168,10 @@ class _MemorySessionStorage implements SessionStorage {
   @override
   Future<void> writeSession(AuthSession session) async {
     this.session = session;
+  }
+
+  @override
+  Future<void> writeLastAuthenticatedUserId(String userId) async {
+    lastAuthenticatedUserId = userId;
   }
 }

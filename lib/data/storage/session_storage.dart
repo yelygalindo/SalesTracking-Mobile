@@ -7,5 +7,9 @@ abstract interface class SessionStorage {
 
   Future<void> clearSession();
 
+  Future<String?> readLastAuthenticatedUserId();
+
+  Future<void> writeLastAuthenticatedUserId(String userId);
+
   Future<String> readOrCreateDeviceId();
 }

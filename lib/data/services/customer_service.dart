@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
+import 'package:uuid/uuid.dart';
 
 import '../models/customer/customer_page.dart';
 import '../models/customer/customer_detail.dart';
@@ -16,11 +17,16 @@ class CustomerService {
     this._baseUrl,
     this._client, {
     this.timeout = const Duration(seconds: 20),
-  });
+    String Function()? requestId,
+    DateTime Function()? now,
+  }) : _requestId = requestId ?? const Uuid().v4,
+       _now = now ?? DateTime.now;
 
   final Uri _baseUrl;
   final http.Client _client;
   final Duration timeout;
+  final String Function() _requestId;
+  final DateTime Function() _now;
 
   Future<CustomerPage> getCustomers(
     String accessToken, {
@@ -115,7 +121,7 @@ class CustomerService {
         '/api/customers/${Uri.encodeComponent(externalId)}/status',
       ),
       accessToken,
-      payload: {'statusId': statusId},
+      payload: {'statusId': statusId, 'clientRequestId': _requestId()},
     );
   }
 
@@ -131,7 +137,11 @@ class CustomerService {
         '/api/customers/${Uri.encodeComponent(externalId)}/notes',
       ),
       accessToken,
-      payload: {'text': text.trim(), 'clientRequestId': clientRequestId},
+      payload: {
+        'text': text.trim(),
+        'clientRequestId': clientRequestId,
+        'occurredAtUtc': _now().toUtc().toIso8601String(),
+      },
     );
     return ResourceCreationResult.fromJson(_decodeObject(response.bodyBytes));
   }
@@ -153,6 +163,7 @@ class CustomerService {
         'text': text.trim(),
         'reminderAtUtc': reminderAtUtc.toUtc().toIso8601String(),
         'assignedToId': assignedToId,
+        'clientRequestId': _requestId(),
       },
     );
     return ResourceCreationResult.fromJson(_decodeObject(response.bodyBytes));
@@ -170,6 +181,7 @@ class CustomerService {
         '${Uri.encodeComponent(reminderExternalId)}/complete',
       ),
       accessToken,
+      payload: {'clientRequestId': _requestId()},
     );
   }
 

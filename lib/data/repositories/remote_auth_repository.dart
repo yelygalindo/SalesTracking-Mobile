@@ -11,12 +11,15 @@ class RemoteAuthRepository implements AuthRepository {
   const RemoteAuthRepository(
     this._authService,
     this._sessionStorage,
-    this._deviceType,
-  );
+    this._deviceType, {
+    this.onPrepareForUser,
+  });
 
   final AuthService _authService;
   final SessionStorage _sessionStorage;
   final String _deviceType;
+  final Future<void> Function(String? previousUserId, String nextUserId)?
+  onPrepareForUser;
 
   @override
   Future<AuthSession> login({
@@ -32,14 +35,22 @@ class RemoteAuthRepository implements AuthRepository {
         deviceId: deviceId,
       ),
     );
+    final nextUserId = _localUserId(session);
+    final previousUserId = await _sessionStorage.readLastAuthenticatedUserId();
+    if (previousUserId != nextUserId) {
+      await onPrepareForUser?.call(previousUserId, nextUserId);
+    }
     await _sessionStorage.writeSession(session);
+    await _sessionStorage.writeLastAuthenticatedUserId(nextUserId);
     return session;
   }
 
   @override
   Future<AuthSession?> restoreSession() async {
     final stored = await _sessionStorage.readSession();
-    if (stored == null || !stored.isExpired) return stored;
+    if (stored == null) return null;
+    await _rememberStoredUser(stored);
+    if (!stored.isExpired) return stored;
 
     try {
       final refreshed = await _authService.refresh(stored.refreshToken);
@@ -92,5 +103,17 @@ class RemoteAuthRepository implements AuthRepository {
     } finally {
       await _sessionStorage.clearSession();
     }
+  }
+
+  Future<void> _rememberStoredUser(AuthSession session) async {
+    if (await _sessionStorage.readLastAuthenticatedUserId() != null) return;
+    await _sessionStorage.writeLastAuthenticatedUserId(_localUserId(session));
+  }
+
+  String _localUserId(AuthSession session) {
+    final externalId = session.user.externalId?.trim();
+    return externalId?.isNotEmpty == true
+        ? externalId!
+        : 'user:${session.user.id}';
   }
 }

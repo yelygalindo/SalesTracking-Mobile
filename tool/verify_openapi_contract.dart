@@ -53,21 +53,22 @@ Future<void> main(List<String> arguments) async {
     const _OperationExpectation(
       '/api/customers/{externalId}/status',
       'patch',
-      body: ['statusId'],
+      body: ['statusId', 'clientRequestId'],
     ),
     const _OperationExpectation(
       '/api/customers/{customerExternalId}/notes',
       'post',
-      body: ['text', 'clientRequestId'],
+      body: ['text', 'clientRequestId', 'occurredAtUtc'],
     ),
     const _OperationExpectation(
       '/api/customers/{customerExternalId}/reminders',
       'post',
-      body: ['text', 'reminderAtUtc'],
+      body: ['text', 'reminderAtUtc', 'clientRequestId'],
     ),
     const _OperationExpectation(
       '/api/customers/{customerExternalId}/reminders/{reminderExternalId}/complete',
       'patch',
+      body: ['clientRequestId'],
     ),
     const _OperationExpectation(
       '/api/projects',
