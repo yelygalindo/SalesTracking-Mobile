@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../routing/app_router.dart';
 import '../auth/auth_view_model.dart';
 import '../core/branding/brand_scope.dart';
+import '../core/elapsed_time.dart';
 import '../core/navigation/app_primary_navigation_bar.dart';
 import '../workday/workday_view_model.dart';
 
@@ -319,7 +320,7 @@ class _ActiveWorkdayCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final workday = viewModel.workday!;
     final localStart = workday.startedAtUtc.toLocal();
-    final duration = DateTime.now().difference(localStart);
+    final duration = elapsedSince(localStart);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -366,7 +367,7 @@ class _ActiveWorkdayCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      _duration(duration),
+                      formatHoursMinutes(duration),
                       style: const TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w900,
@@ -542,10 +543,4 @@ String _time(DateTime value) {
   final hour = value.hour.toString().padLeft(2, '0');
   final minute = value.minute.toString().padLeft(2, '0');
   return '$hour:$minute';
-}
-
-String _duration(Duration value) {
-  final hours = value.inHours;
-  final minutes = value.inMinutes.remainder(60);
-  return '${hours}h ${minutes.toString().padLeft(2, '0')}m';
 }

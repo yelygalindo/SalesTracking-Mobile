@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../routing/app_router.dart';
+import '../core/elapsed_time.dart';
 import 'workday_view_model.dart';
 
 class CloseWorkdayScreen extends StatefulWidget {
@@ -53,9 +54,7 @@ class _CloseWorkdayScreenState extends State<CloseWorkdayScreen> {
             );
           }
 
-          final duration = DateTime.now().difference(
-            workday.startedAtUtc.toLocal(),
-          );
+          final duration = elapsedSince(workday.startedAtUtc.toLocal());
           final location = viewModel.closeLocation;
           final locating = viewModel.status == WorkdayStatus.locating;
           final closing = viewModel.status == WorkdayStatus.closing;
@@ -95,7 +94,7 @@ class _CloseWorkdayScreenState extends State<CloseWorkdayScreen> {
                         const SizedBox(height: 18),
                         _SummaryCard(
                           label: 'DURACIÓN',
-                          value: _duration(duration),
+                          value: formatHoursMinutes(duration),
                         ),
                         const SizedBox(height: 16),
                         Card(
@@ -239,10 +238,4 @@ class _SummaryCard extends StatelessWidget {
       ),
     );
   }
-}
-
-String _duration(Duration value) {
-  final hours = value.inHours;
-  final minutes = value.inMinutes.remainder(60);
-  return '${hours}h ${minutes.toString().padLeft(2, '0')}m';
 }

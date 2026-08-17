@@ -8,7 +8,7 @@ import '../storage/session_storage.dart';
 import 'auth_repository.dart';
 
 class RemoteAuthRepository implements AuthRepository {
-  const RemoteAuthRepository(
+  RemoteAuthRepository(
     this._authService,
     this._sessionStorage,
     this._deviceType, {
@@ -20,6 +20,7 @@ class RemoteAuthRepository implements AuthRepository {
   final String _deviceType;
   final Future<void> Function(String? previousUserId, String nextUserId)?
   onPrepareForUser;
+  Future<AuthSession?>? _activeRestore;
 
   @override
   Future<AuthSession> login({
@@ -46,7 +47,21 @@ class RemoteAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<AuthSession?> restoreSession() async {
+  Future<AuthSession?> restoreSession() {
+    final activeRestore = _activeRestore;
+    if (activeRestore != null) return activeRestore;
+
+    late final Future<AuthSession?> restore;
+    restore = _restoreSession().whenComplete(() {
+      if (identical(_activeRestore, restore)) {
+        _activeRestore = null;
+      }
+    });
+    _activeRestore = restore;
+    return restore;
+  }
+
+  Future<AuthSession?> _restoreSession() async {
     final stored = await _sessionStorage.readSession();
     if (stored == null) return null;
     await _rememberStoredUser(stored);

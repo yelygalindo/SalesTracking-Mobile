@@ -104,6 +104,55 @@ void main() {
     },
   );
 
+  test('concurrent restores share a single refresh request', () async {
+    final storage = _MemorySessionStorage(
+      session: AuthSession(
+        user: const UserProfile(
+          id: 1,
+          fullName: 'Seller Example',
+          roles: ['Seller'],
+          permissions: [],
+        ),
+        accessToken: 'expired-access-token',
+        refreshToken: 'current-refresh-token',
+        expiresAtUtc: DateTime.utc(2020),
+      ),
+    );
+    var refreshRequests = 0;
+    final repository = RemoteAuthRepository(
+      AuthService(
+        Uri.parse('https://api.example.test'),
+        MockClient((request) async {
+          refreshRequests += 1;
+          await Future<void>.delayed(const Duration(milliseconds: 20));
+          return http.Response(
+            jsonEncode({
+              'accessToken': 'rotated-access-token',
+              'refreshToken': 'rotated-refresh-token',
+              'expiresAtUtc': '2030-01-01T12:00:00Z',
+            }),
+            200,
+          );
+        }),
+      ),
+      storage,
+      'android',
+    );
+
+    final restored = await Future.wait([
+      repository.restoreSession(),
+      repository.restoreSession(),
+      repository.restoreSession(),
+    ]);
+
+    expect(refreshRequests, 1);
+    expect(
+      restored.map((session) => session?.accessToken),
+      everyElement('rotated-access-token'),
+    );
+    expect(storage.session?.refreshToken, 'rotated-refresh-token');
+  });
+
   test('password recovery trims user-provided email and token', () async {
     final requests = <Map<String, dynamic>>[];
     final repository = RemoteAuthRepository(
