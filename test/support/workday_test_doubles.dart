@@ -7,6 +7,7 @@ import 'package:urbantrack/data/models/project/project_detail.dart';
 import 'package:urbantrack/data/models/project/project_input.dart';
 import 'package:urbantrack/data/models/project/project_note.dart';
 import 'package:urbantrack/data/models/project/project_page.dart';
+import 'package:urbantrack/data/models/project/project_reminder.dart';
 import 'package:urbantrack/data/models/project/project_status.dart';
 import 'package:urbantrack/data/models/project/project_timeline_page.dart';
 import 'package:urbantrack/data/models/visit/current_visit.dart';
@@ -225,6 +226,15 @@ class EmptyCustomerRepository implements CustomerRepository {
 
 class EmptyProjectRepository implements ProjectRepository {
   @override
+  Future<ResourceCreationResult> addReminder(
+    String projectExternalId, {
+    required String text,
+    required DateTime reminderAtUtc,
+    String? assignedToId,
+  }) async =>
+      const ResourceCreationResult(id: 'reminder-id', message: 'Created');
+
+  @override
   Future<ResourceCreationResult> addNote(
     String projectExternalId, {
     required String content,
@@ -234,6 +244,12 @@ class EmptyProjectRepository implements ProjectRepository {
 
   @override
   Future<void> changeStatus(String externalId, int statusId) async {}
+
+  @override
+  Future<void> completeReminder(
+    String projectExternalId,
+    String reminderExternalId,
+  ) async {}
 
   @override
   Future<ProjectDetail> createProject(
@@ -251,6 +267,12 @@ class EmptyProjectRepository implements ProjectRepository {
   @override
   Future<List<ProjectNote>> getNotes(String projectExternalId) async =>
       const [];
+
+  @override
+  Future<List<ProjectReminder>> getReminders(
+    String projectExternalId, {
+    bool? completed,
+  }) async => const [];
 
   @override
   Future<List<ProjectStatus>> getStatuses() async => const [];

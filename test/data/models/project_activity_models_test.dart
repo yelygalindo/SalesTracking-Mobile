@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:urbantrack/data/models/project/project_note.dart';
+import 'package:urbantrack/data/models/project/project_reminder.dart';
 import 'package:urbantrack/data/models/project/project_timeline_page.dart';
 
 void main() {
@@ -48,6 +49,24 @@ void main() {
 
     expect(item.metadataJson?.fileName, 'legacy.jpg');
     expect(item.metadataJson?.hasDownloadUrl, isTrue);
+  });
+
+  test('project reminder preserves assignment and due date', () {
+    final reminder = ProjectReminder.fromJson({
+      'id': 1,
+      'externalId': 'reminder-id',
+      'text': 'Confirmar materiales',
+      'reminderAtUtc': '2026-08-18T14:00:00Z',
+      'assignedTo': {'externalId': 'seller-id', 'name': 'Carlos Gómez'},
+      'completed': false,
+    });
+
+    expect(reminder.assignedTo?.externalId, 'seller-id');
+    expect(reminder.reminderAtUtc, DateTime.utc(2026, 8, 18, 14));
+    expect(
+      ProjectReminder.fromJson(reminder.toJson()).toJson(),
+      reminder.toJson(),
+    );
   });
 }
 

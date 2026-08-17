@@ -3,11 +3,13 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
+import 'package:uuid/uuid.dart';
 
 import '../models/project/project_detail.dart';
 import '../models/project/project_input.dart';
 import '../models/project/project_note.dart';
 import '../models/project/project_page.dart';
+import '../models/project/project_reminder.dart';
 import '../models/project/project_status.dart';
 import '../models/project/project_timeline_page.dart';
 import '../models/common/resource_creation_result.dart';
@@ -18,11 +20,13 @@ class ProjectService {
     this._baseUrl,
     this._client, {
     this.timeout = const Duration(seconds: 20),
-  });
+    String Function()? requestId,
+  }) : _requestId = requestId ?? const Uuid().v4;
 
   final Uri _baseUrl;
   final http.Client _client;
   final Duration timeout;
+  final String Function() _requestId;
 
   Future<ProjectPage> getProjects(
     String accessToken, {
@@ -123,6 +127,70 @@ class ProjectService {
       },
     );
     return ResourceCreationResult.fromJson(_decodeObject(response.bodyBytes));
+  }
+
+  Future<List<ProjectReminder>> getReminders(
+    String accessToken,
+    String projectExternalId, {
+    bool? completed,
+  }) async {
+    final uri = _baseUrl
+        .resolve(
+          '/api/projects/${Uri.encodeComponent(projectExternalId)}/reminders',
+        )
+        .replace(
+          queryParameters: {if (completed != null) 'completed': '$completed'},
+        );
+    final response = await _request('GET', uri, accessToken);
+    final decoded = _decode(response.bodyBytes);
+    if (decoded is List) {
+      return decoded
+          .whereType<Map<String, dynamic>>()
+          .map(ProjectReminder.fromJson)
+          .toList(growable: false);
+    }
+    throw const ApiException(
+      message: 'El servidor devolvió recordatorios de obra no válidos.',
+    );
+  }
+
+  Future<ResourceCreationResult> addReminder(
+    String accessToken,
+    String projectExternalId, {
+    required String text,
+    required DateTime reminderAtUtc,
+    String? assignedToId,
+  }) async {
+    final response = await _request(
+      'POST',
+      _baseUrl.resolve(
+        '/api/projects/${Uri.encodeComponent(projectExternalId)}/reminders',
+      ),
+      accessToken,
+      payload: {
+        'text': text.trim(),
+        'reminderAtUtc': reminderAtUtc.toUtc().toIso8601String(),
+        'assignedToId': assignedToId,
+        'clientRequestId': _requestId(),
+      },
+    );
+    return ResourceCreationResult.fromJson(_decodeObject(response.bodyBytes));
+  }
+
+  Future<void> completeReminder(
+    String accessToken,
+    String projectExternalId,
+    String reminderExternalId,
+  ) async {
+    await _request(
+      'PATCH',
+      _baseUrl.resolve(
+        '/api/projects/${Uri.encodeComponent(projectExternalId)}/reminders/'
+        '${Uri.encodeComponent(reminderExternalId)}/complete',
+      ),
+      accessToken,
+      payload: {'clientRequestId': _requestId()},
+    );
   }
 
   Future<ProjectTimelinePage> getTimeline(

@@ -161,13 +161,14 @@ documentado en [`docs/qa-and-release-runbook.md`](docs/qa-and-release-runbook.md
 - Solicitud y confirmación de restablecimiento de contraseña.
 - Inicio y cierre de jornada con hora móvil y ubicación GPS.
 - Listado, detalle, creación y edición de clientes.
-- Estados de clientes, notas y recordatorios.
+- Estados de clientes, notas y recordatorios asignados al vendedor autenticado.
 - Listado, detalle, creación y edición de obras.
-- Notas e historial cronológico dentro del detalle de cada obra.
+- Notas, recordatorios e historial cronológico dentro del detalle de cada obra.
 - Consulta offline de clientes y obras previamente sincronizados.
 - Check-in/check-out de visitas a clientes y obras con hora, GPS, notas, resultado y duración.
 - Cámara y galería para evidencias fotográficas asociadas a visitas de obra.
-- Historial personal por fecha y listado de visitas por obra.
+- Historial personal por fecha y listado de visitas por obra con miniaturas de
+  las fotografías registradas.
 - Pantalla de operaciones pendientes y reintento manual.
 - Sincronización automática al recuperar conectividad.
 - Diseños adaptables a teléfonos y pantallas de mayor ancho.
@@ -208,4 +209,11 @@ La marca está desacoplada en `lib/ui/core/branding`. UrbanTrackCRM es la distri
 
 - La app obtiene los estados de obra desde `GET /api/projects/statuses`, los conserva localmente para consulta sin conexión y utiliza sus IDs al invocar `PATCH /api/projects/{externalId}/status`.
 - El historial personal consume `/api/sellers/{sellerExternalId}/timeline`. Se conserva `/api/visits` como respaldo de compatibilidad ante fallos transitorios o despliegues anteriores de la API.
+- Los recordatorios de clientes y obras envían `assignedToId` con el
+  `externalId` del usuario autenticado cuando no existe una selección
+  administrativa explícita. Los recordatorios de obra consumen
+  `/api/projects/{projectExternalId}/reminders`.
+- Las miniaturas de una visita consumen
+  `/api/visits/{visitExternalId}/attachments`; el historial de obra también
+  interpreta el objeto `metadataJson` publicado en cada evento de adjunto.
 - La activación de enlaces HTTPS desde correos de recuperación requiere publicar los archivos de asociación de Android/iOS en `urbantrack.io`. Mientras tanto, el token se puede pegar manualmente en la pantalla de restablecimiento.

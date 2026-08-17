@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../data/models/attachment/project_attachment.dart';
 import '../../data/models/project/project_detail.dart';
 import '../../data/models/project/project_note.dart';
+import '../../data/models/project/project_reminder.dart';
 import '../../data/models/project/project_status.dart';
 import '../../data/models/project/project_timeline_item.dart';
 import '../../data/repositories/project_repository.dart';
@@ -110,7 +111,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
-      builder: (context) => const _AddProjectNoteSheet(),
+      builder: (context) => const _AddProjectTextSheet(),
     );
     if (content == null) return;
     final saved = await _viewModel.addNote(content);
@@ -122,6 +123,80 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
               ? 'Nota agregada a la obra.'
               : _viewModel.activityErrorMessage ??
                     'No pudimos agregar la nota.',
+        ),
+      ),
+    );
+  }
+
+  Future<void> _addReminder() async {
+    final text = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (context) => const _AddProjectTextSheet(
+        title: 'Nuevo recordatorio de obra',
+        subtitle: 'Primero describe qué necesitas recordar.',
+        label: 'Recordatorio',
+        hint: 'Ej. Confirmar entrega de materiales.',
+        fieldKey: ValueKey('project-reminder-field'),
+        saveKey: ValueKey('continue-project-reminder-button'),
+        actionLabel: 'Elegir fecha',
+        icon: Icons.calendar_today_outlined,
+      ),
+    );
+    if (text == null || !mounted) return;
+    final now = DateTime.now();
+    final date = await showDatePicker(
+      context: context,
+      initialDate: now.add(const Duration(days: 1)),
+      firstDate: DateTime(now.year, now.month, now.day),
+      lastDate: DateTime(now.year + 5),
+      helpText: 'Fecha del recordatorio',
+      cancelText: 'Cancelar',
+      confirmText: 'Continuar',
+    );
+    if (date == null || !mounted) return;
+    final time = await showTimePicker(
+      context: context,
+      initialTime: const TimeOfDay(hour: 9, minute: 0),
+      helpText: 'Hora del recordatorio',
+      cancelText: 'Cancelar',
+      confirmText: 'Guardar',
+    );
+    if (time == null || !mounted) return;
+    final saved = await _viewModel.addReminder(
+      text: text,
+      reminderAtUtc: DateTime(
+        date.year,
+        date.month,
+        date.day,
+        time.hour,
+        time.minute,
+      ).toUtc(),
+    );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          saved
+              ? 'Recordatorio agregado a la obra.'
+              : _viewModel.activityErrorMessage ??
+                    'No pudimos agregar el recordatorio.',
+        ),
+      ),
+    );
+  }
+
+  Future<void> _completeReminder(String reminderExternalId) async {
+    final completed = await _viewModel.completeReminder(reminderExternalId);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          completed
+              ? 'Recordatorio completado.'
+              : _viewModel.activityErrorMessage ??
+                    'No pudimos completar el recordatorio.',
         ),
       ),
     );
@@ -249,6 +324,13 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                                 ),
                               ),
                             ],
+                            const SizedBox(height: 16),
+                            _ProjectRemindersPanel(
+                              reminders: _viewModel.reminders,
+                              busy: _viewModel.savingReminder,
+                              onAdd: _addReminder,
+                              onComplete: _completeReminder,
+                            ),
                             const SizedBox(height: 16),
                             _ProjectActivitySection(
                               viewModel: _viewModel,
@@ -417,6 +499,108 @@ String _date(DateTime? date) {
 
 String _amount(double? amount) =>
     amount == null ? '' : 'Bs ${amount.toStringAsFixed(2)}';
+
+class _ProjectRemindersPanel extends StatelessWidget {
+  const _ProjectRemindersPanel({
+    required this.reminders,
+    required this.busy,
+    required this.onAdd,
+    required this.onComplete,
+  });
+
+  final List<ProjectReminder> reminders;
+  final bool busy;
+  final VoidCallback onAdd;
+  final Future<void> Function(String reminderExternalId) onComplete;
+
+  @override
+  Widget build(BuildContext context) {
+    final pending = reminders
+        .where((reminder) => !reminder.completed)
+        .toList(growable: false);
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.notifications_none_outlined),
+                const SizedBox(width: 9),
+                const Expanded(
+                  child: Text(
+                    'Próximos recordatorios',
+                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900),
+                  ),
+                ),
+                Text(
+                  '${pending.length}',
+                  style: const TextStyle(color: Color(0xFF6F788A)),
+                ),
+                const SizedBox(width: 4),
+                IconButton(
+                  key: const ValueKey('add-project-reminder-button'),
+                  tooltip: 'Nuevo recordatorio de obra',
+                  onPressed: busy ? null : onAdd,
+                  icon: const Icon(Icons.add_circle_outline),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            if (pending.isEmpty)
+              const Text(
+                'No hay recordatorios pendientes.',
+                style: TextStyle(color: Color(0xFF6F788A)),
+              )
+            else
+              ...pending.indexed.map((entry) {
+                final (index, reminder) = entry;
+                return Padding(
+                  padding: EdgeInsets.only(
+                    bottom: index == pending.length - 1 ? 0 : 8,
+                  ),
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF6F7F9),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.only(left: 14, right: 6),
+                      title: Text(
+                        reminder.text,
+                        style: const TextStyle(fontWeight: FontWeight.w800),
+                      ),
+                      subtitle: Text(
+                        _activityMetadata(
+                          reminder.reminderAtUtc,
+                          reminder.assignedTo?.name,
+                        ),
+                      ),
+                      trailing: IconButton(
+                        key: reminder.externalId == null
+                            ? null
+                            : ValueKey(
+                                'complete-project-reminder-'
+                                '${reminder.externalId}',
+                              ),
+                        tooltip: 'Marcar como completado',
+                        onPressed: busy || reminder.externalId == null
+                            ? null
+                            : () => onComplete(reminder.externalId!),
+                        icon: const Icon(Icons.check_circle_outline),
+                      ),
+                    ),
+                  ),
+                );
+              }),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 class _ProjectActivitySection extends StatelessWidget {
   const _ProjectActivitySection({
@@ -710,14 +894,32 @@ class _ActivityError extends StatelessWidget {
   }
 }
 
-class _AddProjectNoteSheet extends StatefulWidget {
-  const _AddProjectNoteSheet();
+class _AddProjectTextSheet extends StatefulWidget {
+  const _AddProjectTextSheet({
+    this.title = 'Nueva nota de obra',
+    this.subtitle = 'Se conservará la fecha y hora real del dispositivo.',
+    this.label = 'Nota',
+    this.hint = 'Ej. Se confirmó el avance del segundo piso.',
+    this.fieldKey = const ValueKey('project-note-field'),
+    this.saveKey = const ValueKey('save-project-note-button'),
+    this.actionLabel = 'Guardar nota',
+    this.icon = Icons.save_outlined,
+  });
+
+  final String title;
+  final String subtitle;
+  final String label;
+  final String hint;
+  final Key fieldKey;
+  final Key saveKey;
+  final String actionLabel;
+  final IconData icon;
 
   @override
-  State<_AddProjectNoteSheet> createState() => _AddProjectNoteSheetState();
+  State<_AddProjectTextSheet> createState() => _AddProjectTextSheetState();
 }
 
-class _AddProjectNoteSheetState extends State<_AddProjectNoteSheet> {
+class _AddProjectTextSheetState extends State<_AddProjectTextSheet> {
   final _formKey = GlobalKey<FormState>();
   final _controller = TextEditingController();
 
@@ -744,26 +946,23 @@ class _AddProjectNoteSheetState extends State<_AddProjectNoteSheet> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text(
-                'Nueva nota de obra',
+              Text(
+                widget.title,
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
               ),
               const SizedBox(height: 6),
-              const Text(
-                'Se conservará la fecha y hora real del dispositivo.',
-                style: TextStyle(color: Color(0xFF6F788A)),
-              ),
+              Text(widget.subtitle, style: TextStyle(color: Color(0xFF6F788A))),
               const SizedBox(height: 16),
               TextFormField(
-                key: const ValueKey('project-note-field'),
+                key: widget.fieldKey,
                 controller: _controller,
                 autofocus: true,
                 minLines: 3,
                 maxLines: 6,
                 textCapitalization: TextCapitalization.sentences,
-                decoration: const InputDecoration(
-                  labelText: 'Nota',
-                  hintText: 'Ej. Se confirmó el avance del segundo piso.',
+                decoration: InputDecoration(
+                  labelText: widget.label,
+                  hintText: widget.hint,
                   alignLabelWithHint: true,
                 ),
                 validator: (value) => value?.trim().isEmpty ?? true
@@ -772,13 +971,13 @@ class _AddProjectNoteSheetState extends State<_AddProjectNoteSheet> {
               ),
               const SizedBox(height: 16),
               FilledButton.icon(
-                key: const ValueKey('save-project-note-button'),
+                key: widget.saveKey,
                 onPressed: () {
                   if (_formKey.currentState?.validate() != true) return;
                   Navigator.of(context).pop(_controller.text.trim());
                 },
-                icon: const Icon(Icons.save_outlined),
-                label: const Text('Guardar nota'),
+                icon: Icon(widget.icon),
+                label: Text(widget.actionLabel),
               ),
             ],
           ),

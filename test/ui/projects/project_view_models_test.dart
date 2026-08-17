@@ -10,6 +10,7 @@ import 'package:urbantrack/data/models/project/project_detail.dart';
 import 'package:urbantrack/data/models/project/project_input.dart';
 import 'package:urbantrack/data/models/project/project_note.dart';
 import 'package:urbantrack/data/models/project/project_page.dart';
+import 'package:urbantrack/data/models/project/project_reminder.dart';
 import 'package:urbantrack/data/models/project/project_status.dart';
 import 'package:urbantrack/data/models/project/project_summary.dart';
 import 'package:urbantrack/data/models/project/project_timeline_item.dart';
@@ -89,6 +90,7 @@ void main() {
       'Completado',
     ]);
     expect(viewModel.notes.single.content, 'Avance confirmado');
+    expect(viewModel.reminders.single.text, 'Confirmar materiales');
     expect(viewModel.timeline.single.title, 'Nota agregada');
 
     final noteAdded = await viewModel.addNote('  Revisar materiales  ');
@@ -97,6 +99,21 @@ void main() {
     expect(projects.addedNoteContent, 'Revisar materiales');
     expect(projects.addedNoteRequestId, 'note-request-id');
     expect(projects.addedNoteOccurredAtUtc, occurredAtUtc);
+
+    final reminderAtUtc = DateTime.utc(2026, 8, 18, 14);
+    final reminderAdded = await viewModel.addReminder(
+      text: '  Llamar al encargado  ',
+      reminderAtUtc: reminderAtUtc,
+    );
+    expect(reminderAdded, isTrue);
+    expect(projects.addedReminderText, 'Llamar al encargado');
+    expect(projects.addedReminderAtUtc, reminderAtUtc);
+
+    final reminderCompleted = await viewModel.completeReminder(
+      'project-reminder-id',
+    );
+    expect(reminderCompleted, isTrue);
+    expect(projects.completedReminderId, 'project-reminder-id');
 
     final changed = await viewModel.changeStatus(
       const ProjectStatus(value: 4, label: 'Completado'),
@@ -118,6 +135,56 @@ class _RecordingProjectRepository implements ProjectRepository {
   String? addedNoteContent;
   String? addedNoteRequestId;
   DateTime? addedNoteOccurredAtUtc;
+  final List<ProjectReminder> reminders = [_projectReminder];
+  String? addedReminderText;
+  DateTime? addedReminderAtUtc;
+  String? completedReminderId;
+
+  @override
+  Future<ResourceCreationResult> addReminder(
+    String projectExternalId, {
+    required String text,
+    required DateTime reminderAtUtc,
+    String? assignedToId,
+  }) async {
+    addedReminderText = text;
+    addedReminderAtUtc = reminderAtUtc;
+    reminders.add(
+      ProjectReminder(
+        id: reminders.length + 1,
+        externalId: 'project-reminder-${reminders.length + 1}',
+        text: text,
+        reminderAtUtc: reminderAtUtc,
+        assignedTo: _projectAuthor,
+        completed: false,
+      ),
+    );
+    return const ResourceCreationResult(
+      id: 'project-reminder-new',
+      message: 'Created',
+    );
+  }
+
+  @override
+  Future<void> completeReminder(
+    String projectExternalId,
+    String reminderExternalId,
+  ) async {
+    completedReminderId = reminderExternalId;
+    reminders.removeWhere(
+      (reminder) => reminder.externalId == reminderExternalId,
+    );
+  }
+
+  @override
+  Future<List<ProjectReminder>> getReminders(
+    String projectExternalId, {
+    bool? completed,
+  }) async => List.unmodifiable(
+    reminders.where(
+      (reminder) => completed == null || reminder.completed == completed,
+    ),
+  );
 
   @override
   Future<ResourceCreationResult> addNote(
@@ -343,6 +410,15 @@ final _projectNote = ProjectNote(
   receivedAtUtc: DateTime.utc(2026, 8, 11, 10, 31),
   updatedBy: null,
   updatedAtUtc: null,
+);
+
+final _projectReminder = ProjectReminder(
+  id: 1,
+  externalId: 'project-reminder-id',
+  text: 'Confirmar materiales',
+  reminderAtUtc: DateTime.utc(2026, 8, 18, 13),
+  assignedTo: _projectAuthor,
+  completed: false,
 );
 
 final _projectTimelineItem = ProjectTimelineItem(

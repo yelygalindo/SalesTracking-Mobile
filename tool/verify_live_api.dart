@@ -107,6 +107,12 @@ Future<void> main() async {
         failures,
       );
       await _check(
+        'Project reminders',
+        () =>
+            projects.getReminders(token, project.externalId, completed: false),
+        failures,
+      );
+      await _check(
         'Project timeline',
         () => projects.getTimeline(token, project.externalId, pageSize: 5),
         failures,
@@ -131,6 +137,7 @@ Future<void> main() async {
       for (final check in const [
         'Project detail',
         'Project notes',
+        'Project reminders',
         'Project timeline',
         'Project visits',
         'Visit attachments',

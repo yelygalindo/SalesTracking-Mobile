@@ -4,6 +4,7 @@ import 'package:urbantrack/data/models/project/project_detail.dart';
 import 'package:urbantrack/data/models/project/project_input.dart';
 import 'package:urbantrack/data/models/project/project_note.dart';
 import 'package:urbantrack/data/models/project/project_page.dart';
+import 'package:urbantrack/data/models/project/project_reminder.dart';
 import 'package:urbantrack/data/models/project/project_status.dart';
 import 'package:urbantrack/data/models/project/project_summary.dart';
 import 'package:urbantrack/data/models/project/project_timeline_item.dart';
@@ -22,6 +23,7 @@ class StatefulProjectRepository implements ProjectRepository {
 
   final DateTime Function() _now;
   final List<ProjectNote> _notes = [];
+  final List<ProjectReminder> _reminders = [];
   final List<ProjectTimelineItem> _timeline = [];
 
   ProjectDetail? project;
@@ -34,6 +36,7 @@ class StatefulProjectRepository implements ProjectRepository {
   int updateCalls = 0;
   int statusCalls = 0;
   int noteCalls = 0;
+  int reminderCalls = 0;
 
   @override
   Future<ProjectPage> getProjects({
@@ -108,6 +111,61 @@ class StatefulProjectRepository implements ProjectRepository {
       relatedEntityType: 'ProjectNote',
     );
     return ResourceCreationResult(id: note.externalId, message: 'Created');
+  }
+
+  @override
+  Future<List<ProjectReminder>> getReminders(
+    String projectExternalId, {
+    bool? completed,
+  }) async {
+    await getProject(projectExternalId);
+    return _reminders
+        .where(
+          (reminder) => completed == null || reminder.completed == completed,
+        )
+        .toList(growable: false);
+  }
+
+  @override
+  Future<ResourceCreationResult> addReminder(
+    String projectExternalId, {
+    required String text,
+    required DateTime reminderAtUtc,
+    String? assignedToId,
+  }) async {
+    await getProject(projectExternalId);
+    reminderCalls += 1;
+    final reminder = ProjectReminder(
+      id: reminderCalls,
+      externalId: 'project-reminder-$reminderCalls',
+      text: text,
+      reminderAtUtc: reminderAtUtc.toUtc(),
+      assignedTo: _seller,
+      completed: false,
+    );
+    _reminders.add(reminder);
+    return ResourceCreationResult(id: reminder.externalId, message: 'Created');
+  }
+
+  @override
+  Future<void> completeReminder(
+    String projectExternalId,
+    String reminderExternalId,
+  ) async {
+    await getProject(projectExternalId);
+    final index = _reminders.indexWhere(
+      (reminder) => reminder.externalId == reminderExternalId,
+    );
+    if (index < 0) return;
+    final reminder = _reminders[index];
+    _reminders[index] = ProjectReminder(
+      id: reminder.id,
+      externalId: reminder.externalId,
+      text: reminder.text,
+      reminderAtUtc: reminder.reminderAtUtc,
+      assignedTo: reminder.assignedTo,
+      completed: true,
+    );
   }
 
   @override

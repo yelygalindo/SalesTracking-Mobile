@@ -63,7 +63,7 @@ Future<void> main(List<String> arguments) async {
     const _OperationExpectation(
       '/api/customers/{customerExternalId}/reminders',
       'post',
-      body: ['text', 'reminderAtUtc', 'clientRequestId'],
+      body: ['text', 'reminderAtUtc', 'assignedToId', 'clientRequestId'],
     ),
     const _OperationExpectation(
       '/api/customers/{customerExternalId}/reminders/{reminderExternalId}/complete',
@@ -92,6 +92,21 @@ Future<void> main(List<String> arguments) async {
       '/api/projects/{projectExternalId}/notes',
       'post',
       body: ['content', 'clientRequestId', 'occurredAtUtc'],
+    ),
+    const _OperationExpectation(
+      '/api/projects/{projectExternalId}/reminders',
+      'get',
+      query: ['completed'],
+    ),
+    const _OperationExpectation(
+      '/api/projects/{projectExternalId}/reminders',
+      'post',
+      body: ['text', 'reminderAtUtc', 'assignedToId', 'clientRequestId'],
+    ),
+    const _OperationExpectation(
+      '/api/projects/{projectExternalId}/reminders/{reminderExternalId}/complete',
+      'patch',
+      body: ['clientRequestId'],
     ),
     const _OperationExpectation(
       '/api/projects/{projectExternalId}/timeline',
@@ -200,6 +215,14 @@ Future<void> main(List<String> arguments) async {
     'occurredAtUtc',
     'receivedAtUtc',
   ], failures);
+  _verifyResponse(spec, '/api/projects/{projectExternalId}/reminders', 'get', [
+    'id',
+    'externalId',
+    'text',
+    'reminderAtUtc',
+    'assignedTo',
+    'completed',
+  ], failures);
   _verifyResponse(spec, '/api/projects/{projectExternalId}/timeline', 'get', [
     'externalId',
     'eventTypeId',
@@ -232,7 +255,7 @@ Future<void> main(List<String> arguments) async {
   }
   stdout.writeln(
     'OpenAPI contract OK: ${operations.length} operations and '
-    '6 response schemas verified.',
+    '7 response schemas verified.',
   );
 }
 

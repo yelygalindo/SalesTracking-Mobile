@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../data/models/project/project_detail.dart';
 import '../../data/models/project/project_note.dart';
+import '../../data/models/project/project_reminder.dart';
 import '../../data/models/project/project_status.dart';
 import '../../data/models/project/project_timeline_item.dart';
 import '../../data/models/project/project_timeline_page.dart';
@@ -29,23 +30,27 @@ class ProjectDetailViewModel extends ChangeNotifier {
   ProjectDetail? _project;
   List<ProjectStatus> _statusOptions = const [];
   List<ProjectNote> _notes = const [];
+  List<ProjectReminder> _reminders = const [];
   List<ProjectTimelineItem> _timeline = const [];
   String? _errorMessage;
   String? _activityErrorMessage;
   bool _changingStatus = false;
   bool _loadingActivity = false;
   bool _savingNote = false;
+  bool _savingReminder = false;
 
   ProjectDetailViewStatus get status => _status;
   ProjectDetail? get project => _project;
   List<ProjectStatus> get statusOptions => _statusOptions;
   List<ProjectNote> get notes => _notes;
+  List<ProjectReminder> get reminders => _reminders;
   List<ProjectTimelineItem> get timeline => _timeline;
   String? get errorMessage => _errorMessage;
   String? get activityErrorMessage => _activityErrorMessage;
   bool get changingStatus => _changingStatus;
   bool get loadingActivity => _loadingActivity;
   bool get savingNote => _savingNote;
+  bool get savingReminder => _savingReminder;
 
   Future<void> load() async {
     _status = ProjectDetailViewStatus.loading;
@@ -114,6 +119,62 @@ class ProjectDetailViewModel extends ChangeNotifier {
     return false;
   }
 
+  Future<bool> addReminder({
+    required String text,
+    required DateTime reminderAtUtc,
+  }) async {
+    final normalized = text.trim();
+    if (normalized.isEmpty) {
+      _activityErrorMessage = 'Escribe un recordatorio antes de guardarlo.';
+      notifyListeners();
+      return false;
+    }
+    if (_savingReminder) return false;
+    _savingReminder = true;
+    _activityErrorMessage = null;
+    notifyListeners();
+    try {
+      await _repository.addReminder(
+        externalId,
+        text: normalized,
+        reminderAtUtc: reminderAtUtc.toUtc(),
+      );
+      await _loadActivity();
+      _savingReminder = false;
+      notifyListeners();
+      return true;
+    } on ApiException catch (error) {
+      _activityErrorMessage = error.message;
+    } catch (_) {
+      _activityErrorMessage = 'No pudimos agregar el recordatorio a esta obra.';
+    }
+    _savingReminder = false;
+    notifyListeners();
+    return false;
+  }
+
+  Future<bool> completeReminder(String reminderExternalId) async {
+    if (_savingReminder) return false;
+    _savingReminder = true;
+    _activityErrorMessage = null;
+    notifyListeners();
+    try {
+      await _repository.completeReminder(externalId, reminderExternalId);
+      await _loadActivity();
+      _savingReminder = false;
+      notifyListeners();
+      return true;
+    } on ApiException catch (error) {
+      _activityErrorMessage = error.message;
+    } catch (_) {
+      _activityErrorMessage =
+          'No pudimos completar el recordatorio de esta obra.';
+    }
+    _savingReminder = false;
+    notifyListeners();
+    return false;
+  }
+
   Future<bool> changeStatus(ProjectStatus status) async {
     final current = _project;
     if (current == null ||
@@ -145,10 +206,12 @@ class ProjectDetailViewModel extends ChangeNotifier {
     try {
       final results = await Future.wait<Object>([
         _repository.getNotes(externalId),
+        _repository.getReminders(externalId, completed: false),
         _repository.getTimeline(externalId),
       ]);
       _notes = results[0] as List<ProjectNote>;
-      _timeline = (results[1] as ProjectTimelinePage).items;
+      _reminders = results[1] as List<ProjectReminder>;
+      _timeline = (results[2] as ProjectTimelinePage).items;
     } on ApiException catch (error) {
       _activityErrorMessage = error.message;
     } catch (_) {

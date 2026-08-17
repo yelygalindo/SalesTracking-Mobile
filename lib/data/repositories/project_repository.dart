@@ -2,6 +2,7 @@ import '../models/project/project_detail.dart';
 import '../models/project/project_input.dart';
 import '../models/project/project_note.dart';
 import '../models/project/project_page.dart';
+import '../models/project/project_reminder.dart';
 import '../models/project/project_status.dart';
 import '../models/project/project_timeline_page.dart';
 import '../models/common/resource_creation_result.dart';
@@ -27,6 +28,23 @@ abstract interface class ProjectRepository {
     required String clientRequestId,
     required DateTime occurredAtUtc,
   });
+
+  Future<List<ProjectReminder>> getReminders(
+    String projectExternalId, {
+    bool? completed,
+  });
+
+  Future<ResourceCreationResult> addReminder(
+    String projectExternalId, {
+    required String text,
+    required DateTime reminderAtUtc,
+    String? assignedToId,
+  });
+
+  Future<void> completeReminder(
+    String projectExternalId,
+    String reminderExternalId,
+  );
 
   Future<ProjectTimelinePage> getTimeline(
     String projectExternalId, {

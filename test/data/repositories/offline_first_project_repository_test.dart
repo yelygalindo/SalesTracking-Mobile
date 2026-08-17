@@ -3,6 +3,7 @@ import 'package:urbantrack/data/models/project/project_detail.dart';
 import 'package:urbantrack/data/models/project/project_input.dart';
 import 'package:urbantrack/data/models/project/project_note.dart';
 import 'package:urbantrack/data/models/project/project_page.dart';
+import 'package:urbantrack/data/models/project/project_reminder.dart';
 import 'package:urbantrack/data/models/project/project_summary.dart';
 import 'package:urbantrack/data/models/project/project_status.dart';
 import 'package:urbantrack/data/models/project/project_timeline_page.dart';
@@ -202,6 +203,27 @@ class _ProjectRemoteRepository implements ProjectRepository {
   _ProjectRemoteRepository({this.failTransiently = false});
 
   final bool failTransiently;
+
+  @override
+  Future<ResourceCreationResult> addReminder(
+    String projectExternalId, {
+    required String text,
+    required DateTime reminderAtUtc,
+    String? assignedToId,
+  }) async =>
+      const ResourceCreationResult(id: 'reminder-id', message: 'Created');
+
+  @override
+  Future<void> completeReminder(
+    String projectExternalId,
+    String reminderExternalId,
+  ) async {}
+
+  @override
+  Future<List<ProjectReminder>> getReminders(
+    String projectExternalId, {
+    bool? completed,
+  }) async => const [];
 
   @override
   Future<ResourceCreationResult> addNote(

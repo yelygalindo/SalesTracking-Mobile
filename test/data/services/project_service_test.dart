@@ -146,6 +146,64 @@ void main() {
     },
   );
 
+  test('lists, creates and completes project reminders', () async {
+    final requests = <http.Request>[];
+    var requestNumber = 0;
+    final service = ProjectService(
+      Uri.parse('https://api.example.test'),
+      MockClient((request) async {
+        requests.add(request);
+        if (request.method == 'GET') {
+          return http.Response(
+            jsonEncode([_reminderJson]),
+            200,
+            headers: {'content-type': 'application/json; charset=utf-8'},
+          );
+        }
+        if (request.method == 'POST') {
+          return http.Response(
+            jsonEncode({'id': 'reminder-id', 'message': 'Created'}),
+            201,
+          );
+        }
+        return http.Response(jsonEncode({'message': 'Completed'}), 200);
+      }),
+      requestId: () => 'reminder-request-${++requestNumber}',
+    );
+
+    final reminders = await service.getReminders(
+      'access-token',
+      'project/id',
+      completed: false,
+    );
+    await service.addReminder(
+      'access-token',
+      'project/id',
+      text: 'Confirmar materiales',
+      reminderAtUtc: DateTime.utc(2026, 8, 18, 14),
+      assignedToId: 'seller-id',
+    );
+    await service.completeReminder('access-token', 'project/id', 'reminder/id');
+
+    expect(reminders.single.text, 'Confirmar materiales');
+    expect(reminders.single.assignedTo?.externalId, 'seller-id');
+    expect(requests[0].url.path, '/api/projects/project%2Fid/reminders');
+    expect(requests[0].url.queryParameters, {'completed': 'false'});
+    expect(jsonDecode(requests[1].body), {
+      'text': 'Confirmar materiales',
+      'reminderAtUtc': '2026-08-18T14:00:00.000Z',
+      'assignedToId': 'seller-id',
+      'clientRequestId': 'reminder-request-1',
+    });
+    expect(
+      requests[2].url.path,
+      '/api/projects/project%2Fid/reminders/reminder%2Fid/complete',
+    );
+    expect(jsonDecode(requests[2].body), {
+      'clientRequestId': 'reminder-request-2',
+    });
+  });
+
   test('sends create, update and status project contracts', () async {
     final requests = <http.Request>[];
     final service = ProjectService(
@@ -241,4 +299,13 @@ final _timelineJson = {
   'relatedEntityId': 22,
   'metadataJson': null,
   'visitExternalId': 'visit-id',
+};
+
+final _reminderJson = {
+  'id': 1,
+  'externalId': 'reminder-id',
+  'text': 'Confirmar materiales',
+  'reminderAtUtc': '2026-08-18T14:00:00Z',
+  'assignedTo': {'externalId': 'seller-id', 'name': 'Carlos Gómez'},
+  'completed': false,
 };

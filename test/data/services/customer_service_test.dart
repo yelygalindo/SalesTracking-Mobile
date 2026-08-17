@@ -235,6 +235,7 @@ void main() {
       'customer/id',
       text: 'Llamar al cliente',
       reminderAtUtc: DateTime.utc(2026, 8, 10, 14, 30),
+      assignedToId: 'seller-id',
     );
     await service.completeReminder(
       'access-token',
@@ -256,7 +257,7 @@ void main() {
     expect(jsonDecode(requests[1].body), {
       'text': 'Llamar al cliente',
       'reminderAtUtc': '2026-08-10T14:30:00.000Z',
-      'assignedToId': null,
+      'assignedToId': 'seller-id',
       'clientRequestId': 'activity-request-1',
     });
     expect(

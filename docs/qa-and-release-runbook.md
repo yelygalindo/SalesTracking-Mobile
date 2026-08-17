@@ -15,6 +15,9 @@ No sustituye los formularios ni las revisiones de Google Play o Apple.
 - [x] Contrato público OpenAPI verificado automáticamente.
 - [x] Login y consultas de clientes, obras, visitas, historial y adjuntos
       validados contra la API publicada.
+- [x] Contratos y consultas de recordatorios de clientes y obras validados;
+      las altas se autoasignan al usuario autenticado cuando no existe una
+      selección administrativa.
 - [x] Acceso del vendedor a `GET /api/workdays/current` corregido y validado
       contra la API publicada.
 - [x] Ciclo de interfaz iniciar/cerrar jornada validado en emulador Android con
@@ -86,11 +89,11 @@ resultado; no adjuntar tokens ni contraseñas en capturas.
 | Permisos | Ubicación concedida/denegada, cámara y galería concedidas/denegadas |
 | Jornada | Inicio y cierre online, hora móvil y hora recibida, cierre después de reiniciar la app |
 | Clientes | Listar, buscar, filtrar, ver detalle, crear, editar, estado, nota y recordatorio |
-| Obras | Listar, filtrar, ver detalle, crear, editar, estado, nota e historial |
+| Obras | Listar, filtrar, ver detalle, crear, editar, estado, nota, recordatorio e historial |
 | Visitas | Check-in/out de cliente y obra, GPS, duración, resultado y notas |
 | Evidencias | Cámara, galería, varias fotos, foto pendiente y reintento |
 | Offline | Pérdida de red, cierre de app, cola persistente, orden de dependencias y no duplicación |
-| Historial | Fecha, orden cronológico, datos de visita y estados vacío/error |
+| Historial | Fecha, orden cronológico, datos de visita, miniaturas y estados vacío/error |
 | Accesibilidad | Etiquetas, contraste, objetivos táctiles y ausencia de desbordes |
 
 Comandos técnicos previos:

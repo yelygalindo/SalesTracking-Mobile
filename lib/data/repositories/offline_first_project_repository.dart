@@ -2,6 +2,7 @@ import '../models/project/project_detail.dart';
 import '../models/project/project_input.dart';
 import '../models/project/project_note.dart';
 import '../models/project/project_page.dart';
+import '../models/project/project_reminder.dart';
 import '../models/project/project_status.dart';
 import '../models/project/project_timeline_page.dart';
 import '../models/common/resource_creation_result.dart';
@@ -105,6 +106,46 @@ class OfflineFirstProjectRepository implements ProjectRepository {
       clientRequestId: clientRequestId,
       occurredAtUtc: occurredAtUtc,
     );
+  }
+
+  @override
+  Future<List<ProjectReminder>> getReminders(
+    String projectExternalId, {
+    bool? completed,
+  }) async {
+    await _requireConnection(
+      'Necesitas conexión para consultar los recordatorios de esta obra.',
+    );
+    return _remote.getReminders(projectExternalId, completed: completed);
+  }
+
+  @override
+  Future<ResourceCreationResult> addReminder(
+    String projectExternalId, {
+    required String text,
+    required DateTime reminderAtUtc,
+    String? assignedToId,
+  }) async {
+    await _requireConnection(
+      'Necesitas conexión para agregar un recordatorio a esta obra.',
+    );
+    return _remote.addReminder(
+      projectExternalId,
+      text: text,
+      reminderAtUtc: reminderAtUtc,
+      assignedToId: assignedToId,
+    );
+  }
+
+  @override
+  Future<void> completeReminder(
+    String projectExternalId,
+    String reminderExternalId,
+  ) async {
+    await _requireConnection(
+      'Necesitas conexión para completar un recordatorio de esta obra.',
+    );
+    await _remote.completeReminder(projectExternalId, reminderExternalId);
   }
 
   @override

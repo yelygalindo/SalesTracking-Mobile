@@ -90,12 +90,16 @@ class RemoteCustomerRepository implements CustomerRepository {
     String? assignedToId,
   }) async {
     final session = await _session();
+    final requestedAssignee = assignedToId?.trim();
+    final currentUserExternalId = session.user.externalId?.trim();
     return _service.addReminder(
       session.accessToken,
       externalId,
       text: text,
       reminderAtUtc: reminderAtUtc,
-      assignedToId: assignedToId,
+      assignedToId: requestedAssignee?.isNotEmpty == true
+          ? requestedAssignee
+          : currentUserExternalId,
     );
   }
 

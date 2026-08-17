@@ -3,6 +3,7 @@ import '../models/project/project_detail.dart';
 import '../models/project/project_input.dart';
 import '../models/project/project_note.dart';
 import '../models/project/project_page.dart';
+import '../models/project/project_reminder.dart';
 import '../models/project/project_status.dart';
 import '../models/project/project_timeline_page.dart';
 import '../models/common/resource_creation_result.dart';
@@ -68,6 +69,53 @@ class RemoteProjectRepository implements ProjectRepository {
       content: content,
       clientRequestId: clientRequestId,
       occurredAtUtc: occurredAtUtc,
+    );
+  }
+
+  @override
+  Future<List<ProjectReminder>> getReminders(
+    String projectExternalId, {
+    bool? completed,
+  }) async {
+    final session = await _session();
+    return _service.getReminders(
+      session.accessToken,
+      projectExternalId,
+      completed: completed,
+    );
+  }
+
+  @override
+  Future<ResourceCreationResult> addReminder(
+    String projectExternalId, {
+    required String text,
+    required DateTime reminderAtUtc,
+    String? assignedToId,
+  }) async {
+    final session = await _session();
+    final requestedAssignee = assignedToId?.trim();
+    final currentUserExternalId = session.user.externalId?.trim();
+    return _service.addReminder(
+      session.accessToken,
+      projectExternalId,
+      text: text,
+      reminderAtUtc: reminderAtUtc,
+      assignedToId: requestedAssignee?.isNotEmpty == true
+          ? requestedAssignee
+          : currentUserExternalId,
+    );
+  }
+
+  @override
+  Future<void> completeReminder(
+    String projectExternalId,
+    String reminderExternalId,
+  ) async {
+    final session = await _session();
+    await _service.completeReminder(
+      session.accessToken,
+      projectExternalId,
+      reminderExternalId,
     );
   }
 
