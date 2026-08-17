@@ -1,4 +1,5 @@
 import '../models/auth/auth_session.dart';
+import '../models/attachment/project_attachment.dart';
 import '../models/history/project_visit.dart';
 import '../models/history/seller_timeline_item.dart';
 import '../models/history/seller_timeline_page.dart';
@@ -63,6 +64,14 @@ class RemoteHistoryRepository implements HistoryRepository {
       from: from,
       to: to,
     );
+  }
+
+  @override
+  Future<List<ProjectAttachment>> getVisitAttachments(
+    String visitExternalId,
+  ) async {
+    final session = await _session();
+    return _service.getVisitAttachments(session.accessToken, visitExternalId);
   }
 
   Future<AuthSession> _session() async {

@@ -8,6 +8,7 @@ class ProjectAttachment {
     required this.caption,
     required this.isCover,
     required this.downloadUrl,
+    this.downloadUrlExpiresAtUtc,
     required this.createdAtUtc,
     required this.visitExternalId,
   });
@@ -22,6 +23,7 @@ class ProjectAttachment {
         caption: json['caption'] as String?,
         isCover: json['isCover'] as bool? ?? false,
         downloadUrl: json['downloadUrl'] as String?,
+        downloadUrlExpiresAtUtc: _date(json['downloadUrlExpiresAtUtc']),
         createdAtUtc: _date(json['createdAtUtc']),
         visitExternalId: json['visitExternalId'] as String?,
       );
@@ -34,8 +36,12 @@ class ProjectAttachment {
   final String? caption;
   final bool isCover;
   final String? downloadUrl;
+  final DateTime? downloadUrlExpiresAtUtc;
   final DateTime? createdAtUtc;
   final String? visitExternalId;
+
+  bool get isImage => contentType.toLowerCase().startsWith('image/');
+  bool get hasDownloadUrl => downloadUrl?.trim().isNotEmpty == true;
 }
 
 DateTime? _date(Object? value) =>

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../../data/models/attachment/project_attachment.dart';
 import '../../data/models/history/project_visit.dart';
 import '../../data/repositories/history_repository.dart';
 import '../core/branding/brand_scope.dart';
 import 'project_visits_view_model.dart';
+import 'visit_photo_strip.dart';
 
 class ProjectVisitsScreen extends StatefulWidget {
   const ProjectVisitsScreen({
@@ -151,7 +153,10 @@ class _VisitsBody extends StatelessWidget {
           .map(
             (visit) => Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: _VisitCard(visit: visit),
+              child: _VisitCard(
+                visit: visit,
+                attachments: viewModel.attachmentsFor(visit),
+              ),
             ),
           )
           .toList(growable: false),
@@ -160,9 +165,10 @@ class _VisitsBody extends StatelessWidget {
 }
 
 class _VisitCard extends StatelessWidget {
-  const _VisitCard({required this.visit});
+  const _VisitCard({required this.visit, required this.attachments});
 
   final ProjectVisit visit;
+  final List<ProjectAttachment> attachments;
 
   @override
   Widget build(BuildContext context) {
@@ -237,6 +243,7 @@ class _VisitCard extends StatelessWidget {
               _Fact(label: 'Nota de inicio', value: visit.notes!.trim()),
             if (visit.checkOutNote?.trim().isNotEmpty == true)
               _Fact(label: 'Nota de cierre', value: visit.checkOutNote!.trim()),
+            VisitPhotoStrip(attachments: attachments),
           ],
         ),
       ),

@@ -85,6 +85,10 @@ void main() {
     await tester.scrollUntilVisible(find.text('Seguimiento de la obra'), 500);
     expect(find.text('Avance confirmado'), findsOneWidget);
     expect(find.text('Visita finalizada'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('visit-photo-attachment-id')),
+      findsOneWidget,
+    );
 
     await tester.ensureVisible(find.text('Agregar nota'));
     await tester.pumpAndSettle();
@@ -278,6 +282,15 @@ final _timelineItem = ProjectTimelineItem(
   createdBy: _author,
   relatedEntityType: 'Visit',
   relatedEntityId: 22,
-  metadataJson: null,
+  metadataJson: ProjectTimelineMetadata(
+    attachmentExternalId: 'attachment-id',
+    fileName: 'avance.jpg',
+    attachmentType: 'Photo',
+    contentType: 'image/jpeg',
+    sizeBytes: 2048,
+    visitExternalId: 'visit-id',
+    downloadUrl: 'https://files.example.test/avance.jpg',
+    downloadUrlExpiresAtUtc: DateTime.utc(2026, 8, 11, 12),
+  ),
   visitExternalId: 'visit-id',
 );

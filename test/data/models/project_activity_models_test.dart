@@ -26,8 +26,28 @@ void main() {
 
     expect(page.items.single.title, 'Visita finalizada');
     expect(page.items.single.createdBy?.externalId, 'seller-id');
+    expect(page.items.single.metadataJson?.fileName, 'avance.jpg');
+    expect(page.items.single.metadataJson?.isImage, isTrue);
     expect(page.totalItems, 1);
     expect(ProjectTimelinePage.fromJson(page.toJson()).toJson(), page.toJson());
+  });
+
+  test('project timeline also accepts legacy metadata encoded as text', () {
+    final item = ProjectTimelinePage.fromJson({
+      'items': [
+        {
+          ..._timelineJson,
+          'metadataJson':
+              '{"fileName":"legacy.jpg",'
+              '"contentType":"image/jpeg",'
+              '"downloadUrl":"https://files.example.test/legacy.jpg"}',
+        },
+      ],
+      'pagination': const <String, dynamic>{},
+    }).items.single;
+
+    expect(item.metadataJson?.fileName, 'legacy.jpg');
+    expect(item.metadataJson?.hasDownloadUrl, isTrue);
   });
 }
 
@@ -53,6 +73,15 @@ final _timelineJson = {
   'createdBy': {'externalId': 'seller-id', 'name': 'Carlos Gómez'},
   'relatedEntityType': 'Visit',
   'relatedEntityId': 22,
-  'metadataJson': null,
+  'metadataJson': {
+    'attachmentExternalId': 'attachment-id',
+    'fileName': 'avance.jpg',
+    'attachmentType': 'Photo',
+    'contentType': 'image/jpeg',
+    'sizeBytes': 2048,
+    'visitExternalId': 'visit-id',
+    'downloadUrl': 'https://files.example.test/avance.jpg',
+    'downloadUrlExpiresAtUtc': '2026-08-11T12:00:00Z',
+  },
   'visitExternalId': 'visit-id',
 };

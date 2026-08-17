@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../data/models/attachment/project_attachment.dart';
 import '../../data/models/project/project_detail.dart';
 import '../../data/models/project/project_note.dart';
 import '../../data/models/project/project_status.dart';
@@ -10,6 +11,7 @@ import '../../data/repositories/visit_repository.dart';
 import '../../data/models/visit/visit_target_type.dart';
 import '../../routing/app_router.dart';
 import '../core/branding/brand_scope.dart';
+import '../history/visit_photo_strip.dart';
 import 'project_detail_view_model.dart';
 import '../visits/visit_action_card.dart';
 
@@ -596,6 +598,7 @@ class _ProjectTimelinePanel extends StatelessWidget {
                       item.occurredAtUtc,
                       item.createdBy?.name,
                     ),
+                    attachments: _timelineAttachments(item),
                   ),
                 );
               }),
@@ -611,11 +614,13 @@ class _ActivityItem extends StatelessWidget {
     required this.title,
     required this.metadata,
     this.description = '',
+    this.attachments = const [],
   });
 
   final String title;
   final String description;
   final String metadata;
+  final List<ProjectAttachment> attachments;
 
   @override
   Widget build(BuildContext context) {
@@ -646,12 +651,37 @@ class _ActivityItem extends StatelessWidget {
                 metadata,
                 style: const TextStyle(color: Color(0xFF6F788A), fontSize: 11),
               ),
+              VisitPhotoStrip(attachments: attachments),
             ],
           ),
         ),
       ],
     );
   }
+}
+
+List<ProjectAttachment> _timelineAttachments(ProjectTimelineItem item) {
+  final metadata = item.metadataJson;
+  if (metadata == null || !metadata.isImage || !metadata.hasDownloadUrl) {
+    return const [];
+  }
+  return [
+    ProjectAttachment(
+      externalId: metadata.attachmentExternalId.isEmpty
+          ? item.externalId
+          : metadata.attachmentExternalId,
+      fileName: metadata.fileName,
+      contentType: metadata.contentType,
+      sizeBytes: metadata.sizeBytes,
+      attachmentType: metadata.attachmentType,
+      caption: null,
+      isCover: false,
+      downloadUrl: metadata.downloadUrl,
+      downloadUrlExpiresAtUtc: metadata.downloadUrlExpiresAtUtc,
+      createdAtUtc: item.occurredAtUtc,
+      visitExternalId: metadata.visitExternalId ?? item.visitExternalId,
+    ),
+  ];
 }
 
 class _ActivityError extends StatelessWidget {

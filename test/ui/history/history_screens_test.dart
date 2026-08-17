@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:urbantrack/data/models/attachment/project_attachment.dart';
 import 'package:urbantrack/data/models/history/project_visit.dart';
 import 'package:urbantrack/data/models/history/seller_timeline_item.dart';
 import 'package:urbantrack/data/models/history/seller_timeline_page.dart';
@@ -28,6 +29,7 @@ void main() {
     expect(find.text('Todo lo que registraste'), findsOneWidget);
     expect(find.text('Visita finalizada · Obra Norte'), findsOneWidget);
     expect(find.text('Jornada iniciada'), findsOneWidget);
+    expect(find.byKey(const ValueKey('visit-photo-photo-id')), findsOneWidget);
     expect(find.text('Historial'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
@@ -56,11 +58,30 @@ void main() {
     expect(find.text('Cotización entregada'), findsOneWidget);
     expect(find.text('Revisar precios el viernes'), findsOneWidget);
     expect(find.text('Cerrada'), findsOneWidget);
+    expect(find.byKey(const ValueKey('visit-photo-photo-id')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }
 
 class _HistoryScreenRepository implements HistoryRepository {
+  @override
+  Future<List<ProjectAttachment>> getVisitAttachments(
+    String visitExternalId,
+  ) async => [
+    ProjectAttachment(
+      externalId: 'photo-id',
+      fileName: 'avance.jpg',
+      contentType: 'image/jpeg',
+      sizeBytes: 1024,
+      attachmentType: 'Photo',
+      caption: 'Avance',
+      isCover: false,
+      downloadUrl: 'https://files.example.test/avance.jpg',
+      createdAtUtc: DateTime.utc(2026, 8, 3, 15),
+      visitExternalId: visitExternalId,
+    ),
+  ];
+
   @override
   Future<SellerTimelinePage> getMyTimeline({
     DateTime? from,

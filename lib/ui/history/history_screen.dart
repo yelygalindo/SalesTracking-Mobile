@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../data/models/attachment/project_attachment.dart';
 import '../../data/models/history/seller_timeline_item.dart';
 import '../../data/repositories/history_repository.dart';
 import '../../routing/app_router.dart';
 import '../core/branding/brand_scope.dart';
 import '../core/navigation/app_primary_navigation_bar.dart';
 import 'history_view_model.dart';
+import 'visit_photo_strip.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({required this.repository, super.key});
@@ -163,7 +165,12 @@ class _HistoryBody extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(18, 18, 18, 6),
             child: Column(
               children: viewModel.items
-                  .map((item) => _TimelineRow(item: item))
+                  .map(
+                    (item) => _TimelineRow(
+                      item: item,
+                      attachments: viewModel.attachmentsFor(item),
+                    ),
+                  )
                   .toList(growable: false),
             ),
           ),
@@ -196,9 +203,10 @@ class _HistoryBody extends StatelessWidget {
 }
 
 class _TimelineRow extends StatelessWidget {
-  const _TimelineRow({required this.item});
+  const _TimelineRow({required this.item, required this.attachments});
 
   final SellerTimelineItem item;
+  final List<ProjectAttachment> attachments;
 
   @override
   Widget build(BuildContext context) {
@@ -257,6 +265,7 @@ class _TimelineRow extends StatelessWidget {
                       ),
                     ),
                   ],
+                  VisitPhotoStrip(attachments: attachments),
                 ],
               ),
             ),

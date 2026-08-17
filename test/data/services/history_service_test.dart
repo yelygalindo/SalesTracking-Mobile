@@ -86,6 +86,34 @@ void main() {
       expect(visits.single.duration, const Duration(minutes: 55));
     },
   );
+
+  test('loads attachments for a visit', () async {
+    final service = HistoryService(
+      Uri.parse('https://api.example.test'),
+      MockClient((request) async {
+        expect(request.method, 'GET');
+        expect(request.url.path, '/api/visits/visit-id/attachments');
+        expect(request.headers['authorization'], 'Bearer access-token');
+        return http.Response(
+          jsonEncode([_attachmentJson]),
+          200,
+          headers: {'content-type': 'application/json; charset=utf-8'},
+        );
+      }),
+    );
+
+    final attachments = await service.getVisitAttachments(
+      'access-token',
+      'visit-id',
+    );
+
+    expect(attachments.single.externalId, 'attachment-id');
+    expect(attachments.single.isImage, isTrue);
+    expect(
+      attachments.single.downloadUrlExpiresAtUtc,
+      DateTime.utc(2026, 8, 4, 12),
+    );
+  });
 }
 
 final _timelineJson = {
@@ -117,4 +145,18 @@ final _visitJson = {
   'result': 'Cotización entregada',
   'sellerExternalId': 'seller-id',
   'sellerName': 'Carlos Gómez',
+};
+
+final _attachmentJson = {
+  'externalId': 'attachment-id',
+  'fileName': 'avance.jpg',
+  'contentType': 'image/jpeg',
+  'sizeBytes': 2048,
+  'attachmentType': 'Photo',
+  'caption': 'Avance',
+  'isCover': false,
+  'downloadUrl': 'https://files.example.test/avance.jpg',
+  'downloadUrlExpiresAtUtc': '2026-08-04T12:00:00Z',
+  'createdAtUtc': '2026-08-04T11:00:00Z',
+  'visitExternalId': 'visit-id',
 };

@@ -358,6 +358,11 @@ class EmptyAttachmentRepository implements ProjectAttachmentRepository {
 
 class EmptyHistoryRepository implements HistoryRepository {
   @override
+  Future<List<ProjectAttachment>> getVisitAttachments(
+    String visitExternalId,
+  ) async => const [];
+
+  @override
   Future<SellerTimelinePage> getMyTimeline({
     DateTime? from,
     DateTime? to,

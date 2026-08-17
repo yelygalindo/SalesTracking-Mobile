@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 
+import '../models/attachment/project_attachment.dart';
 import '../models/history/project_visit.dart';
 import '../models/history/seller_timeline_page.dart';
 import 'api_exception.dart';
@@ -101,6 +102,26 @@ class HistoryService {
     }
     throw const ApiException(
       message: 'El servidor devolvió un historial de visitas no válido.',
+    );
+  }
+
+  Future<List<ProjectAttachment>> getVisitAttachments(
+    String accessToken,
+    String visitExternalId,
+  ) async {
+    final uri = _baseUrl.resolve(
+      '/api/visits/${Uri.encodeComponent(visitExternalId)}/attachments',
+    );
+    final response = await _get(uri, accessToken);
+    final decoded = _decode(response.bodyBytes);
+    if (decoded is List) {
+      return decoded
+          .whereType<Map<String, dynamic>>()
+          .map(ProjectAttachment.fromJson)
+          .toList(growable: false);
+    }
+    throw const ApiException(
+      message: 'El servidor devolvió adjuntos de visita no válidos.',
     );
   }
 

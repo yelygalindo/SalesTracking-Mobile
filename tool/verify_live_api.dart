@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:urbantrack/data/models/auth/login_request.dart';
+import 'package:urbantrack/data/models/history/project_visit.dart';
 import 'package:urbantrack/data/services/api_exception.dart';
 import 'package:urbantrack/data/services/auth_service.dart';
 import 'package:urbantrack/data/services/customer_service.dart';
@@ -38,7 +39,11 @@ Future<void> main() async {
       );
     });
 
-    final token = session.accessToken;
+    final refreshedTokens = await _verify(
+      'Token refresh',
+      () => auth.refresh(session.refreshToken),
+    );
+    final token = refreshedTokens.accessToken;
     final customers = CustomerService(baseUrl, client);
     final projects = ProjectService(baseUrl, client);
     final workdays = WorkdayService(baseUrl, client);
@@ -106,10 +111,16 @@ Future<void> main() async {
         () => projects.getTimeline(token, project.externalId, pageSize: 5),
         failures,
       );
-      await _check(
+      final projectVisits = await _check(
         'Project visits',
         () => history.getProjectVisits(token, project.externalId),
         failures,
+      );
+      await _verifyVisitAttachments(
+        history,
+        accessToken: token,
+        visits: projectVisits,
+        failures: failures,
       );
       await _check(
         'Project attachments',
@@ -122,6 +133,7 @@ Future<void> main() async {
         'Project notes',
         'Project timeline',
         'Project visits',
+        'Visit attachments',
         'Project attachments',
       ]) {
         _skip(
@@ -167,6 +179,43 @@ Future<void> main() async {
   } finally {
     client.close();
   }
+}
+
+Future<void> _verifyVisitAttachments(
+  HistoryService history, {
+  required String accessToken,
+  required List<ProjectVisit>? visits,
+  required List<String> failures,
+}) async {
+  if (visits == null) {
+    _skip('Visit attachments', 'the project visits check failed');
+    return;
+  }
+  if (visits.isEmpty) {
+    _skip('Visit attachments', 'the project has no visits');
+    return;
+  }
+  for (final visit in visits) {
+    final stopwatch = Stopwatch()..start();
+    try {
+      await history.getVisitAttachments(accessToken, visit.externalId);
+      stopwatch.stop();
+      stdout.writeln(
+        '[OK] Visit attachments (${stopwatch.elapsedMilliseconds} ms)',
+      );
+      return;
+    } on ApiException catch (error) {
+      stopwatch.stop();
+      if (error.statusCode == 404) continue;
+      stderr.writeln(
+        '[FAIL] Visit attachments${_status(error.statusCode)} '
+        '(${stopwatch.elapsedMilliseconds} ms)',
+      );
+      failures.add('Visit attachments${_status(error.statusCode)}');
+      return;
+    }
+  }
+  _skip('Visit attachments', 'none of the project visits has attachments');
 }
 
 Future<void> _verifySellerHistory(

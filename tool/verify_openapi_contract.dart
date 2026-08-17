@@ -130,6 +130,10 @@ Future<void> main(List<String> arguments) async {
       query: ['SellerExternalId', 'From', 'To'],
     ),
     const _OperationExpectation(
+      '/api/visits/{visitExternalId}/attachments',
+      'get',
+    ),
+    const _OperationExpectation(
       '/api/sellers/{sellerExternalId}/timeline',
       'get',
       query: ['From', 'To', 'Page', 'PageSize'],
@@ -204,6 +208,17 @@ Future<void> main(List<String> arguments) async {
     'description',
     'occurredAtUtc',
     'createdBy',
+    'metadataJson',
+    'visitExternalId',
+  ], failures);
+  _verifyResponse(spec, '/api/visits/{visitExternalId}/attachments', 'get', [
+    'externalId',
+    'fileName',
+    'contentType',
+    'sizeBytes',
+    'attachmentType',
+    'downloadUrl',
+    'downloadUrlExpiresAtUtc',
     'visitExternalId',
   ], failures);
 
@@ -217,7 +232,7 @@ Future<void> main(List<String> arguments) async {
   }
   stdout.writeln(
     'OpenAPI contract OK: ${operations.length} operations and '
-    '5 response schemas verified.',
+    '6 response schemas verified.',
   );
 }
 
