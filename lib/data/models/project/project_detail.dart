@@ -22,6 +22,7 @@ class ProjectDetail {
     required this.longitude,
     required this.createdAtUtc,
     this.updatedAtUtc,
+    this.updatedAtUtcToken,
   });
 
   factory ProjectDetail.fromJson(Map<String, dynamic> json) => ProjectDetail(
@@ -44,6 +45,7 @@ class ProjectDetail {
     longitude: (json['longitude'] as num?)?.toDouble(),
     createdAtUtc: tryParseUtcDateTime(json['createdAtUtc']),
     updatedAtUtc: tryParseUtcDateTime(json['updatedAtUtc']),
+    updatedAtUtcToken: utcDateTimeToken(json['updatedAtUtc']),
   );
 
   final int id;
@@ -65,6 +67,7 @@ class ProjectDetail {
   final double? longitude;
   final DateTime? createdAtUtc;
   final DateTime? updatedAtUtc;
+  final String? updatedAtUtcToken;
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -85,6 +88,7 @@ class ProjectDetail {
     'latitude': latitude,
     'longitude': longitude,
     'createdAtUtc': createdAtUtc?.toUtc().toIso8601String(),
-    'updatedAtUtc': updatedAtUtc?.toUtc().toIso8601String(),
+    'updatedAtUtc':
+        updatedAtUtcToken ?? updatedAtUtc?.toUtc().toIso8601String(),
   };
 }

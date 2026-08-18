@@ -62,6 +62,10 @@ void main() {
       repository.updatedInput?.expectedUpdatedAtUtc,
       DateTime.utc(2026, 8, 18, 14, 30),
     );
+    expect(
+      repository.updatedInput?.expectedUpdatedAtUtcToken,
+      '2026-08-18T14:30:00.1234567Z',
+    );
     expect(repository.updatedInput?.email, isEmpty);
   });
 
@@ -222,6 +226,7 @@ CustomerDetail _customerDetail(int statusId) => CustomerDetail(
   longitude: -63.18,
   createdAtUtc: DateTime.utc(2026, 8, 7),
   updatedAtUtc: DateTime.utc(2026, 8, 18, 14, 30),
+  updatedAtUtcToken: '2026-08-18T14:30:00.1234567Z',
   seller: const UserReference(externalId: 'seller-id', name: 'Carlos Gómez'),
   notes: const [],
   reminders: const [],

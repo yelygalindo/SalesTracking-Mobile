@@ -97,7 +97,11 @@ void main() {
 
     expect(
       projects.updatedInput?.expectedUpdatedAtUtc,
-      DateTime.utc(2026, 8, 18, 14, 30),
+      DateTime.utc(2026, 8, 18, 14, 30, 0, 123, 456),
+    );
+    expect(
+      projects.updatedInput?.expectedUpdatedAtUtcToken,
+      '2026-08-18T14:30:00.1234567Z',
     );
   });
 
@@ -434,6 +438,7 @@ final _detail = ProjectDetail(
   longitude: -63.18,
   createdAtUtc: DateTime.utc(2026, 8, 1),
   updatedAtUtc: DateTime.utc(2026, 8, 18, 14, 30),
+  updatedAtUtcToken: '2026-08-18T14:30:00.1234567Z',
 );
 
 const _projectAuthor = UserReference(externalId: 'seller-id', name: 'Carlos');

@@ -18,6 +18,7 @@ class CustomerDetail {
     required this.longitude,
     required this.createdAtUtc,
     this.updatedAtUtc,
+    this.updatedAtUtcToken,
     required this.seller,
     required this.notes,
     required this.reminders,
@@ -39,6 +40,7 @@ class CustomerDetail {
       longitude: (json['longitude'] as num?)?.toDouble(),
       createdAtUtc: tryParseUtcDateTime(json['createdAt']),
       updatedAtUtc: tryParseUtcDateTime(json['updatedAtUtc']),
+      updatedAtUtcToken: utcDateTimeToken(json['updatedAtUtc']),
       seller: seller is Map<String, dynamic>
           ? UserReference.fromJson(seller)
           : null,
@@ -60,6 +62,7 @@ class CustomerDetail {
   final double? longitude;
   final DateTime? createdAtUtc;
   final DateTime? updatedAtUtc;
+  final String? updatedAtUtcToken;
   final UserReference? seller;
   final List<CustomerNote> notes;
   final List<CustomerReminder> reminders;
@@ -77,7 +80,8 @@ class CustomerDetail {
     'latitude': latitude,
     'longitude': longitude,
     'createdAt': createdAtUtc?.toUtc().toIso8601String(),
-    'updatedAtUtc': updatedAtUtc?.toUtc().toIso8601String(),
+    'updatedAtUtc':
+        updatedAtUtcToken ?? updatedAtUtc?.toUtc().toIso8601String(),
     'seller': seller?.toJson(),
     'notes': notes.map((note) => note.toJson()).toList(),
     'reminders': reminders.map((reminder) => reminder.toJson()).toList(),

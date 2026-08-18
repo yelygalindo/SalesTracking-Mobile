@@ -1,3 +1,5 @@
+import '../common/utc_date_time.dart';
+
 class CustomerInput {
   const CustomerInput({
     required this.name,
@@ -9,6 +11,7 @@ class CustomerInput {
     required this.longitude,
     this.sellerExternalId,
     this.expectedUpdatedAtUtc,
+    this.expectedUpdatedAtUtcToken,
   });
 
   factory CustomerInput.fromJson(Map<String, dynamic> json) => CustomerInput(
@@ -23,6 +26,7 @@ class CustomerInput {
     expectedUpdatedAtUtc: DateTime.tryParse(
       json['expectedUpdatedAtUtc'] as String? ?? '',
     )?.toUtc(),
+    expectedUpdatedAtUtcToken: utcDateTimeToken(json['expectedUpdatedAtUtc']),
   );
 
   final String name;
@@ -34,6 +38,7 @@ class CustomerInput {
   final double? longitude;
   final String? sellerExternalId;
   final DateTime? expectedUpdatedAtUtc;
+  final String? expectedUpdatedAtUtcToken;
 
   Map<String, dynamic> toJson() => {
     'name': name.trim(),
@@ -44,7 +49,9 @@ class CustomerInput {
     'address': address.trim(),
     'latitude': latitude,
     'longitude': longitude,
-    'expectedUpdatedAtUtc': expectedUpdatedAtUtc?.toUtc().toIso8601String(),
+    'expectedUpdatedAtUtc':
+        expectedUpdatedAtUtcToken ??
+        expectedUpdatedAtUtc?.toUtc().toIso8601String(),
   };
 
   Map<String, dynamic> toCreateJson(String clientRequestId) => {

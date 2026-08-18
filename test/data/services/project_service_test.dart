@@ -78,6 +78,24 @@ void main() {
     expect(page.totalItems, 21);
   });
 
+  test('preserves the exact project concurrency timestamp', () async {
+    final service = ProjectService(
+      Uri.parse('https://api.example.test'),
+      MockClient(
+        (_) async => http.Response(
+          jsonEncode(_projectJson),
+          200,
+          headers: {'content-type': 'application/json; charset=utf-8'},
+        ),
+      ),
+    );
+
+    final project = await service.getProject('access-token', 'project-id');
+
+    expect(project.updatedAtUtcToken, '2026-08-18T14:30:00.1234567Z');
+    expect(project.toJson()['updatedAtUtc'], '2026-08-18T14:30:00.1234567Z');
+  });
+
   test(
     'lists notes and timeline and sends the project note contract',
     () async {
@@ -240,6 +258,7 @@ void main() {
       latitude: -17.75,
       longitude: -63.18,
       expectedUpdatedAtUtc: DateTime.utc(2026, 8, 18, 14, 30),
+      expectedUpdatedAtUtcToken: '2026-08-18T14:30:00.1234567Z',
     );
 
     final created = await service.createProject(
@@ -263,7 +282,7 @@ void main() {
     );
     expect(
       jsonDecode(requests[1].body)['expectedUpdatedAtUtc'],
-      '2026-08-18T14:30:00.000Z',
+      '2026-08-18T14:30:00.1234567Z',
     );
     final statusBody = jsonDecode(requests[2].body) as Map<String, dynamic>;
     expect(statusBody['statusId'], 3);
@@ -293,6 +312,7 @@ final _projectJson = {
   'latitude': -17.75,
   'longitude': -63.18,
   'createdAtUtc': '2026-08-01T12:00:00Z',
+  'updatedAtUtc': '2026-08-18T14:30:00.1234567Z',
 };
 
 final _noteJson = {

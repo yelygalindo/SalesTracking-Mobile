@@ -21,5 +21,11 @@ DateTime parseUtcDateTime(Object? value) =>
     tryParseUtcDateTime(value) ??
     DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
 
+String? utcDateTimeToken(Object? value) {
+  if (value is! String) return null;
+  final token = value.trim();
+  return token.isNotEmpty && tryParseUtcDateTime(token) != null ? token : null;
+}
+
 bool _hasExplicitOffset(String value) =>
     RegExp(r'(?:[zZ]|[+-]\d{2}:?\d{2})$').hasMatch(value);

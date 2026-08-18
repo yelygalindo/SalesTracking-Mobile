@@ -119,6 +119,7 @@ void main() {
             'latitude': -17.75,
             'longitude': -63.18,
             'createdAt': '2026-08-07T15:00:00Z',
+            'updatedAtUtc': '2026-08-18T14:30:00.1234567Z',
             'seller': {'externalId': 'seller-id', 'name': 'Carlos Gómez'},
             'notes': [
               {
@@ -154,6 +155,8 @@ void main() {
     expect(customer.notes.single.text, 'Solicitó una cotización.');
     expect(customer.reminders.single.completed, isFalse);
     expect(customer.seller?.name, 'Carlos Gómez');
+    expect(customer.updatedAtUtcToken, '2026-08-18T14:30:00.1234567Z');
+    expect(customer.toJson()['updatedAtUtc'], '2026-08-18T14:30:00.1234567Z');
   });
 
   test('sends create, update and status contracts', () async {
@@ -182,6 +185,7 @@ void main() {
       latitude: -17.75,
       longitude: -63.18,
       expectedUpdatedAtUtc: DateTime.utc(2026, 8, 18, 14, 30),
+      expectedUpdatedAtUtcToken: '2026-08-18T14:30:00.1234567Z',
     );
 
     final created = await service.createCustomer(
@@ -206,7 +210,7 @@ void main() {
     );
     expect(
       jsonDecode(requests[1].body)['expectedUpdatedAtUtc'],
-      '2026-08-18T14:30:00.000Z',
+      '2026-08-18T14:30:00.1234567Z',
     );
     expect(requests[2].url.path, '/api/customers/customer-id/status');
     expect(jsonDecode(requests[2].body), {

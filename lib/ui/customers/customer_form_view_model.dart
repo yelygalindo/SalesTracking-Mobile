@@ -111,6 +111,7 @@ class CustomerFormViewModel extends ChangeNotifier {
       latitude: _location?.latitude,
       longitude: _location?.longitude,
       expectedUpdatedAtUtc: _customer?.updatedAtUtc,
+      expectedUpdatedAtUtcToken: _customer?.updatedAtUtcToken,
     );
     _status = CustomerFormViewStatus.saving;
     _errorMessage = null;

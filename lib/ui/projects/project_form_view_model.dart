@@ -132,6 +132,7 @@ class ProjectFormViewModel extends ChangeNotifier {
       latitude: _location?.latitude,
       longitude: _location?.longitude,
       expectedUpdatedAtUtc: _project?.updatedAtUtc,
+      expectedUpdatedAtUtcToken: _project?.updatedAtUtcToken,
     );
     _status = ProjectFormViewStatus.saving;
     _errorMessage = null;
