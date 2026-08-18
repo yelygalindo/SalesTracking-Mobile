@@ -9,6 +9,7 @@ import '../../data/repositories/visit_repository.dart';
 import '../../data/models/visit/visit_target_type.dart';
 import '../../routing/app_router.dart';
 import '../core/branding/brand_scope.dart';
+import '../core/device_actions.dart';
 import 'customer_detail_view_model.dart';
 import '../visits/visit_action_card.dart';
 
@@ -28,8 +29,11 @@ class CustomerDetailScreen extends StatefulWidget {
   State<CustomerDetailScreen> createState() => _CustomerDetailScreenState();
 }
 
+enum _CustomerDetailSection { followUp, history }
+
 class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
   late final CustomerDetailViewModel _viewModel;
+  _CustomerDetailSection _selectedSection = _CustomerDetailSection.followUp;
 
   @override
   void initState() {
@@ -49,6 +53,19 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
       AppRoutes.editCustomer(widget.externalId),
     );
     if (changed == true) await _viewModel.load();
+  }
+
+  Future<void> _launchAction(Uri uri, String failureMessage) async {
+    var launched = false;
+    try {
+      launched = await launchDeviceAction(uri);
+    } on Exception {
+      launched = false;
+    }
+    if (!mounted || launched) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(failureMessage)));
   }
 
   Future<void> _addNote() async {
@@ -143,6 +160,12 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
             );
           }
           final pendingSync = customer.externalId.startsWith('local:');
+          final callUri = phoneUri(customer.phone);
+          final locationUri = mapUri(
+            latitude: customer.latitude,
+            longitude: customer.longitude,
+            address: customer.address,
+          );
           return LayoutBuilder(
             builder: (context, constraints) {
               final padding = constraints.maxWidth >= 600 ? 32.0 : 20.0;
@@ -171,15 +194,20 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                               targetName: customer.name,
                             ),
                             const SizedBox(height: 12),
-                            FilledButton.icon(
-                              key: const ValueKey('edit-customer-button'),
-                              onPressed: pendingSync ? null : _edit,
-                              icon: const Icon(Icons.edit_outlined),
-                              label: Text(
-                                pendingSync
-                                    ? 'Disponible al sincronizar'
-                                    : 'Editar cliente',
-                              ),
+                            _CustomerQuickActions(
+                              onCall: callUri == null
+                                  ? null
+                                  : () => _launchAction(
+                                      callUri,
+                                      'No pudimos abrir la aplicación de llamadas.',
+                                    ),
+                              onMap: locationUri == null
+                                  ? null
+                                  : () => _launchAction(
+                                      locationUri,
+                                      'No pudimos abrir la ubicación en el mapa.',
+                                    ),
+                              onEdit: pendingSync ? null : _edit,
                             ),
                             const SizedBox(height: 12),
                             _StatusCard(
@@ -191,35 +219,52 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                               _InlineError(message: error),
                             ],
                             const SizedBox(height: 22),
-                            _SectionTitle(
-                              title: 'Próximos recordatorios',
-                              count: customer.reminders
-                                  .where((reminder) => !reminder.completed)
-                                  .length,
-                              onAdd: _viewModel.isBusy ? null : _addReminder,
-                              addKey: const ValueKey(
-                                'add-customer-reminder-button',
-                              ),
-                              addTooltip: 'Nuevo recordatorio',
+                            Text(
+                              'Seguimiento del cliente',
+                              style: Theme.of(context).textTheme.titleLarge
+                                  ?.copyWith(fontWeight: FontWeight.w900),
                             ),
                             const SizedBox(height: 10),
-                            _ReminderList(
-                              reminders: customer.reminders,
-                              enabled: !_viewModel.isBusy,
-                              onComplete: _viewModel.completeReminder,
+                            _CustomerSectionTabs(
+                              selected: _selectedSection,
+                              onSelected: (section) {
+                                setState(() => _selectedSection = section);
+                              },
                             ),
-                            const SizedBox(height: 22),
-                            _SectionTitle(
-                              title: 'Notas',
-                              count: customer.notes.length,
-                              onAdd: _viewModel.isBusy ? null : _addNote,
-                              addKey: const ValueKey(
-                                'add-customer-note-button',
+                            const SizedBox(height: 14),
+                            if (_selectedSection ==
+                                _CustomerDetailSection.followUp) ...[
+                              _SectionTitle(
+                                title: 'Próximos recordatorios',
+                                count: customer.reminders
+                                    .where((reminder) => !reminder.completed)
+                                    .length,
+                                onAdd: _viewModel.isBusy ? null : _addReminder,
+                                addKey: const ValueKey(
+                                  'add-customer-reminder-button',
+                                ),
+                                addTooltip: 'Nuevo recordatorio',
                               ),
-                              addTooltip: 'Nueva nota',
-                            ),
-                            const SizedBox(height: 10),
-                            _NoteList(notes: customer.notes),
+                              const SizedBox(height: 8),
+                              _ReminderList(
+                                reminders: customer.reminders,
+                                enabled: !_viewModel.isBusy,
+                                onComplete: _viewModel.completeReminder,
+                              ),
+                              const SizedBox(height: 18),
+                              _SectionTitle(
+                                title: 'Notas',
+                                count: customer.notes.length,
+                                onAdd: _viewModel.isBusy ? null : _addNote,
+                                addKey: const ValueKey(
+                                  'add-customer-note-button',
+                                ),
+                                addTooltip: 'Nueva nota',
+                              ),
+                              const SizedBox(height: 8),
+                              _NoteList(notes: customer.notes),
+                            ] else
+                              _CustomerHistory(customer: customer),
                           ],
                         ),
                       ),
@@ -283,6 +328,203 @@ class _ActivityTextDialogState extends State<_ActivityTextDialog> {
           child: Text(widget.actionLabel),
         ),
       ],
+    );
+  }
+}
+
+class _CustomerQuickActions extends StatelessWidget {
+  const _CustomerQuickActions({
+    required this.onCall,
+    required this.onMap,
+    required this.onEdit,
+  });
+
+  final VoidCallback? onCall;
+  final VoidCallback? onMap;
+  final VoidCallback? onEdit;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = constraints.maxWidth >= 330 ? 3 : 2;
+        final itemWidth =
+            (constraints.maxWidth - ((columns - 1) * 8)) / columns;
+        return Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            _QuickAction(
+              width: itemWidth,
+              key: const ValueKey('call-customer-button'),
+              icon: Icons.phone_outlined,
+              label: 'Llamar',
+              onPressed: onCall,
+            ),
+            _QuickAction(
+              width: itemWidth,
+              key: const ValueKey('map-customer-button'),
+              icon: Icons.map_outlined,
+              label: 'Mapa',
+              onPressed: onMap,
+            ),
+            _QuickAction(
+              width: itemWidth,
+              key: const ValueKey('edit-customer-button'),
+              icon: Icons.edit_outlined,
+              label: 'Editar',
+              onPressed: onEdit,
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _QuickAction extends StatelessWidget {
+  const _QuickAction({
+    required this.width,
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+    super.key,
+  });
+
+  final double width;
+  final IconData icon;
+  final String label;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: width,
+      height: 68,
+      child: OutlinedButton(
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 9),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 21),
+            const SizedBox(height: 4),
+            Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CustomerSectionTabs extends StatelessWidget {
+  const _CustomerSectionTabs({
+    required this.selected,
+    required this.onSelected,
+  });
+
+  final _CustomerDetailSection selected;
+  final ValueChanged<_CustomerDetailSection> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return SegmentedButton<_CustomerDetailSection>(
+      key: const ValueKey('customer-detail-sections'),
+      segments: const [
+        ButtonSegment(
+          value: _CustomerDetailSection.followUp,
+          icon: Icon(Icons.follow_the_signs_outlined),
+          label: Text('Seguimiento'),
+        ),
+        ButtonSegment(
+          value: _CustomerDetailSection.history,
+          icon: Icon(Icons.history_outlined),
+          label: Text('Historial'),
+        ),
+      ],
+      selected: {selected},
+      showSelectedIcon: false,
+      expandedInsets: EdgeInsets.zero,
+      onSelectionChanged: (selection) => onSelected(selection.first),
+    );
+  }
+}
+
+class _CustomerHistory extends StatelessWidget {
+  const _CustomerHistory({required this.customer});
+
+  final CustomerDetail customer;
+
+  @override
+  Widget build(BuildContext context) {
+    final events = <({String title, DateTime date})>[];
+    final updatedAt = customer.updatedAtUtc;
+    final createdAt = customer.createdAtUtc;
+    if (updatedAt != null && updatedAt != createdAt) {
+      events.add((title: 'Cliente actualizado', date: updatedAt));
+    }
+    if (createdAt != null) {
+      events.add((title: 'Cliente creado', date: createdAt));
+    }
+    events.sort((left, right) => right.date.compareTo(left.date));
+
+    if (events.isEmpty) {
+      return const _EmptySection(
+        message: 'Todavía no hay actividad registrada para este cliente.',
+      );
+    }
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (final (index, event) in events.indexed)
+              Padding(
+                padding: EdgeInsets.only(
+                  bottom: index == events.length - 1 ? 0 : 16,
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 9,
+                      height: 9,
+                      margin: const EdgeInsets.only(top: 5),
+                      decoration: BoxDecoration(
+                        color: BrandScope.of(context).primaryColor,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 11),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            event.title,
+                            style: const TextStyle(fontWeight: FontWeight.w800),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            _dateTime(event.date),
+                            style: const TextStyle(
+                              color: Color(0xFF6F788A),
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }

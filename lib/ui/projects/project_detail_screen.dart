@@ -12,6 +12,7 @@ import '../../data/repositories/visit_repository.dart';
 import '../../data/models/visit/visit_target_type.dart';
 import '../../routing/app_router.dart';
 import '../core/branding/brand_scope.dart';
+import '../core/device_actions.dart';
 import '../history/visit_photo_strip.dart';
 import 'project_detail_view_model.dart';
 import '../visits/visit_action_card.dart';
@@ -53,6 +54,19 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
       AppRoutes.editProject(widget.externalId),
     );
     if (changed == true) await _viewModel.load();
+  }
+
+  Future<void> _launchAction(Uri uri, String failureMessage) async {
+    var launched = false;
+    try {
+      launched = await launchDeviceAction(uri);
+    } on Exception {
+      launched = false;
+    }
+    if (!mounted || launched) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(failureMessage)));
   }
 
   Future<void> _changeStatus(ProjectDetail project) async {
@@ -235,6 +249,11 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
               ),
             );
           }
+          final locationUri = mapUri(
+            latitude: project.latitude,
+            longitude: project.longitude,
+            address: project.address,
+          );
           return LayoutBuilder(
             builder: (context, constraints) {
               final padding = constraints.maxWidth >= 600 ? 32.0 : 20.0;
@@ -259,49 +278,29 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                               targetName: project.name,
                             ),
                             const SizedBox(height: 12),
-                            FilledButton.icon(
-                              key: const ValueKey('edit-project-button'),
-                              onPressed: _edit,
-                              icon: const Icon(Icons.edit_outlined),
-                              label: const Text('Editar obra'),
-                            ),
-                            const SizedBox(height: 10),
-                            OutlinedButton.icon(
-                              key: const ValueKey(
-                                'change-project-status-button',
-                              ),
-                              onPressed:
-                                  _viewModel.statusOptions.isEmpty ||
-                                      _viewModel.changingStatus
+                            _ProjectQuickActions(
+                              onEdit: _edit,
+                              onMap: locationUri == null
                                   ? null
-                                  : () => _changeStatus(project),
-                              icon: _viewModel.changingStatus
-                                  ? const SizedBox.square(
-                                      dimension: 18,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : const Icon(Icons.swap_horiz),
-                              label: Text(
-                                _viewModel.changingStatus
-                                    ? 'Actualizando estado…'
-                                    : 'Cambiar estado',
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            OutlinedButton.icon(
-                              onPressed: () => context.push(
+                                  : () => _launchAction(
+                                      locationUri,
+                                      'No pudimos abrir la ubicación en el mapa.',
+                                    ),
+                              onVisits: () => context.push(
                                 AppRoutes.projectVisits(
                                   project.externalId,
                                   project.name,
                                 ),
                               ),
-                              icon: const Icon(Icons.route_outlined),
-                              label: const Text('Ver visitas registradas'),
                             ),
                             const SizedBox(height: 12),
-                            _ProjectMetadata(project: project),
+                            _ProjectMetadata(
+                              project: project,
+                              changingStatus: _viewModel.changingStatus,
+                              canChangeStatus:
+                                  _viewModel.statusOptions.isNotEmpty,
+                              onChangeStatus: () => _changeStatus(project),
+                            ),
                             if (project.description.isNotEmpty) ...[
                               const SizedBox(height: 12),
                               Card(
@@ -346,6 +345,93 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
             },
           );
         },
+      ),
+    );
+  }
+}
+
+class _ProjectQuickActions extends StatelessWidget {
+  const _ProjectQuickActions({
+    required this.onEdit,
+    required this.onMap,
+    required this.onVisits,
+  });
+
+  final VoidCallback onEdit;
+  final VoidCallback? onMap;
+  final VoidCallback onVisits;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = constraints.maxWidth >= 330 ? 3 : 2;
+        final itemWidth =
+            (constraints.maxWidth - ((columns - 1) * 8)) / columns;
+        return Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            _ProjectQuickAction(
+              width: itemWidth,
+              key: const ValueKey('edit-project-button'),
+              icon: Icons.edit_outlined,
+              label: 'Editar',
+              onPressed: onEdit,
+            ),
+            _ProjectQuickAction(
+              width: itemWidth,
+              key: const ValueKey('map-project-button'),
+              icon: Icons.map_outlined,
+              label: 'Mapa',
+              onPressed: onMap,
+            ),
+            _ProjectQuickAction(
+              width: itemWidth,
+              key: const ValueKey('project-visits-button'),
+              icon: Icons.route_outlined,
+              label: 'Visitas',
+              onPressed: onVisits,
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _ProjectQuickAction extends StatelessWidget {
+  const _ProjectQuickAction({
+    required this.width,
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+    super.key,
+  });
+
+  final double width;
+  final IconData icon;
+  final String label;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: width,
+      height: 68,
+      child: OutlinedButton(
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 9),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 21),
+            const SizedBox(height: 4),
+            Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+          ],
+        ),
       ),
     );
   }
@@ -430,62 +516,153 @@ class _ProjectHero extends StatelessWidget {
 }
 
 class _ProjectMetadata extends StatelessWidget {
-  const _ProjectMetadata({required this.project});
+  const _ProjectMetadata({
+    required this.project,
+    required this.changingStatus,
+    required this.canChangeStatus,
+    required this.onChangeStatus,
+  });
 
   final ProjectDetail project;
+  final bool changingStatus;
+  final bool canChangeStatus;
+  final VoidCallback onChangeStatus;
 
   @override
   Widget build(BuildContext context) {
-    final items = [
-      ('Estado', project.status),
-      ('Inicio', _date(project.startDateUtc)),
-      ('Cierre estimado', _date(project.expectedCloseDateUtc)),
-      ('Monto estimado', _amount(project.estimatedAmount)),
-      ('Dirección', project.address),
+    final items = <_ProjectMetadataItem>[
+      _ProjectMetadataItem(
+        label: 'Estado',
+        value: project.status,
+        icon: Icons.swap_horiz,
+        onTap: canChangeStatus && !changingStatus ? onChangeStatus : null,
+        key: const ValueKey('change-project-status-button'),
+        loading: changingStatus,
+      ),
+      _ProjectMetadataItem(label: 'Inicio', value: _date(project.startDateUtc)),
+      _ProjectMetadataItem(
+        label: 'Cierre estimado',
+        value: _date(project.expectedCloseDateUtc),
+      ),
+      _ProjectMetadataItem(
+        label: 'Monto estimado',
+        value: _amount(project.estimatedAmount),
+      ),
+      _ProjectMetadataItem(
+        label: 'Dirección',
+        value: project.address,
+        fullWidth: true,
+      ),
     ];
     return LayoutBuilder(
       builder: (context, constraints) {
-        final width = constraints.maxWidth >= 620
-            ? (constraints.maxWidth - 12) / 2
-            : constraints.maxWidth;
-        return Wrap(
-          spacing: 12,
-          runSpacing: 12,
-          children: items
-              .map(
-                (item) => SizedBox(
-                  width: width,
-                  child: Card(
-                    margin: EdgeInsets.zero,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            item.$1,
-                            style: const TextStyle(
-                              color: Color(0xFF6F788A),
-                              fontSize: 11,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                          const SizedBox(height: 5),
-                          Text(
-                            item.$2.isEmpty ? 'No registrado' : item.$2,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontWeight: FontWeight.w800),
-                          ),
-                        ],
-                      ),
+        final contentWidth = constraints.maxWidth - 20;
+        final columns = constraints.maxWidth >= 720
+            ? 4
+            : constraints.maxWidth >= 330
+            ? 2
+            : 1;
+        final cellWidth = (contentWidth - ((columns - 1) * 8)) / columns;
+        return Card(
+          margin: EdgeInsets.zero,
+          child: Padding(
+            padding: const EdgeInsets.all(10),
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: items
+                  .map(
+                    (item) => SizedBox(
+                      width: item.fullWidth ? contentWidth : cellWidth,
+                      child: _ProjectMetadataCell(item: item),
                     ),
-                  ),
-                ),
-              )
-              .toList(growable: false),
+                  )
+                  .toList(growable: false),
+            ),
+          ),
         );
       },
+    );
+  }
+}
+
+class _ProjectMetadataItem {
+  const _ProjectMetadataItem({
+    required this.label,
+    required this.value,
+    this.icon,
+    this.onTap,
+    this.key,
+    this.loading = false,
+    this.fullWidth = false,
+  });
+
+  final String label;
+  final String value;
+  final IconData? icon;
+  final VoidCallback? onTap;
+  final Key? key;
+  final bool loading;
+  final bool fullWidth;
+}
+
+class _ProjectMetadataCell extends StatelessWidget {
+  const _ProjectMetadataCell({required this.item});
+
+  final _ProjectMetadataItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      key: item.key,
+      color: const Color(0xFFF6F7F9),
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: item.onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.label,
+                      style: const TextStyle(
+                        color: Color(0xFF6F788A),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      item.value.isEmpty ? 'No registrado' : item.value,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                  ],
+                ),
+              ),
+              if (item.loading)
+                const Padding(
+                  padding: EdgeInsets.only(left: 8),
+                  child: SizedBox.square(
+                    dimension: 17,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                )
+              else if (item.icon case final icon?)
+                Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: Icon(icon, size: 19),
+                ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

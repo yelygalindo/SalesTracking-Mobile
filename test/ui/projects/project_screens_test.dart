@@ -67,8 +67,13 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Editar obra'), findsOneWidget);
-    expect(find.text('Cambiar estado'), findsOneWidget);
+    expect(find.byKey(const ValueKey('edit-project-button')), findsOneWidget);
+    expect(find.byKey(const ValueKey('map-project-button')), findsOneWidget);
+    expect(find.byKey(const ValueKey('project-visits-button')), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('change-project-status-button')),
+      findsOneWidget,
+    );
     expect(find.text('Bs 185000.00'), findsOneWidget);
     final completeReminderButton = find.byKey(
       const ValueKey('complete-project-reminder-project-reminder-1'),

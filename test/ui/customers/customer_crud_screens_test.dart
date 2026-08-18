@@ -43,6 +43,17 @@ void main() {
     expect(find.byTooltip('Nuevo recordatorio'), findsOneWidget);
     expect(find.byTooltip('Nueva nota'), findsOneWidget);
     expect(find.byTooltip('Marcar como completado'), findsOneWidget);
+    expect(find.byKey(const ValueKey('call-customer-button')), findsOneWidget);
+    expect(find.byKey(const ValueKey('map-customer-button')), findsOneWidget);
+
+    await tester.tap(find.text('Historial'));
+    await tester.pumpAndSettle();
+    expect(find.text('Cliente creado'), findsOneWidget);
+    expect(find.text('Solicitó una cotización.'), findsNothing);
+
+    await tester.tap(find.text('Seguimiento'));
+    await tester.pumpAndSettle();
+    expect(find.text('Solicitó una cotización.'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

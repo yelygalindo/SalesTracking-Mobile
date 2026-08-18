@@ -140,7 +140,9 @@ class _AppHostState extends State<_AppHost> {
       widget.networkStatusService,
       widget.syncRepository,
       onSynced: () async {
-        await _workdayViewModel.loadCurrent();
+        if (_authViewModel.status == AuthStatus.authenticated) {
+          await _workdayViewModel.loadCurrent();
+        }
         await _syncViewModel.load();
       },
     )..start();
