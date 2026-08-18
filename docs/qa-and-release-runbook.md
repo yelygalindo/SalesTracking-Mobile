@@ -10,7 +10,7 @@ No sustituye los formularios ni las revisiones de Google Play o Apple.
 - [x] Compilación Android de depuración validada en un dispositivo real.
 - [x] APK Android `release` con firma temporal de depuración validado en frío
       en un Galaxy A21s de 720x1600: paquete `io.urbantrack.crm.app`, versión
-      `1.0.0+5` y pantalla de acceso sin errores nativos ni desbordes.
+      `1.0.0+6` y pantalla de acceso sin errores nativos ni desbordes.
 - [x] Compilación iOS para simulador validada en GitHub Actions.
 - [x] Contrato público OpenAPI verificado automáticamente.
 - [x] Login y consultas de clientes, obras, visitas, historial y adjuntos

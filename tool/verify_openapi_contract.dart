@@ -2,8 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 const _defaultSwaggerUrl =
-    'https://salestracking-api.kindriver-61f4971f.brazilsouth.'
-    'azurecontainerapps.io/swagger/v1/swagger.json';
+    'https://api.urbantrack.io/swagger/v1/swagger.json';
 
 Future<void> main(List<String> arguments) async {
   final swaggerUrl = arguments

@@ -13,8 +13,7 @@ import 'package:urbantrack/data/services/visit_service.dart';
 import 'package:urbantrack/data/services/workday_service.dart';
 
 const _defaultApiBaseUrl =
-    'https://salestracking-api.kindriver-61f4971f.brazilsouth.'
-    'azurecontainerapps.io';
+    'https://api.urbantrack.io';
 
 Future<void> main() async {
   final email = _requiredEnvironment('URBANTRACK_SMOKE_EMAIL');

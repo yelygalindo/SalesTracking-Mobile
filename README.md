@@ -13,10 +13,11 @@ MVP móvil en Flutter para seguimiento comercial y operativo en campo. Comparte 
 
 ```powershell
 flutter pub get
-flutter run --dart-define=API_BASE_URL=https://salestracking-api.kindriver-61f4971f.brazilsouth.azurecontainerapps.io
+flutter run --dart-define=API_BASE_URL=https://api.urbantrack.io
 ```
 
-La URL pública actual es el valor predeterminado. `API_BASE_URL` permite apuntar a otro entorno sin modificar el código.
+`https://api.urbantrack.io` es la URL pública predeterminada. `API_BASE_URL`
+permite apuntar a otro entorno sin modificar el código.
 
 No se deben versionar usuarios, contraseñas, tokens, certificados ni llaves de firma. Las credenciales se introducen en la aplicación durante las pruebas y la sesión se conserva mediante almacenamiento seguro del dispositivo.
 
