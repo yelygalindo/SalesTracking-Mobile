@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:urbantrack/data/models/auth/auth_session.dart';
 import 'package:urbantrack/data/models/auth/user_profile.dart';
@@ -34,6 +36,29 @@ void main() {
     expect(viewModel.status, AuthStatus.unauthenticated);
     expect(viewModel.errorMessage, 'Correo o contraseña incorrectos.');
   });
+
+  test('allows only one login request at a time', () async {
+    final repository = _PendingAuthRepository();
+    final viewModel = AuthViewModel(repository);
+
+    final firstAttempt = viewModel.login(
+      email: 'seller@example.test',
+      password: 'password-for-test',
+    );
+    final secondAttempt = await viewModel.login(
+      email: 'seller@example.test',
+      password: 'password-for-test',
+    );
+
+    expect(secondAttempt, isFalse);
+    expect(repository.loginCalls, 1);
+    expect(viewModel.status, AuthStatus.authenticating);
+
+    repository.complete(_session());
+
+    expect(await firstAttempt, isTrue);
+    expect(viewModel.status, AuthStatus.authenticated);
+  });
 }
 
 AuthSession _session() => AuthSession(
@@ -65,6 +90,35 @@ class _FakeAuthRepository implements AuthRepository {
     final error = loginError;
     if (error != null) return Future.error(error);
     return Future.value(session ?? _session());
+  }
+
+  @override
+  Future<String> resetPassword({
+    required String token,
+    required String newPassword,
+    required String confirmPassword,
+  }) async => 'Password updated.';
+
+  @override
+  Future<void> logout(AuthSession session) async {}
+}
+
+class _PendingAuthRepository implements AuthRepository {
+  final _loginCompleter = Completer<AuthSession>();
+  int loginCalls = 0;
+
+  void complete(AuthSession session) => _loginCompleter.complete(session);
+
+  @override
+  Future<String> forgotPassword(String email) async => 'Instructions sent.';
+
+  @override
+  Future<AuthSession?> restoreSession() async => null;
+
+  @override
+  Future<AuthSession> login({required String email, required String password}) {
+    loginCalls += 1;
+    return _loginCompleter.future;
   }
 
   @override

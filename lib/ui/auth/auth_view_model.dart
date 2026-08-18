@@ -36,6 +36,8 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   Future<bool> login({required String email, required String password}) async {
+    if (_status == AuthStatus.authenticating) return false;
+
     _status = AuthStatus.authenticating;
     _errorMessage = null;
     notifyListeners();

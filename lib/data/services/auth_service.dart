@@ -129,13 +129,38 @@ class AuthService {
     if (bytes.isEmpty) return null;
     try {
       final decoded = jsonDecode(utf8.decode(bytes));
-      if (decoded is! Map<String, dynamic>) return null;
-      final message = decoded['message'] ?? decoded['title'];
-      return message is String && message.trim().isNotEmpty
-          ? message.trim()
-          : null;
+      return _messageFromJson(decoded);
     } on FormatException {
+      final plainText = utf8.decode(bytes, allowMalformed: true).trim();
+      return plainText.isEmpty ? null : plainText;
+    }
+  }
+
+  String? _messageFromJson(Object? value) {
+    if (value is String) {
+      final message = value.trim();
+      return message.isEmpty ? null : message;
+    }
+    if (value is List) {
+      for (final item in value) {
+        final message = _messageFromJson(item);
+        if (message != null) return message;
+      }
       return null;
     }
+    if (value is! Map) return null;
+
+    for (final key in const [
+      'message',
+      'detail',
+      'error',
+      'error_description',
+      'title',
+    ]) {
+      final message = _messageFromJson(value[key]);
+      if (message != null) return message;
+    }
+
+    return _messageFromJson(value['errors']);
   }
 }

@@ -89,6 +89,74 @@ void main() {
     );
   });
 
+  test('login exposes the problem detail returned by the API', () async {
+    final service = AuthService(
+      Uri.parse('https://api.example.test'),
+      MockClient(
+        (_) async => http.Response.bytes(
+          utf8.encode(
+            jsonEncode({
+              'title': 'Unauthorized',
+              'status': 401,
+              'detail': 'La contraseña ingresada es incorrecta.',
+            }),
+          ),
+          401,
+          headers: {'content-type': 'application/problem+json; charset=utf-8'},
+        ),
+      ),
+    );
+
+    await expectLater(
+      service.login(
+        const LoginRequest(
+          email: 'seller@example.test',
+          password: 'wrong-password',
+          deviceType: 'android',
+          deviceId: 'installation-id',
+        ),
+      ),
+      throwsA(
+        isA<ApiException>().having(
+          (error) => error.message,
+          'message',
+          'La contraseña ingresada es incorrecta.',
+        ),
+      ),
+    );
+  });
+
+  test('login exposes a plain-text error returned by the API', () async {
+    final service = AuthService(
+      Uri.parse('https://api.example.test'),
+      MockClient(
+        (_) async => http.Response.bytes(
+          utf8.encode('Credenciales inválidas.'),
+          401,
+          headers: {'content-type': 'text/plain; charset=utf-8'},
+        ),
+      ),
+    );
+
+    await expectLater(
+      service.login(
+        const LoginRequest(
+          email: 'seller@example.test',
+          password: 'wrong-password',
+          deviceType: 'android',
+          deviceId: 'installation-id',
+        ),
+      ),
+      throwsA(
+        isA<ApiException>().having(
+          (error) => error.message,
+          'message',
+          'Credenciales inválidas.',
+        ),
+      ),
+    );
+  });
+
   test('forgot password sends the documented email payload', () async {
     final service = AuthService(
       Uri.parse('https://api.example.test'),
