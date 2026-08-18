@@ -6,7 +6,6 @@ import '../../data/models/project/project_note.dart';
 import '../../data/models/project/project_reminder.dart';
 import '../../data/models/project/project_status.dart';
 import '../../data/models/project/project_timeline_item.dart';
-import '../../data/models/project/project_timeline_page.dart';
 import '../../data/repositories/project_repository.dart';
 import '../../data/services/api_exception.dart';
 
@@ -138,6 +137,7 @@ class ProjectDetailViewModel extends ChangeNotifier {
         externalId,
         text: normalized,
         reminderAtUtc: reminderAtUtc.toUtc(),
+        clientRequestId: _requestId(),
       );
       await _loadActivity();
       _savingReminder = false;
@@ -159,7 +159,11 @@ class ProjectDetailViewModel extends ChangeNotifier {
     _activityErrorMessage = null;
     notifyListeners();
     try {
-      await _repository.completeReminder(externalId, reminderExternalId);
+      await _repository.completeReminder(
+        externalId,
+        reminderExternalId,
+        _requestId(),
+      );
       await _loadActivity();
       _savingReminder = false;
       notifyListeners();
@@ -203,19 +207,31 @@ class ProjectDetailViewModel extends ChangeNotifier {
 
   Future<void> _loadActivity() async {
     _activityErrorMessage = null;
-    try {
-      final results = await Future.wait<Object>([
-        _repository.getNotes(externalId),
-        _repository.getReminders(externalId, completed: false),
-        _repository.getTimeline(externalId),
-      ]);
-      _notes = results[0] as List<ProjectNote>;
-      _reminders = results[1] as List<ProjectReminder>;
-      _timeline = (results[2] as ProjectTimelinePage).items;
-    } on ApiException catch (error) {
-      _activityErrorMessage = error.message;
-    } catch (_) {
-      _activityErrorMessage = 'No pudimos consultar la actividad de la obra.';
-    }
+    final errors = <String>[];
+    await Future.wait<void>([
+      _repository
+          .getNotes(externalId)
+          .then(
+            (notes) => _notes = notes,
+            onError: (Object error) => errors.add(_activityError(error)),
+          ),
+      _repository
+          .getReminders(externalId, completed: false)
+          .then(
+            (reminders) => _reminders = reminders,
+            onError: (Object error) => errors.add(_activityError(error)),
+          ),
+      _repository
+          .getTimeline(externalId)
+          .then(
+            (timeline) => _timeline = timeline.items,
+            onError: (Object error) => errors.add(_activityError(error)),
+          ),
+    ]);
+    if (errors.isNotEmpty) _activityErrorMessage = errors.first;
   }
+
+  String _activityError(Object error) => error is ApiException
+      ? error.message
+      : 'No pudimos consultar la actividad de la obra.';
 }

@@ -20,7 +20,7 @@ class ProjectListViewModel extends ChangeNotifier {
   List<ProjectSummary> _items = const [];
   List<CustomerSummary> _customerOptions = const [];
   List<ProjectStatus> _statusOptions = const [];
-  String? _selectedStatus;
+  int? _selectedStatusValue;
   String? _selectedCustomerId;
   String? _errorMessage;
   int _page = 0;
@@ -31,7 +31,7 @@ class ProjectListViewModel extends ChangeNotifier {
   List<ProjectSummary> get items => _items;
   List<CustomerSummary> get customerOptions => _customerOptions;
   List<ProjectStatus> get statusOptions => _statusOptions;
-  String? get selectedStatus => _selectedStatus;
+  int? get selectedStatusValue => _selectedStatusValue;
   String? get selectedCustomerId => _selectedCustomerId;
   String? get errorMessage => _errorMessage;
   bool get canLoadMore => _page < _totalPages;
@@ -54,9 +54,9 @@ class ProjectListViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> selectStatus(String? status) async {
-    if (_selectedStatus == status) return;
-    _selectedStatus = status;
+  Future<void> selectStatus(int? statusValue) async {
+    if (_selectedStatusValue == statusValue) return;
+    _selectedStatusValue = statusValue;
     notifyListeners();
     await refresh();
   }
@@ -83,7 +83,7 @@ class ProjectListViewModel extends ChangeNotifier {
     notifyListeners();
     try {
       final result = await _projects.getProjects(
-        status: _selectedStatus,
+        status: _selectedStatusValue?.toString(),
         customerId: _selectedCustomerId,
         page: page,
         pageSize: pageSize,

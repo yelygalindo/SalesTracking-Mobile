@@ -43,7 +43,7 @@ Future<void> runCustomerLifecycleFlow(WidgetTester tester) async {
   await tester.ensureVisible(saveCustomer);
   await tester.tap(saveCustomer);
   await _pumpUi(tester);
-  expect(find.text('Campo obligatorio.'), findsNWidgets(4));
+  expect(find.text('Campo obligatorio.'), findsNWidgets(3));
   expect(customers.createCalls, 0);
 
   await tester.enterText(

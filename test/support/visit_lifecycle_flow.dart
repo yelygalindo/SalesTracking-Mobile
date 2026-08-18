@@ -81,15 +81,7 @@ Future<void> runVisitLifecycleFlow(WidgetTester tester) async {
   await tester.pumpAndSettle();
 
   final confirmCheckOut = find.byKey(const ValueKey('confirm-visit-check-out'));
-  await tester.tap(confirmCheckOut);
-  await tester.pumpAndSettle();
-  expect(find.text('Registra el resultado de la visita.'), findsOneWidget);
-  expect(visits.checkOutCalls, 0);
-
-  await tester.enterText(
-    find.byKey(const ValueKey('visit-check-out-result')),
-    'Gestión realizada',
-  );
+  await tester.tap(find.text('Gestión realizada'));
   await tester.enterText(
     find.byKey(const ValueKey('visit-check-out-note')),
     'Cliente interesado en recibir una cotización',
@@ -145,6 +137,7 @@ class _VisitFlowCustomerRepository implements CustomerRepository {
     String externalId, {
     required String text,
     required DateTime reminderAtUtc,
+    required String clientRequestId,
     String? assignedToId,
   }) async =>
       const ResourceCreationResult(id: 'reminder-id', message: 'Created');
@@ -153,6 +146,7 @@ class _VisitFlowCustomerRepository implements CustomerRepository {
   Future<void> completeReminder(
     String customerExternalId,
     String reminderExternalId,
+    String clientRequestId,
   ) async {}
 
   @override

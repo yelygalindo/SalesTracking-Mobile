@@ -38,6 +38,33 @@ void main() {
     expect(viewModel.savedExternalId, 'customer-id');
   });
 
+  test('updates a customer with the loaded concurrency timestamp', () async {
+    final repository = _CrudCustomerRepository();
+    final viewModel = CustomerFormViewModel(
+      repository,
+      _FixedLocationService(),
+      externalId: 'customer-id',
+    );
+    await viewModel.initialize();
+
+    expect(
+      await viewModel.save(
+        name: 'Ricardo',
+        companyName: 'Horizonte actualizado',
+        phone: '70010001',
+        email: '',
+        address: 'Av. Banzer',
+      ),
+      isTrue,
+    );
+
+    expect(
+      repository.updatedInput?.expectedUpdatedAtUtc,
+      DateTime.utc(2026, 8, 18, 14, 30),
+    );
+    expect(repository.updatedInput?.email, isEmpty);
+  });
+
   test('loads detail and refreshes after changing commercial status', () async {
     final repository = _CrudCustomerRepository();
     final viewModel = CustomerDetailViewModel(repository, 'customer-id');
@@ -84,6 +111,7 @@ void main() {
 
 class _CrudCustomerRepository implements CustomerRepository {
   CustomerInput? createdInput;
+  CustomerInput? updatedInput;
   String? createdRequestId;
   int currentStatusId = 1;
   int? changedStatusId;
@@ -108,6 +136,7 @@ class _CrudCustomerRepository implements CustomerRepository {
     String externalId, {
     required String text,
     required DateTime reminderAtUtc,
+    required String clientRequestId,
     String? assignedToId,
   }) async {
     this.reminderAtUtc = reminderAtUtc;
@@ -118,6 +147,7 @@ class _CrudCustomerRepository implements CustomerRepository {
   Future<void> completeReminder(
     String customerExternalId,
     String reminderExternalId,
+    String clientRequestId,
   ) async {
     completedReminderId = reminderExternalId;
   }
@@ -164,7 +194,9 @@ class _CrudCustomerRepository implements CustomerRepository {
   ];
 
   @override
-  Future<void> updateCustomer(String externalId, CustomerInput input) async {}
+  Future<void> updateCustomer(String externalId, CustomerInput input) async {
+    updatedInput = input;
+  }
 }
 
 class _FixedLocationService implements LocationService {
@@ -189,6 +221,7 @@ CustomerDetail _customerDetail(int statusId) => CustomerDetail(
   latitude: -17.75,
   longitude: -63.18,
   createdAtUtc: DateTime.utc(2026, 8, 7),
+  updatedAtUtc: DateTime.utc(2026, 8, 18, 14, 30),
   seller: const UserReference(externalId: 'seller-id', name: 'Carlos Gómez'),
   notes: const [],
   reminders: const [],

@@ -95,10 +95,10 @@ void main() {
     expect(find.text('Cambiar estado de la obra'), findsOneWidget);
     expect(find.text('Borrador'), findsOneWidget);
     expect(find.text('En pausa'), findsOneWidget);
-    expect(find.text('Cancelado'), findsOneWidget);
+    expect(find.text('Perdido'), findsOneWidget);
     expect(tester.takeException(), isNull);
 
-    await tester.tap(find.text('Cancelado'));
+    await tester.tap(find.text('Perdido'));
     await tester.pumpAndSettle();
 
     await tester.scrollUntilVisible(find.text('Seguimiento de la obra'), 500);
@@ -156,6 +156,7 @@ class _ProjectScreenRepository implements ProjectRepository {
     String projectExternalId, {
     required String text,
     required DateTime reminderAtUtc,
+    required String clientRequestId,
     String? assignedToId,
   }) async {
     reminders.add(
@@ -178,6 +179,7 @@ class _ProjectScreenRepository implements ProjectRepository {
   Future<void> completeReminder(
     String projectExternalId,
     String reminderExternalId,
+    String clientRequestId,
   ) async {
     reminders.removeWhere(
       (reminder) => reminder.externalId == reminderExternalId,
@@ -246,7 +248,7 @@ class _ProjectScreenRepository implements ProjectRepository {
     ProjectStatus(value: 2, label: 'Activo'),
     ProjectStatus(value: 3, label: 'En pausa'),
     ProjectStatus(value: 4, label: 'Completado'),
-    ProjectStatus(value: 5, label: 'Cancelado'),
+    ProjectStatus(value: 5, label: 'Perdido'),
   ];
 
   @override

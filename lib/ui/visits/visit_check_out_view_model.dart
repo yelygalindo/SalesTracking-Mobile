@@ -48,15 +48,10 @@ class VisitCheckOutViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> checkOut({required String result, String? note}) async {
+  Future<bool> checkOut({String? result, String? note}) async {
     final visit = _current;
     if (visit == null) {
       _errorMessage = 'No hay una visita en curso.';
-      notifyListeners();
-      return false;
-    }
-    if (result.trim().isEmpty) {
-      _errorMessage = 'Registra el resultado de la visita.';
       notifyListeners();
       return false;
     }
@@ -72,7 +67,7 @@ class VisitCheckOutViewModel extends ChangeNotifier {
         location: location,
         clientRequestId: _requestId(),
         note: note?.trim().isEmpty == true ? null : note?.trim(),
-        result: result.trim(),
+        result: result?.trim().isEmpty == true ? null : result?.trim(),
       );
       _current = null;
       _status = VisitCheckOutStatus.ready;

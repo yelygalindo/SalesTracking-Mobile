@@ -172,15 +172,16 @@ void main() {
       }),
       requestId: () => 'status-request-id',
     );
-    const input = CustomerInput(
+    final input = CustomerInput(
       name: 'Ricardo',
       companyName: 'Horizonte',
       phone: '70010001',
-      email: 'seller@example.test',
+      email: '',
       sellerExternalId: null,
       address: 'Av. Banzer',
       latitude: -17.75,
       longitude: -63.18,
+      expectedUpdatedAtUtc: DateTime.utc(2026, 8, 18, 14, 30),
     );
 
     final created = await service.createCustomer(
@@ -194,9 +195,18 @@ void main() {
     expect(created.id, 'customer-id');
     expect(requests.map((request) => request.method), ['POST', 'PUT', 'PATCH']);
     expect(jsonDecode(requests[0].body)['clientRequestId'], 'request-id');
+    expect(jsonDecode(requests[0].body)['email'], isNull);
+    expect(
+      jsonDecode(requests[0].body).containsKey('expectedUpdatedAtUtc'),
+      isFalse,
+    );
     expect(
       jsonDecode(requests[1].body).containsKey('clientRequestId'),
       isFalse,
+    );
+    expect(
+      jsonDecode(requests[1].body)['expectedUpdatedAtUtc'],
+      '2026-08-18T14:30:00.000Z',
     );
     expect(requests[2].url.path, '/api/customers/customer-id/status');
     expect(jsonDecode(requests[2].body), {
@@ -235,12 +245,14 @@ void main() {
       'customer/id',
       text: 'Llamar al cliente',
       reminderAtUtc: DateTime.utc(2026, 8, 10, 14, 30),
+      clientRequestId: 'reminder-request-id',
       assignedToId: 'seller-id',
     );
     await service.completeReminder(
       'access-token',
       'customer/id',
       'reminder/id',
+      'complete-request-id',
     );
 
     expect(requests.map((request) => request.method), [
@@ -258,14 +270,14 @@ void main() {
       'text': 'Llamar al cliente',
       'reminderAtUtc': '2026-08-10T14:30:00.000Z',
       'assignedToId': 'seller-id',
-      'clientRequestId': 'activity-request-1',
+      'clientRequestId': 'reminder-request-id',
     });
     expect(
       requests[2].url.path,
       '/api/customers/customer%2Fid/reminders/reminder%2Fid/complete',
     );
     expect(jsonDecode(requests[2].body), {
-      'clientRequestId': 'activity-request-2',
+      'clientRequestId': 'complete-request-id',
     });
   });
 }

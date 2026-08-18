@@ -36,11 +36,13 @@ abstract interface class CustomerRepository {
     String externalId, {
     required String text,
     required DateTime reminderAtUtc,
+    required String clientRequestId,
     String? assignedToId,
   });
 
   Future<void> completeReminder(
     String customerExternalId,
     String reminderExternalId,
+    String clientRequestId,
   );
 }

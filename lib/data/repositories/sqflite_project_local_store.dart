@@ -59,7 +59,7 @@ class SqfliteProjectLocalStore implements ProjectLocalStore {
           final matchesStatus =
               normalizedStatus == null ||
               normalizedStatus.isEmpty ||
-              project.status.toLowerCase() == normalizedStatus;
+              _matchesStatus(project.status, normalizedStatus);
           final matchesCustomer =
               normalizedCustomerId == null ||
               normalizedCustomerId.isEmpty ||
@@ -161,5 +161,19 @@ class SqfliteProjectLocalStore implements ProjectLocalStore {
       throw const FormatException('Invalid project cache payload.');
     }
     return ProjectSummary.fromJson(decoded);
+  }
+
+  bool _matchesStatus(String projectStatus, String? selectedStatus) {
+    if (selectedStatus == null || selectedStatus.isEmpty) return true;
+    final normalized = projectStatus.trim().toLowerCase();
+    final expected = switch (selectedStatus) {
+      '1' => {'draft', 'borrador'},
+      '2' => {'active', 'activo'},
+      '3' => {'paused', 'on hold', 'en pausa'},
+      '4' => {'completed', 'completado'},
+      '5' => {'lost', 'cancelled', 'canceled', 'perdido', 'cancelado'},
+      _ => {selectedStatus},
+    };
+    return expected.contains(normalized);
   }
 }

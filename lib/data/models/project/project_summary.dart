@@ -1,3 +1,6 @@
+import '../common/utc_date_time.dart';
+import 'project_status.dart';
+
 class ProjectSummary {
   const ProjectSummary({
     required this.id,
@@ -29,16 +32,16 @@ class ProjectSummary {
     customerName: json['customerName'] as String? ?? '',
     sellerExternalId: json['sellerExternalId'] as String?,
     sellerName: json['sellerName'] as String? ?? '',
-    status: json['status'] as String? ?? '',
+    status: normalizeProjectStatusLabel(json['status'] as String? ?? ''),
     estimatedAmount: (json['estimatedAmount'] as num?)?.toDouble(),
-    startDateUtc: _date(json['startDateUtc']),
-    expectedCloseDateUtc: _date(json['expectedCloseDateUtc']),
+    startDateUtc: tryParseUtcDateTime(json['startDateUtc']),
+    expectedCloseDateUtc: tryParseUtcDateTime(json['expectedCloseDateUtc']),
     progressPercentage: (json['progressPercentage'] as num?)?.toDouble() ?? 0,
-    actualCloseDateUtc: _date(json['actualCloseDateUtc']),
+    actualCloseDateUtc: tryParseUtcDateTime(json['actualCloseDateUtc']),
     address: json['address'] as String? ?? '',
     latitude: (json['latitude'] as num?)?.toDouble(),
     longitude: (json['longitude'] as num?)?.toDouble(),
-    createdAtUtc: _date(json['createdAtUtc']),
+    createdAtUtc: tryParseUtcDateTime(json['createdAtUtc']),
   );
 
   final int id;
@@ -81,6 +84,3 @@ class ProjectSummary {
     'createdAtUtc': createdAtUtc?.toUtc().toIso8601String(),
   };
 }
-
-DateTime? _date(Object? value) =>
-    value is String ? DateTime.tryParse(value)?.toUtc() : null;

@@ -20,8 +20,17 @@ class VisitCheckOutScreen extends StatefulWidget {
 }
 
 class _VisitCheckOutScreenState extends State<VisitCheckOutScreen> {
-  final _result = TextEditingController();
+  static const _resultOptions = [
+    'Gestión realizada',
+    'Requiere seguimiento',
+    'No fue atendido',
+    'Reprogramada',
+    'Otro',
+  ];
+
+  final _otherResult = TextEditingController();
   final _note = TextEditingController();
+  String? _selectedResult;
   late final VisitCheckOutViewModel _viewModel;
 
   @override
@@ -35,17 +44,17 @@ class _VisitCheckOutScreenState extends State<VisitCheckOutScreen> {
 
   @override
   void dispose() {
-    _result.dispose();
+    _otherResult.dispose();
     _note.dispose();
     _viewModel.dispose();
     super.dispose();
   }
 
   Future<void> _submit() async {
-    final success = await _viewModel.checkOut(
-      result: _result.text,
-      note: _note.text,
-    );
+    final result = _selectedResult == 'Otro'
+        ? _otherResult.text.trim()
+        : _selectedResult;
+    final success = await _viewModel.checkOut(result: result, note: _note.text);
     if (success && mounted) context.pop(true);
   }
 
@@ -91,14 +100,45 @@ class _VisitCheckOutScreenState extends State<VisitCheckOutScreen> {
                             _CheckOutError(message: error),
                           ],
                           const SizedBox(height: 18),
-                          TextField(
-                            key: const ValueKey('visit-check-out-result'),
-                            controller: _result,
-                            decoration: const InputDecoration(
-                              labelText: 'Resultado *',
-                              hintText: 'Ej. Gestión realizada',
-                            ),
+                          const Text(
+                            '¿Cómo terminó la visita? (opcional)',
+                            style: TextStyle(fontWeight: FontWeight.w800),
                           ),
+                          const SizedBox(height: 10),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: _resultOptions
+                                .map(
+                                  (option) => ChoiceChip(
+                                    key: ValueKey(
+                                      'visit-result-${option.toLowerCase()}',
+                                    ),
+                                    label: Text(option),
+                                    selected: _selectedResult == option,
+                                    onSelected: _viewModel.isBusy
+                                        ? null
+                                        : (selected) => setState(() {
+                                            _selectedResult = selected
+                                                ? option
+                                                : null;
+                                          }),
+                                  ),
+                                )
+                                .toList(growable: false),
+                          ),
+                          if (_selectedResult == 'Otro') ...[
+                            const SizedBox(height: 12),
+                            TextField(
+                              key: const ValueKey(
+                                'visit-check-out-other-result',
+                              ),
+                              controller: _otherResult,
+                              decoration: const InputDecoration(
+                                labelText: 'Especifica el resultado',
+                              ),
+                            ),
+                          ],
                           const SizedBox(height: 12),
                           TextField(
                             key: const ValueKey('visit-check-out-note'),

@@ -1,3 +1,5 @@
+import '../common/utc_date_time.dart';
+
 class SellerTimelineItem {
   const SellerTimelineItem({
     required this.externalId,
@@ -17,7 +19,7 @@ class SellerTimelineItem {
       resourceExternalId: json['resourceExternalId'] as String? ?? '',
       title: json['title'] as String? ?? '',
       description: json['description'] as String? ?? '',
-      occurredAtUtc: _date(json['occurredAtUtc']),
+      occurredAtUtc: parseUtcDateTime(json['occurredAtUtc']),
     );
   }
 
@@ -29,8 +31,3 @@ class SellerTimelineItem {
   final String description;
   final DateTime occurredAtUtc;
 }
-
-DateTime _date(Object? value) => value is String
-    ? DateTime.tryParse(value)?.toUtc() ??
-          DateTime.fromMillisecondsSinceEpoch(0, isUtc: true)
-    : DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);

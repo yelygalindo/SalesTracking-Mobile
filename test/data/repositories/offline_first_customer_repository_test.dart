@@ -12,6 +12,8 @@ import 'package:urbantrack/data/repositories/offline_first_customer_repository.d
 import 'package:urbantrack/data/services/api_exception.dart';
 import 'package:urbantrack/data/services/network_status_service.dart';
 
+import '../../support/memory_activity_local_store.dart';
+
 void main() {
   test('creates a local customer offline and exposes its detail', () async {
     final local = _MemoryCustomerLocalStore();
@@ -125,6 +127,46 @@ void main() {
       ),
     );
   });
+
+  test('queues and displays customer notes and reminders offline', () async {
+    final activityLocal = MemoryActivityLocalStore();
+    final repository = OfflineFirstCustomerRepository(
+      _RecordingRemoteCustomerRepository(),
+      _MemoryCustomerLocalStore(),
+      _MutableNetworkStatusService(false),
+      activityLocalStore: activityLocal,
+      now: () => DateTime.utc(2026, 8, 18, 15),
+    );
+    final created = await repository.createCustomer(_input, 'customer-create');
+
+    final note = await repository.addNote(
+      created.id!,
+      '  Nota sin conexión  ',
+      'customer-note',
+    );
+    final reminder = await repository.addReminder(
+      created.id!,
+      text: '  Llamar mañana  ',
+      reminderAtUtc: DateTime.utc(2026, 8, 19, 13),
+      clientRequestId: 'customer-reminder',
+      assignedToId: 'seller-id',
+    );
+    final detail = await repository.getCustomer(created.id!);
+
+    expect(note.id, 'local:customer-note');
+    expect(reminder.id, 'local:customer-reminder');
+    expect(activityLocal.operations.map((item) => item.requestId), [
+      'customer-note',
+      'customer-reminder',
+    ]);
+    expect(detail.notes.single.text, 'Nota sin conexión');
+    expect(detail.notes.single.createdAtUtc, DateTime.utc(2026, 8, 18, 15));
+    expect(detail.reminders.single.text, 'Llamar mañana');
+    expect(
+      detail.reminders.single.reminderAtUtc,
+      DateTime.utc(2026, 8, 19, 13),
+    );
+  });
 }
 
 const _input = CustomerInput(
@@ -167,6 +209,7 @@ class _RecordingRemoteCustomerRepository implements CustomerRepository {
     String externalId, {
     required String text,
     required DateTime reminderAtUtc,
+    required String clientRequestId,
     String? assignedToId,
   }) async =>
       const ResourceCreationResult(id: 'reminder-id', message: 'Created');
@@ -175,6 +218,7 @@ class _RecordingRemoteCustomerRepository implements CustomerRepository {
   Future<void> completeReminder(
     String customerExternalId,
     String reminderExternalId,
+    String clientRequestId,
   ) async {}
 
   @override

@@ -1,3 +1,5 @@
+import '../common/utc_date_time.dart';
+
 class ProjectAttachment {
   const ProjectAttachment({
     required this.externalId,
@@ -23,8 +25,12 @@ class ProjectAttachment {
         caption: json['caption'] as String?,
         isCover: json['isCover'] as bool? ?? false,
         downloadUrl: json['downloadUrl'] as String?,
-        downloadUrlExpiresAtUtc: _date(json['downloadUrlExpiresAtUtc']),
-        createdAtUtc: _date(json['createdAtUtc']),
+        downloadUrlExpiresAtUtc: tryParseUtcDateTime(
+          json['downloadUrlExpiresAtUtc'],
+        ),
+        createdAtUtc: tryParseUtcDateTime(
+          json['occurredAtUtc'] ?? json['createdAtUtc'],
+        ),
         visitExternalId: json['visitExternalId'] as String?,
       );
 
@@ -43,6 +49,3 @@ class ProjectAttachment {
   bool get isImage => contentType.toLowerCase().startsWith('image/');
   bool get hasDownloadUrl => downloadUrl?.trim().isNotEmpty == true;
 }
-
-DateTime? _date(Object? value) =>
-    value is String ? DateTime.tryParse(value)?.toUtc() : null;

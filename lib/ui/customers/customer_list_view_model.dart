@@ -85,7 +85,7 @@ class CustomerListViewModel extends ChangeNotifier {
 
     try {
       final result = await _repository.getCustomers(
-        status: _selectedStatus?.label,
+        status: _selectedStatus?.queryValue,
         search: _search,
         page: page,
         pageSize: pageSize,

@@ -90,6 +90,7 @@ class RemoteProjectRepository implements ProjectRepository {
     String projectExternalId, {
     required String text,
     required DateTime reminderAtUtc,
+    required String clientRequestId,
     String? assignedToId,
   }) async {
     final session = await _session();
@@ -100,6 +101,7 @@ class RemoteProjectRepository implements ProjectRepository {
       projectExternalId,
       text: text,
       reminderAtUtc: reminderAtUtc,
+      clientRequestId: clientRequestId,
       assignedToId: requestedAssignee?.isNotEmpty == true
           ? requestedAssignee
           : currentUserExternalId,
@@ -110,12 +112,14 @@ class RemoteProjectRepository implements ProjectRepository {
   Future<void> completeReminder(
     String projectExternalId,
     String reminderExternalId,
+    String clientRequestId,
   ) async {
     final session = await _session();
     await _service.completeReminder(
       session.accessToken,
       projectExternalId,
       reminderExternalId,
+      clientRequestId,
     );
   }
 

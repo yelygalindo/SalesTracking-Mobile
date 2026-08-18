@@ -196,9 +196,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                               count: customer.reminders
                                   .where((reminder) => !reminder.completed)
                                   .length,
-                              onAdd: pendingSync || _viewModel.isBusy
-                                  ? null
-                                  : _addReminder,
+                              onAdd: _viewModel.isBusy ? null : _addReminder,
                               addKey: const ValueKey(
                                 'add-customer-reminder-button',
                               ),
@@ -207,16 +205,14 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                             const SizedBox(height: 10),
                             _ReminderList(
                               reminders: customer.reminders,
-                              enabled: !pendingSync && !_viewModel.isBusy,
+                              enabled: !_viewModel.isBusy,
                               onComplete: _viewModel.completeReminder,
                             ),
                             const SizedBox(height: 22),
                             _SectionTitle(
                               title: 'Notas',
                               count: customer.notes.length,
-                              onAdd: pendingSync || _viewModel.isBusy
-                                  ? null
-                                  : _addNote,
+                              onAdd: _viewModel.isBusy ? null : _addNote,
                               addKey: const ValueKey(
                                 'add-customer-note-button',
                               ),
@@ -553,7 +549,10 @@ class _ReminderList extends StatelessWidget {
             trailing: IconButton(
               key: ValueKey('complete-reminder-${reminder.externalId}'),
               tooltip: 'Marcar como completado',
-              onPressed: enabled && reminder.externalId != null
+              onPressed:
+                  enabled &&
+                      reminder.externalId != null &&
+                      !reminder.externalId!.startsWith('local:')
                   ? () => onComplete(reminder.externalId!)
                   : null,
               icon: const Icon(Icons.check_circle_outline),

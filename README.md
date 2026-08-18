@@ -165,7 +165,8 @@ documentado en [`docs/qa-and-release-runbook.md`](docs/qa-and-release-runbook.md
 - Listado, detalle, creación y edición de obras.
 - Notas, recordatorios e historial cronológico dentro del detalle de cada obra.
 - Consulta offline de clientes y obras previamente sincronizados.
-- Check-in/check-out de visitas a clientes y obras con hora, GPS, notas, resultado y duración.
+- Check-in/check-out de visitas a clientes y obras con hora, GPS, notas,
+  resultado opcional y duración; el check-in exige una jornada activa.
 - Cámara y galería para evidencias fotográficas asociadas a visitas de obra.
 - Historial personal por fecha y listado de visitas por obra con miniaturas de
   las fotografías registradas.
@@ -179,10 +180,17 @@ Las operaciones críticas no dependen de mantener la pantalla o la aplicación a
 
 1. Inicio/cierre de jornada.
 2. Creación de clientes.
-3. Check-in/check-out de visitas.
-4. Fotografías vinculadas a visitas de obra.
+3. Notas y recordatorios de clientes y obras.
+4. Check-in/check-out de visitas.
+5. Fotografías vinculadas a visitas de obra.
 
-Los IDs locales de visitas se reconcilian con los IDs definitivos del servidor antes de enviar operaciones dependientes. Las fotografías seleccionadas se copian al almacenamiento privado de la aplicación antes de encolarse. Cada fotografía conserva un `ClientRequestId` UUID y su `OccurredAtUtc`; ambos valores se reutilizan en todos los reintentos para que el backend responda de forma idempotente sin crear duplicados.
+Los IDs locales de clientes y visitas se reconcilian con los IDs definitivos
+del servidor antes de enviar operaciones dependientes. Notas y recordatorios
+conservan un `clientRequestId` estable y la hora real de la operación en todos
+los reintentos. Las fotografías seleccionadas se copian al almacenamiento
+privado de la aplicación antes de encolarse y también reutilizan su
+`ClientRequestId` y `OccurredAtUtc`, evitando duplicados ante respuestas
+ambiguas o cierres de la app.
 
 ## Permisos del dispositivo
 

@@ -38,13 +38,13 @@ void main() {
       await viewModel.initialize();
 
       await viewModel.selectStatus(
-        const CustomerStatus(value: 1, label: 'Activo'),
+        const CustomerStatus(value: 2, label: 'Activo'),
       );
       viewModel.updateSearch('Horizonte');
       await Future<void>.delayed(Duration.zero);
       await Future<void>.delayed(Duration.zero);
 
-      expect(repository.statuses.last, 'Activo');
+      expect(repository.statuses.last, 'active');
       expect(repository.searches.last, 'Horizonte');
       viewModel.dispose();
     },
@@ -68,6 +68,7 @@ class _RecordingCustomerRepository implements CustomerRepository {
     String externalId, {
     required String text,
     required DateTime reminderAtUtc,
+    required String clientRequestId,
     String? assignedToId,
   }) async =>
       const ResourceCreationResult(id: 'reminder-id', message: 'Created');
@@ -76,6 +77,7 @@ class _RecordingCustomerRepository implements CustomerRepository {
   Future<void> completeReminder(
     String customerExternalId,
     String reminderExternalId,
+    String clientRequestId,
   ) async {}
 
   @override
@@ -115,7 +117,7 @@ class _RecordingCustomerRepository implements CustomerRepository {
 
   @override
   Future<List<CustomerStatus>> getStatuses() async => const [
-    CustomerStatus(value: 1, label: 'Activo'),
+    CustomerStatus(value: 2, label: 'Activo'),
   ];
 
   @override

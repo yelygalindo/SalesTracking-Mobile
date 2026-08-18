@@ -15,9 +15,10 @@ import '../support/workday_test_doubles.dart';
 void main() {
   testWidgets('prefills a reset token received in the route', (tester) async {
     final repository = _SignedOutRepository();
+    final workdayRepository = InactiveWorkdayRepository();
     final authViewModel = AuthViewModel(repository);
     final workdayViewModel = WorkdayViewModel(
-      InactiveWorkdayRepository(),
+      workdayRepository,
       FixedLocationService(),
     );
     final syncViewModel = SyncViewModel(
@@ -29,6 +30,7 @@ void main() {
       authViewModel: authViewModel,
       authRepository: repository,
       workdayViewModel: workdayViewModel,
+      workdayRepository: workdayRepository,
       syncViewModel: syncViewModel,
       customerRepository: EmptyCustomerRepository(),
       projectRepository: EmptyProjectRepository(),

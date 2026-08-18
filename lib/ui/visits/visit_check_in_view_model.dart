@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 import '../../data/models/visit/current_visit.dart';
 import '../../data/models/visit/visit_target_type.dart';
 import '../../data/repositories/visit_repository.dart';
+import '../../data/repositories/workday_repository.dart';
 import '../../data/services/api_exception.dart';
 import '../../data/services/location_service.dart';
 
@@ -12,6 +13,7 @@ enum VisitCheckInStatus { initial, loading, ready, saving }
 class VisitCheckInViewModel extends ChangeNotifier {
   VisitCheckInViewModel(
     this._repository,
+    this._workdayRepository,
     this._locationService, {
     required this.targetType,
     required this.targetExternalId,
@@ -22,6 +24,7 @@ class VisitCheckInViewModel extends ChangeNotifier {
        _now = now ?? DateTime.now;
 
   final VisitRepository _repository;
+  final WorkdayRepository _workdayRepository;
   final LocationService _locationService;
   final VisitTargetType targetType;
   final String targetExternalId;
@@ -65,6 +68,13 @@ class VisitCheckInViewModel extends ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
     try {
+      final workday = await _workdayRepository.getCurrent();
+      if (!workday.hasOpenWorkday || workday.workday?.isOpen != true) {
+        _errorMessage = 'Inicia tu jornada antes de registrar una visita.';
+        _status = VisitCheckInStatus.ready;
+        notifyListeners();
+        return false;
+      }
       final occurredAt = _now().toUtc();
       final location = await _locationService.captureCurrent();
       _current = await _repository.checkIn(

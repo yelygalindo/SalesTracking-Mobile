@@ -95,8 +95,7 @@ class CustomerFormViewModel extends ChangeNotifier {
   }) async {
     if (name.trim().isEmpty ||
         companyName.trim().isEmpty ||
-        phone.trim().isEmpty ||
-        email.trim().isEmpty) {
+        phone.trim().isEmpty) {
       _errorMessage = 'Completa los campos obligatorios.';
       notifyListeners();
       return false;
@@ -111,6 +110,7 @@ class CustomerFormViewModel extends ChangeNotifier {
       address: address,
       latitude: _location?.latitude,
       longitude: _location?.longitude,
+      expectedUpdatedAtUtc: _customer?.updatedAtUtc,
     );
     _status = CustomerFormViewStatus.saving;
     _errorMessage = null;

@@ -9,5 +9,12 @@ class CustomerStatus {
   final int value;
   final String label;
 
+  String get queryValue => switch (value) {
+    1 => 'prospect',
+    2 => 'active',
+    3 => 'inactive',
+    _ => label.trim(),
+  };
+
   Map<String, dynamic> toJson() => {'value': value, 'label': label};
 }

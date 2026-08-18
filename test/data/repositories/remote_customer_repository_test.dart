@@ -34,6 +34,7 @@ void main() {
         'customer-id',
         text: 'Llamar al cliente',
         reminderAtUtc: DateTime.utc(2026, 8, 18, 14),
+        clientRequestId: 'reminder-request-id',
       );
 
       expect(payload?['assignedToId'], 'seller-id');
@@ -62,6 +63,7 @@ void main() {
       'customer-id',
       text: 'Visitar al cliente',
       reminderAtUtc: DateTime.utc(2026, 8, 18, 15),
+      clientRequestId: 'reminder-request-id',
       assignedToId: 'another-seller-id',
     );
 

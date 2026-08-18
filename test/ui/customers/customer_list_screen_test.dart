@@ -55,6 +55,7 @@ class _CustomerScreenRepository implements CustomerRepository {
     String externalId, {
     required String text,
     required DateTime reminderAtUtc,
+    required String clientRequestId,
     String? assignedToId,
   }) async =>
       const ResourceCreationResult(id: 'reminder-id', message: 'Created');
@@ -63,6 +64,7 @@ class _CustomerScreenRepository implements CustomerRepository {
   Future<void> completeReminder(
     String customerExternalId,
     String reminderExternalId,
+    String clientRequestId,
   ) async {}
 
   @override

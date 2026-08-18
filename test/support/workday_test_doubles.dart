@@ -177,6 +177,7 @@ class EmptyCustomerRepository implements CustomerRepository {
     String externalId, {
     required String text,
     required DateTime reminderAtUtc,
+    required String clientRequestId,
     String? assignedToId,
   }) async =>
       const ResourceCreationResult(id: 'reminder-id', message: 'Created');
@@ -185,6 +186,7 @@ class EmptyCustomerRepository implements CustomerRepository {
   Future<void> completeReminder(
     String customerExternalId,
     String reminderExternalId,
+    String clientRequestId,
   ) async {}
 
   @override
@@ -230,6 +232,7 @@ class EmptyProjectRepository implements ProjectRepository {
     String projectExternalId, {
     required String text,
     required DateTime reminderAtUtc,
+    required String clientRequestId,
     String? assignedToId,
   }) async =>
       const ResourceCreationResult(id: 'reminder-id', message: 'Created');
@@ -249,6 +252,7 @@ class EmptyProjectRepository implements ProjectRepository {
   Future<void> completeReminder(
     String projectExternalId,
     String reminderExternalId,
+    String clientRequestId,
   ) async {}
 
   @override

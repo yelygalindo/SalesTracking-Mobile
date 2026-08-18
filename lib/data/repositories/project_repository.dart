@@ -38,12 +38,14 @@ abstract interface class ProjectRepository {
     String projectExternalId, {
     required String text,
     required DateTime reminderAtUtc,
+    required String clientRequestId,
     String? assignedToId,
   });
 
   Future<void> completeReminder(
     String projectExternalId,
     String reminderExternalId,
+    String clientRequestId,
   );
 
   Future<ProjectTimelinePage> getTimeline(

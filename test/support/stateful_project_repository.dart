@@ -131,6 +131,7 @@ class StatefulProjectRepository implements ProjectRepository {
     String projectExternalId, {
     required String text,
     required DateTime reminderAtUtc,
+    required String clientRequestId,
     String? assignedToId,
   }) async {
     await getProject(projectExternalId);
@@ -151,6 +152,7 @@ class StatefulProjectRepository implements ProjectRepository {
   Future<void> completeReminder(
     String projectExternalId,
     String reminderExternalId,
+    String clientRequestId,
   ) async {
     await getProject(projectExternalId);
     final index = _reminders.indexWhere(

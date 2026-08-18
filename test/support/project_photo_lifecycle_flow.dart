@@ -197,6 +197,7 @@ class _ProjectPhotoRepository implements ProjectRepository {
     String projectExternalId, {
     required String text,
     required DateTime reminderAtUtc,
+    required String clientRequestId,
     String? assignedToId,
   }) async =>
       const ResourceCreationResult(id: 'reminder-id', message: 'Created');
@@ -205,6 +206,7 @@ class _ProjectPhotoRepository implements ProjectRepository {
   Future<void> completeReminder(
     String projectExternalId,
     String reminderExternalId,
+    String clientRequestId,
   ) async {}
 
   @override

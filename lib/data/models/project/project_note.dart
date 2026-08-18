@@ -1,4 +1,5 @@
 import '../common/user_reference.dart';
+import '../common/utc_date_time.dart';
 
 class ProjectNote {
   const ProjectNote({
@@ -23,13 +24,13 @@ class ProjectNote {
       createdBy: createdBy is Map<String, dynamic>
           ? UserReference.fromJson(createdBy)
           : null,
-      createdAtUtc: _requiredDate(json['createdAtUtc']),
-      occurredAtUtc: _requiredDate(json['occurredAtUtc']),
-      receivedAtUtc: _requiredDate(json['receivedAtUtc']),
+      createdAtUtc: parseUtcDateTime(json['createdAtUtc']),
+      occurredAtUtc: parseUtcDateTime(json['occurredAtUtc']),
+      receivedAtUtc: parseUtcDateTime(json['receivedAtUtc']),
       updatedBy: updatedBy is Map<String, dynamic>
           ? UserReference.fromJson(updatedBy)
           : null,
-      updatedAtUtc: _optionalDate(json['updatedAtUtc']),
+      updatedAtUtc: tryParseUtcDateTime(json['updatedAtUtc']),
     );
   }
 
@@ -55,9 +56,3 @@ class ProjectNote {
     'updatedAtUtc': updatedAtUtc?.toUtc().toIso8601String(),
   };
 }
-
-DateTime _requiredDate(Object? value) =>
-    _optionalDate(value) ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
-
-DateTime? _optionalDate(Object? value) =>
-    value is String ? DateTime.tryParse(value)?.toUtc() : null;

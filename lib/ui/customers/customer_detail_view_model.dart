@@ -110,13 +110,18 @@ class CustomerDetailViewModel extends ChangeNotifier {
         externalId,
         text: text.trim(),
         reminderAtUtc: reminderAtUtc.toUtc(),
+        clientRequestId: _requestId(),
       );
     });
   }
 
   Future<bool> completeReminder(String reminderExternalId) {
     return _runActivity(() async {
-      await _repository.completeReminder(externalId, reminderExternalId);
+      await _repository.completeReminder(
+        externalId,
+        reminderExternalId,
+        _requestId(),
+      );
     });
   }
 

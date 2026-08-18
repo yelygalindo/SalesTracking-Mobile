@@ -5,6 +5,7 @@ import '../data/repositories/auth_repository.dart';
 import '../data/repositories/customer_repository.dart';
 import '../data/repositories/project_repository.dart';
 import '../data/repositories/visit_repository.dart';
+import '../data/repositories/workday_repository.dart';
 import '../data/repositories/project_attachment_repository.dart';
 import '../data/repositories/history_repository.dart';
 import '../data/models/visit/visit_target_type.dart';
@@ -92,6 +93,7 @@ abstract final class AppRouter {
     required AuthViewModel authViewModel,
     required AuthRepository authRepository,
     required WorkdayViewModel workdayViewModel,
+    required WorkdayRepository workdayRepository,
     required SyncViewModel syncViewModel,
     required CustomerRepository customerRepository,
     required ProjectRepository projectRepository,
@@ -177,6 +179,7 @@ abstract final class AppRouter {
           path: '/visits/check-in',
           builder: (context, state) => VisitCheckInScreen(
             repository: visitRepository,
+            workdayRepository: workdayRepository,
             locationService: locationService,
             targetType: state.uri.queryParameters['type'] == 'project'
                 ? VisitTargetType.project

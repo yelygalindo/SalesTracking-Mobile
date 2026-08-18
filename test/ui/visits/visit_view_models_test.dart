@@ -2,16 +2,21 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:urbantrack/data/models/common/location_sample.dart';
 import 'package:urbantrack/data/models/visit/current_visit.dart';
 import 'package:urbantrack/data/models/visit/visit_target_type.dart';
+import 'package:urbantrack/data/models/workday/workday.dart';
 import 'package:urbantrack/data/repositories/visit_repository.dart';
 import 'package:urbantrack/data/services/location_service.dart';
 import 'package:urbantrack/ui/visits/visit_check_in_view_model.dart';
 import 'package:urbantrack/ui/visits/visit_check_out_view_model.dart';
 
+import '../../support/workday_test_doubles.dart';
+
 void main() {
   test('captures mobile time and GPS for check-in', () async {
     final visits = _RecordingVisitRepository();
+    final workdays = StatefulWorkdayRepository()..current = _workday;
     final viewModel = VisitCheckInViewModel(
       visits,
+      workdays,
       _FixedLocationService(),
       targetType: VisitTargetType.customer,
       targetExternalId: 'customer-id',
@@ -25,6 +30,26 @@ void main() {
     expect(visits.checkInAtUtc, DateTime.utc(2026, 8, 7, 16));
     expect(visits.checkInRequestId, 'check-in-request');
     expect(visits.checkInLocation?.latitude, -17.75);
+  });
+
+  test('blocks check-in while the seller has no open workday', () async {
+    final visits = _RecordingVisitRepository();
+    final viewModel = VisitCheckInViewModel(
+      visits,
+      InactiveWorkdayRepository(),
+      _FixedLocationService(),
+      targetType: VisitTargetType.customer,
+      targetExternalId: 'customer-id',
+      targetName: 'Cliente Norte',
+    );
+    await viewModel.initialize();
+
+    expect(await viewModel.checkIn(null), isFalse);
+    expect(
+      viewModel.errorMessage,
+      'Inicia tu jornada antes de registrar una visita.',
+    );
+    expect(visits.checkInRequestId, isNull);
   });
 
   test('records result and mobile time for check-out', () async {
@@ -47,6 +72,21 @@ void main() {
     expect(visits.checkOutAtUtc, DateTime.utc(2026, 8, 7, 17));
     expect(visits.checkOutRequestId, 'check-out-request');
     expect(visits.result, 'Gestión realizada');
+  });
+
+  test('allows check-out without a result', () async {
+    final visits = _RecordingVisitRepository(current: _visit);
+    final viewModel = VisitCheckOutViewModel(
+      visits,
+      _FixedLocationService(),
+      requestId: () => 'optional-result-request',
+      now: () => DateTime.utc(2026, 8, 7, 17),
+    );
+    await viewModel.initialize();
+
+    expect(await viewModel.checkOut(note: 'Cierre sin resultado'), isTrue);
+    expect(visits.result, isNull);
+    expect(visits.checkOutRequestId, 'optional-result-request');
   });
 }
 
@@ -131,4 +171,13 @@ final _visit = CurrentVisit(
   latitude: -17.75,
   longitude: -63.18,
   note: null,
+);
+
+final _workday = Workday(
+  externalId: 'workday-id',
+  status: 'open',
+  startedAtUtc: DateTime.utc(2026, 8, 7, 15),
+  startedReceivedAtUtc: DateTime.utc(2026, 8, 7, 15, 0, 1),
+  startLatitude: -17.75,
+  startLongitude: -63.18,
 );

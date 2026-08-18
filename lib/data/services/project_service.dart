@@ -159,6 +159,7 @@ class ProjectService {
     String projectExternalId, {
     required String text,
     required DateTime reminderAtUtc,
+    required String clientRequestId,
     String? assignedToId,
   }) async {
     final response = await _request(
@@ -171,7 +172,7 @@ class ProjectService {
         'text': text.trim(),
         'reminderAtUtc': reminderAtUtc.toUtc().toIso8601String(),
         'assignedToId': assignedToId,
-        'clientRequestId': _requestId(),
+        'clientRequestId': clientRequestId,
       },
     );
     return ResourceCreationResult.fromJson(_decodeObject(response.bodyBytes));
@@ -181,6 +182,7 @@ class ProjectService {
     String accessToken,
     String projectExternalId,
     String reminderExternalId,
+    String clientRequestId,
   ) async {
     await _request(
       'PATCH',
@@ -189,7 +191,7 @@ class ProjectService {
         '${Uri.encodeComponent(reminderExternalId)}/complete',
       ),
       accessToken,
-      payload: {'clientRequestId': _requestId()},
+      payload: {'clientRequestId': clientRequestId},
     );
   }
 
@@ -246,7 +248,7 @@ class ProjectService {
         '/api/projects/${Uri.encodeComponent(externalId)}/status',
       ),
       accessToken,
-      payload: {'statusId': statusId},
+      payload: {'statusId': statusId, 'clientRequestId': _requestId()},
     );
   }
 

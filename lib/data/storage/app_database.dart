@@ -22,6 +22,8 @@ class AppDatabase {
         'project_summary_cache',
         'project_detail_cache',
         'project_status_cache',
+        'project_note_cache',
+        'project_reminder_cache',
       ]) {
         await transaction.delete(table);
       }
@@ -32,7 +34,7 @@ class AppDatabase {
     final root = await getDatabasesPath();
     return openDatabase(
       path.join(root, 'urbantrack.db'),
-      version: 7,
+      version: 8,
       onConfigure: (database) => database.execute('PRAGMA foreign_keys = ON'),
       onCreate: (database, version) async {
         await _createWorkdayTables(database);
@@ -41,6 +43,7 @@ class AppDatabase {
         await _createAttachmentTables(database);
         await _createProjectTables(database);
         await _createProjectStatusTable(database);
+        await _createActivityTables(database);
       },
       onUpgrade: (database, oldVersion, newVersion) async {
         if (oldVersion < 2) await _createCustomerTables(database);
@@ -49,6 +52,7 @@ class AppDatabase {
         if (oldVersion < 5) await _createProjectTables(database);
         if (oldVersion < 6) await _createProjectStatusTable(database);
         if (oldVersion < 7) await _clearLegacyUnscopedCaches(database);
+        if (oldVersion < 8) await _createActivityTables(database);
       },
     );
   }
@@ -205,6 +209,36 @@ class AppDatabase {
     await database.execute('''
       CREATE TABLE project_status_cache (
         value INTEGER PRIMARY KEY,
+        payload TEXT NOT NULL
+      )
+    ''');
+  }
+
+  static Future<void> _createActivityTables(Database database) async {
+    await database.execute('''
+      CREATE TABLE IF NOT EXISTS activity_sync_operations (
+        sequence INTEGER PRIMARY KEY AUTOINCREMENT,
+        request_id TEXT NOT NULL UNIQUE,
+        resource_type TEXT NOT NULL,
+        resource_external_id TEXT NOT NULL,
+        operation_type TEXT NOT NULL,
+        payload TEXT NOT NULL,
+        attempt_count INTEGER NOT NULL DEFAULT 0,
+        last_error TEXT,
+        created_at_utc TEXT NOT NULL
+      )
+    ''');
+    await database.execute('''
+      CREATE TABLE IF NOT EXISTS project_note_cache (
+        external_id TEXT PRIMARY KEY,
+        project_external_id TEXT NOT NULL,
+        payload TEXT NOT NULL
+      )
+    ''');
+    await database.execute('''
+      CREATE TABLE IF NOT EXISTS project_reminder_cache (
+        external_id TEXT PRIMARY KEY,
+        project_external_id TEXT NOT NULL,
         payload TEXT NOT NULL
       )
     ''');

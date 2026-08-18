@@ -1,3 +1,4 @@
+import '../common/utc_date_time.dart';
 import 'visit_target_type.dart';
 
 class CurrentVisit {
@@ -17,7 +18,7 @@ class CurrentVisit {
     externalId: json['visitExternalId'] as String? ?? '',
     targetExternalId: json['targetExternalId'] as String? ?? '',
     targetName: json['targetName'] as String? ?? '',
-    checkInAtUtc: _date(json['checkInAtUtc']),
+    checkInAtUtc: parseUtcDateTime(json['checkInAtUtc']),
     latitude: (json['latitude'] as num?)?.toDouble() ?? 0,
     longitude: (json['longitude'] as num?)?.toDouble() ?? 0,
     note: json['note'] as String?,
@@ -53,8 +54,3 @@ VisitTargetType _type(Object? value) {
       ? VisitTargetType.project
       : VisitTargetType.customer;
 }
-
-DateTime _date(Object? value) => value is String
-    ? DateTime.tryParse(value)?.toUtc() ??
-          DateTime.fromMillisecondsSinceEpoch(0, isUtc: true)
-    : DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);

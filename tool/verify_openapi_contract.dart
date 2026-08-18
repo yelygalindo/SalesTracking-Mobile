@@ -46,10 +46,20 @@ Future<void> main(List<String> arguments) async {
       'get',
       query: ['Status', 'ExternalUserId', 'Search', 'Page', 'PageSize'],
     ),
-    const _OperationExpectation('/api/customers', 'post'),
+    const _OperationExpectation(
+      '/api/customers',
+      'post',
+      body: ['email', 'clientRequestId'],
+      nullableBody: ['email'],
+    ),
     const _OperationExpectation('/api/customers/statuses', 'get'),
     const _OperationExpectation('/api/customers/{externalId}', 'get'),
-    const _OperationExpectation('/api/customers/{externalId}', 'put'),
+    const _OperationExpectation(
+      '/api/customers/{externalId}',
+      'put',
+      body: ['email', 'expectedUpdatedAtUtc'],
+      nullableBody: ['email'],
+    ),
     const _OperationExpectation(
       '/api/customers/{externalId}/status',
       'patch',
@@ -78,11 +88,15 @@ Future<void> main(List<String> arguments) async {
     const _OperationExpectation('/api/projects', 'post'),
     const _OperationExpectation('/api/projects/statuses', 'get'),
     const _OperationExpectation('/api/projects/{externalId}', 'get'),
-    const _OperationExpectation('/api/projects/{externalId}', 'put'),
+    const _OperationExpectation(
+      '/api/projects/{externalId}',
+      'put',
+      body: ['expectedUpdatedAtUtc'],
+    ),
     const _OperationExpectation(
       '/api/projects/{externalId}/status',
       'patch',
-      body: ['statusId'],
+      body: ['statusId', 'clientRequestId'],
     ),
     const _OperationExpectation(
       '/api/projects/{projectExternalId}/notes',
@@ -121,7 +135,14 @@ Future<void> main(List<String> arguments) async {
     const _OperationExpectation(
       '/api/customers/{customerExternalId}/visits/{visitExternalId}/checkout',
       'patch',
-      body: ['checkOutAtUtc', 'latitude', 'longitude', 'clientRequestId'],
+      body: [
+        'checkOutAtUtc',
+        'latitude',
+        'longitude',
+        'result',
+        'clientRequestId',
+      ],
+      nullableBody: ['result'],
     ),
     const _OperationExpectation(
       '/api/projects/{projectExternalId}/visits',
@@ -136,7 +157,14 @@ Future<void> main(List<String> arguments) async {
     const _OperationExpectation(
       '/api/projects/{projectExternalId}/visits/{visitExternalId}/checkout',
       'patch',
-      body: ['checkOutAtUtc', 'latitude', 'longitude', 'clientRequestId'],
+      body: [
+        'checkOutAtUtc',
+        'latitude',
+        'longitude',
+        'result',
+        'clientRequestId',
+      ],
+      nullableBody: ['result'],
     ),
     const _OperationExpectation('/api/visits/current', 'get'),
     const _OperationExpectation(
@@ -185,6 +213,15 @@ Future<void> main(List<String> arguments) async {
     'checkInAtUtc',
     'latitude',
     'longitude',
+  ], failures);
+  _verifyResponse(spec, '/api/customers/{externalId}', 'get', [
+    'externalId',
+    'email',
+    'updatedAtUtc',
+  ], failures);
+  _verifyResponse(spec, '/api/projects/{externalId}', 'get', [
+    'externalId',
+    'updatedAtUtc',
   ], failures);
   _verifyResponse(spec, '/api/visits', 'get', [
     'externalId',
@@ -255,7 +292,7 @@ Future<void> main(List<String> arguments) async {
   }
   stdout.writeln(
     'OpenAPI contract OK: ${operations.length} operations and '
-    '7 response schemas verified.',
+    '9 response schemas verified.',
   );
 }
 
@@ -322,6 +359,29 @@ void _verifyOperation(
       );
     }
   }
+  for (final name in expectation.nullableBody) {
+    if (!_isNullableProperty(spec, schema, name)) {
+      failures.add(
+        '${expectation.method.toUpperCase()} ${expectation.path} '
+        'request field "$name" is no longer nullable.',
+      );
+    }
+  }
+}
+
+bool _isNullableProperty(
+  Map<String, dynamic> spec,
+  Map<String, dynamic> schema,
+  String name,
+) {
+  final properties = _resolve(spec, schema)['properties'];
+  if (properties is! Map<String, dynamic>) return false;
+  final property = properties[name];
+  if (property is! Map<String, dynamic>) return false;
+  final resolved = _resolve(spec, property);
+  if (resolved['nullable'] == true) return true;
+  final types = resolved['type'];
+  return types is List && types.contains('null');
 }
 
 void _verifyResponse(
@@ -447,12 +507,14 @@ class _OperationExpectation {
     this.method, {
     this.query = const [],
     this.body = const [],
+    this.nullableBody = const [],
   });
 
   final String path;
   final String method;
   final List<String> query;
   final List<String> body;
+  final List<String> nullableBody;
 }
 
 extension<T> on Iterable<T> {

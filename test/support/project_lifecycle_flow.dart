@@ -204,8 +204,10 @@ Future<void> runProjectLifecycleFlow(WidgetTester tester) async {
   await tester.ensureVisible(finishVisit);
   await tester.tap(finishVisit);
   await _pumpUi(tester);
+  await tester.tap(find.text('Otro'));
+  await _pumpUi(tester);
   await tester.enterText(
-    find.byKey(const ValueKey('visit-check-out-result')),
+    find.byKey(const ValueKey('visit-check-out-other-result')),
     'Avance verificado',
   );
   await tester.enterText(

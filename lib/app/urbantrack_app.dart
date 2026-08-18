@@ -148,6 +148,7 @@ class _AppHostState extends State<_AppHost> {
       authViewModel: _authViewModel,
       authRepository: widget.authRepository,
       workdayViewModel: _workdayViewModel,
+      workdayRepository: widget.workdayRepository,
       syncViewModel: _syncViewModel,
       customerRepository: widget.customerRepository,
       projectRepository: widget.projectRepository,

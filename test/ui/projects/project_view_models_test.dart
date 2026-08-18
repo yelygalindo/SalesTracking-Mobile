@@ -33,12 +33,12 @@ void main() {
     );
 
     await viewModel.initialize();
-    await viewModel.selectStatus('Activo');
+    await viewModel.selectStatus(2);
     await viewModel.selectCustomer('customer-id');
     await viewModel.loadMore();
 
     expect(viewModel.customerOptions.single.externalId, 'customer-id');
-    expect(projects.statuses.last, 'Activo');
+    expect(projects.statuses.last, '2');
     expect(projects.customerIds.last, 'customer-id');
     expect(viewModel.items.length, 2);
   });
@@ -69,6 +69,36 @@ void main() {
     expect(projects.createdRequestId, 'project-request-id');
     expect(projects.createdInput?.latitude, -17.75);
     expect(viewModel.savedExternalId, 'project-id');
+  });
+
+  test('updates a project with the loaded concurrency timestamp', () async {
+    final projects = _RecordingProjectRepository();
+    final viewModel = ProjectFormViewModel(
+      projects,
+      _CustomerOptionsRepository(),
+      _FixedLocationService(),
+      externalId: 'project-id',
+    );
+    await viewModel.initialize();
+
+    expect(
+      await viewModel.save(
+        name: 'Obra Norte actualizada',
+        description: 'Edificio residencial',
+        customerExternalId: 'customer-id',
+        estimatedAmount: 185000,
+        startDateUtc: DateTime.utc(2026, 8, 1),
+        expectedCloseDateUtc: DateTime.utc(2026, 10, 30),
+        progressPercentage: 55,
+        address: 'Av. Banzer',
+      ),
+      isTrue,
+    );
+
+    expect(
+      projects.updatedInput?.expectedUpdatedAtUtc,
+      DateTime.utc(2026, 8, 18, 14, 30),
+    );
   });
 
   test('loads project detail and changes its status', () async {
@@ -129,6 +159,7 @@ class _RecordingProjectRepository implements ProjectRepository {
   final List<String?> statuses = [];
   final List<String?> customerIds = [];
   ProjectInput? createdInput;
+  ProjectInput? updatedInput;
   String? createdRequestId;
   int? changedStatusId;
   String currentStatus = 'Activo';
@@ -145,6 +176,7 @@ class _RecordingProjectRepository implements ProjectRepository {
     String projectExternalId, {
     required String text,
     required DateTime reminderAtUtc,
+    required String clientRequestId,
     String? assignedToId,
   }) async {
     addedReminderText = text;
@@ -169,6 +201,7 @@ class _RecordingProjectRepository implements ProjectRepository {
   Future<void> completeReminder(
     String projectExternalId,
     String reminderExternalId,
+    String clientRequestId,
   ) async {
     completedReminderId = reminderExternalId;
     reminders.removeWhere(
@@ -257,7 +290,9 @@ class _RecordingProjectRepository implements ProjectRepository {
   }
 
   @override
-  Future<void> updateProject(String externalId, ProjectInput input) async {}
+  Future<void> updateProject(String externalId, ProjectInput input) async {
+    updatedInput = input;
+  }
 
   @override
   Future<void> changeStatus(String externalId, int statusId) async {
@@ -321,6 +356,7 @@ class _CustomerOptionsRepository implements CustomerRepository {
     String externalId, {
     required String text,
     required DateTime reminderAtUtc,
+    required String clientRequestId,
     String? assignedToId,
   }) {
     throw UnimplementedError();
@@ -330,6 +366,7 @@ class _CustomerOptionsRepository implements CustomerRepository {
   Future<void> completeReminder(
     String customerExternalId,
     String reminderExternalId,
+    String clientRequestId,
   ) {
     throw UnimplementedError();
   }
@@ -396,6 +433,7 @@ final _detail = ProjectDetail(
   latitude: -17.75,
   longitude: -63.18,
   createdAtUtc: DateTime.utc(2026, 8, 1),
+  updatedAtUtc: DateTime.utc(2026, 8, 18, 14, 30),
 );
 
 const _projectAuthor = UserReference(externalId: 'seller-id', name: 'Carlos');

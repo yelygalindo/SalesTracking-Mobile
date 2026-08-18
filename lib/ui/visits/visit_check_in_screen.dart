@@ -3,12 +3,14 @@ import 'package:go_router/go_router.dart';
 
 import '../../data/models/visit/visit_target_type.dart';
 import '../../data/repositories/visit_repository.dart';
+import '../../data/repositories/workday_repository.dart';
 import '../../data/services/location_service.dart';
 import 'visit_check_in_view_model.dart';
 
 class VisitCheckInScreen extends StatefulWidget {
   const VisitCheckInScreen({
     required this.repository,
+    required this.workdayRepository,
     required this.locationService,
     required this.targetType,
     required this.targetExternalId,
@@ -17,6 +19,7 @@ class VisitCheckInScreen extends StatefulWidget {
   });
 
   final VisitRepository repository;
+  final WorkdayRepository workdayRepository;
   final LocationService locationService;
   final VisitTargetType targetType;
   final String targetExternalId;
@@ -35,6 +38,7 @@ class _VisitCheckInScreenState extends State<VisitCheckInScreen> {
     super.initState();
     _viewModel = VisitCheckInViewModel(
       widget.repository,
+      widget.workdayRepository,
       widget.locationService,
       targetType: widget.targetType,
       targetExternalId: widget.targetExternalId,

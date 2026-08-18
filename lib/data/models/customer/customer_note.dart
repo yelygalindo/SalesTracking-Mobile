@@ -1,4 +1,5 @@
 import '../common/user_reference.dart';
+import '../common/utc_date_time.dart';
 
 class CustomerNote {
   const CustomerNote({
@@ -18,7 +19,9 @@ class CustomerNote {
       author: author is Map<String, dynamic>
           ? UserReference.fromJson(author)
           : null,
-      createdAtUtc: _requiredDate(json['createdAt']),
+      createdAtUtc: parseUtcDateTime(
+        json['occurredAtUtc'] ?? json['createdAt'],
+      ),
     );
   }
 
@@ -35,11 +38,4 @@ class CustomerNote {
     'author': author?.toJson(),
     'createdAt': createdAtUtc.toUtc().toIso8601String(),
   };
-}
-
-DateTime _requiredDate(Object? value) {
-  return value is String
-      ? DateTime.tryParse(value)?.toUtc() ??
-            DateTime.fromMillisecondsSinceEpoch(0, isUtc: true)
-      : DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
 }

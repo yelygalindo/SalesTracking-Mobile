@@ -139,6 +139,7 @@ class StatefulCustomerRepository implements CustomerRepository {
     String externalId, {
     required String text,
     required DateTime reminderAtUtc,
+    required String clientRequestId,
     String? assignedToId,
   }) async {
     final current = await getCustomer(externalId);
@@ -159,6 +160,7 @@ class StatefulCustomerRepository implements CustomerRepository {
   Future<void> completeReminder(
     String customerExternalId,
     String reminderExternalId,
+    String clientRequestId,
   ) async {
     final current = await getCustomer(customerExternalId);
     completeReminderCalls += 1;

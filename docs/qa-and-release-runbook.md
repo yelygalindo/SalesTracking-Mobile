@@ -10,7 +10,7 @@ No sustituye los formularios ni las revisiones de Google Play o Apple.
 - [x] Compilación Android de depuración validada en un dispositivo real.
 - [x] APK Android `release` con firma temporal de depuración validado en frío
       en un Galaxy A21s de 720x1600: paquete `io.urbantrack.crm.app`, versión
-      `1.0.0+1` y pantalla de acceso sin errores nativos ni desbordes.
+      `1.0.0+5` y pantalla de acceso sin errores nativos ni desbordes.
 - [x] Compilación iOS para simulador validada en GitHub Actions.
 - [x] Contrato público OpenAPI verificado automáticamente.
 - [x] Login y consultas de clientes, obras, visitas, historial y adjuntos
@@ -23,8 +23,8 @@ No sustituye los formularios ni las revisiones de Google Play o Apple.
 - [x] Ciclo de interfaz iniciar/cerrar jornada validado en emulador Android con
       hora móvil, ubicación inyectada e identificadores de solicitud únicos.
 - [x] Ciclo de interfaz check-in/check-out de cliente validado en emulador
-      Android con resultado obligatorio, notas, hora móvil, ubicación inyectada
-      e identificadores de solicitud únicos.
+      Android con resultado opcional, opciones rápidas, notas, hora móvil,
+      ubicación inyectada e identificadores de solicitud únicos.
 - [x] Gestión completa de clientes validada en emulador Android: alta con
       ubicación inyectada, edición, estado, nota, recordatorio y finalización.
 - [x] Visita de obra con fuentes simuladas de cámara y galería validada en
@@ -37,6 +37,12 @@ No sustituye los formularios ni las revisiones de Google Play o Apple.
 - [x] Gestión completa de obras validada en un dispositivo Android real: alta
       con validaciones y ubicación inyectada, edición, estado, nota, historial y
       visita con check-in/check-out, resultado, notas y ubicación.
+- [x] Notas y recordatorios de clientes y obras validados sin conexión: quedan
+      visibles en caché, conservan su identificador idempotente y se reproducen
+      en orden al recuperar conectividad.
+- [x] Filtros de clientes y obras validados con los códigos/IDs aceptados por la
+      API; edición validada con `expectedUpdatedAtUtc` y correo de cliente
+      opcional.
 - [x] Ciclo completo de inicio/cierre de jornada con GPS real validado en dos
       dispositivos Android físicos, utilizando repositorios en memoria para no
       transmitir coordenadas ni crear datos en la API.

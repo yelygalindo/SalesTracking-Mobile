@@ -31,6 +31,7 @@ void main() {
       'project-id',
       text: 'Confirmar materiales',
       reminderAtUtc: DateTime.utc(2026, 8, 18, 14),
+      clientRequestId: 'reminder-request-id',
     );
 
     expect(payload?['assignedToId'], 'seller-id');

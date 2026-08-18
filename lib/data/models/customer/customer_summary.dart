@@ -1,3 +1,4 @@
+import '../common/utc_date_time.dart';
 import '../common/user_reference.dart';
 
 class CustomerSummary {
@@ -23,7 +24,7 @@ class CustomerSummary {
       phone: json['phone'] as String? ?? '',
       email: json['email'] as String? ?? '',
       status: json['status'] as String? ?? '',
-      createdAtUtc: _optionalDate(json['createdAt']),
+      createdAtUtc: tryParseUtcDateTime(json['createdAt']),
       seller: seller is Map<String, dynamic>
           ? UserReference.fromJson(seller)
           : null,
@@ -51,8 +52,4 @@ class CustomerSummary {
     'createdAt': createdAtUtc?.toUtc().toIso8601String(),
     'seller': seller?.toJson(),
   };
-}
-
-DateTime? _optionalDate(Object? value) {
-  return value is String ? DateTime.tryParse(value)?.toUtc() : null;
 }

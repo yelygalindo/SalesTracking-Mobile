@@ -87,6 +87,7 @@ class RemoteCustomerRepository implements CustomerRepository {
     String externalId, {
     required String text,
     required DateTime reminderAtUtc,
+    required String clientRequestId,
     String? assignedToId,
   }) async {
     final session = await _session();
@@ -97,6 +98,7 @@ class RemoteCustomerRepository implements CustomerRepository {
       externalId,
       text: text,
       reminderAtUtc: reminderAtUtc,
+      clientRequestId: clientRequestId,
       assignedToId: requestedAssignee?.isNotEmpty == true
           ? requestedAssignee
           : currentUserExternalId,
@@ -107,12 +109,14 @@ class RemoteCustomerRepository implements CustomerRepository {
   Future<void> completeReminder(
     String customerExternalId,
     String reminderExternalId,
+    String clientRequestId,
   ) async {
     final session = await _session();
     await _service.completeReminder(
       session.accessToken,
       customerExternalId,
       reminderExternalId,
+      clientRequestId,
     );
   }
 

@@ -151,6 +151,7 @@ class CustomerService {
     String externalId, {
     required String text,
     required DateTime reminderAtUtc,
+    required String clientRequestId,
     String? assignedToId,
   }) async {
     final response = await _request(
@@ -163,7 +164,7 @@ class CustomerService {
         'text': text.trim(),
         'reminderAtUtc': reminderAtUtc.toUtc().toIso8601String(),
         'assignedToId': assignedToId,
-        'clientRequestId': _requestId(),
+        'clientRequestId': clientRequestId,
       },
     );
     return ResourceCreationResult.fromJson(_decodeObject(response.bodyBytes));
@@ -173,6 +174,7 @@ class CustomerService {
     String accessToken,
     String customerExternalId,
     String reminderExternalId,
+    String clientRequestId,
   ) async {
     await _request(
       'PATCH',
@@ -181,7 +183,7 @@ class CustomerService {
         '${Uri.encodeComponent(reminderExternalId)}/complete',
       ),
       accessToken,
-      payload: {'clientRequestId': _requestId()},
+      payload: {'clientRequestId': clientRequestId},
     );
   }
 

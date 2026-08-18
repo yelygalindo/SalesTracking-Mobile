@@ -1,3 +1,5 @@
+import '../common/utc_date_time.dart';
+
 class ProjectVisit {
   const ProjectVisit({
     required this.externalId,
@@ -58,8 +60,6 @@ class ProjectVisit {
   Duration? get duration => checkOutAtUtc?.difference(visitedAtUtc);
 }
 
-DateTime _requiredDate(Object? value) =>
-    _optionalDate(value) ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+DateTime _requiredDate(Object? value) => parseUtcDateTime(value);
 
-DateTime? _optionalDate(Object? value) =>
-    value is String ? DateTime.tryParse(value)?.toUtc() : null;
+DateTime? _optionalDate(Object? value) => tryParseUtcDateTime(value);

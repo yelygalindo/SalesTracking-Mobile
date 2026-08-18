@@ -586,7 +586,10 @@ class _ProjectRemindersPanel extends StatelessWidget {
                                 '${reminder.externalId}',
                               ),
                         tooltip: 'Marcar como completado',
-                        onPressed: busy || reminder.externalId == null
+                        onPressed:
+                            busy ||
+                                reminder.externalId == null ||
+                                reminder.externalId!.startsWith('local:')
                             ? null
                             : () => onComplete(reminder.externalId!),
                         icon: const Icon(Icons.check_circle_outline),

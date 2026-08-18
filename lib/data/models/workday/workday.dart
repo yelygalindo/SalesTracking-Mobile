@@ -1,3 +1,5 @@
+import '../common/utc_date_time.dart';
+
 class Workday {
   const Workday({
     required this.externalId,
@@ -24,8 +26,8 @@ class Workday {
         Workday(
           externalId: json['id'] as String?,
           status: json['status'] as String? ?? 'open',
-          startedAtUtc: DateTime.parse(startedAtUtc).toUtc(),
-          startedReceivedAtUtc: DateTime.parse(startedReceivedAtUtc).toUtc(),
+          startedAtUtc: parseUtcDateTime(startedAtUtc),
+          startedReceivedAtUtc: parseUtcDateTime(startedReceivedAtUtc),
           startLatitude: startLatitude.toDouble(),
           startLongitude: startLongitude.toDouble(),
           note: json['note'] as String?,
@@ -67,6 +69,4 @@ class Workday {
   };
 }
 
-DateTime? _optionalDate(Object? value) {
-  return value is String ? DateTime.parse(value).toUtc() : null;
-}
+DateTime? _optionalDate(Object? value) => tryParseUtcDateTime(value);

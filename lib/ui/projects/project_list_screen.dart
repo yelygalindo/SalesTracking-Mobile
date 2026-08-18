@@ -118,14 +118,14 @@ class _ProjectFilters extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final status = DropdownButtonFormField<String>(
-          initialValue: viewModel.selectedStatus,
+        final status = DropdownButtonFormField<int>(
+          initialValue: viewModel.selectedStatusValue,
           decoration: const InputDecoration(labelText: 'Estado'),
           items: [
             const DropdownMenuItem(value: null, child: Text('Todos')),
             ...viewModel.statusOptions.map(
               (status) => DropdownMenuItem(
-                value: status.label,
+                value: status.value,
                 child: Text(status.label),
               ),
             ),

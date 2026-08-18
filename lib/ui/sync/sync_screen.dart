@@ -191,6 +191,13 @@ class _QueueEntryCard extends StatelessWidget {
     final isWorkdayStart = entry.type == SyncQueueEntryType.workdayStart;
     final isCustomer = entry.type == SyncQueueEntryType.customerCreate;
     final isAttachment = entry.type == SyncQueueEntryType.projectPhoto;
+    final isActivity = switch (entry.type) {
+      SyncQueueEntryType.customerNote ||
+      SyncQueueEntryType.customerReminder ||
+      SyncQueueEntryType.projectNote ||
+      SyncQueueEntryType.projectReminder => true,
+      _ => false,
+    };
     final isVisit = switch (entry.type) {
       SyncQueueEntryType.customerVisitCheckIn ||
       SyncQueueEntryType.customerVisitCheckOut ||
@@ -206,6 +213,10 @@ class _QueueEntryCard extends StatelessWidget {
           SyncQueueEntryType.workdayStart => 'Inicio de jornada',
           SyncQueueEntryType.workdayClose => 'Cierre de jornada',
           SyncQueueEntryType.customerCreate => 'Nuevo cliente',
+          SyncQueueEntryType.customerNote => 'Nota de cliente',
+          SyncQueueEntryType.customerReminder => 'Recordatorio de cliente',
+          SyncQueueEntryType.projectNote => 'Nota de obra',
+          SyncQueueEntryType.projectReminder => 'Recordatorio de obra',
           SyncQueueEntryType.customerVisitCheckIn => 'Check-in en cliente',
           SyncQueueEntryType.customerVisitCheckOut => 'Check-out en cliente',
           SyncQueueEntryType.projectVisitCheckIn => 'Check-in en obra',
@@ -228,9 +239,13 @@ class _QueueEntryCard extends StatelessWidget {
                     ? 'Registro de visita listo para enviar'
                     : isAttachment
                     ? 'Archivo protegido en el dispositivo'
+                    : isActivity
+                    ? 'Actividad protegida contra duplicados'
                     : 'Identificador de reintento listo'
               : isVisit
               ? 'Se enviará después del check-in'
+              : isActivity
+              ? 'Se enviará después de sincronizar el registro relacionado'
               : 'Se enviará después del inicio de jornada',
           style: TextStyle(
             color: hasError ? const Color(0xFFA23A32) : const Color(0xFF536174),
@@ -254,6 +269,8 @@ class _QueueEntryCard extends StatelessWidget {
                     ? _visitIcon(entry.type)
                     : isAttachment
                     ? Icons.photo_camera_outlined
+                    : isActivity
+                    ? Icons.event_note_outlined
                     : isWorkdayStart
                     ? Icons.login
                     : Icons.logout,

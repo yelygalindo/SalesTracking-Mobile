@@ -247,13 +247,13 @@ class _ContactFields extends StatelessWidget {
           controller: emailController,
           keyboardType: TextInputType.emailAddress,
           decoration: const InputDecoration(
-            labelText: 'Correo *',
+            labelText: 'Correo (opcional)',
             hintText: 'correo@empresa.com',
           ),
           validator: (value) {
-            final required = _required(value);
-            if (required != null) return required;
-            if (!value!.contains('@')) return 'Ingresa un correo válido.';
+            final normalized = value?.trim() ?? '';
+            if (normalized.isEmpty) return null;
+            if (!normalized.contains('@')) return 'Ingresa un correo válido.';
             return null;
           },
         );

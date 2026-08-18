@@ -12,6 +12,7 @@ class ProjectInput {
     required this.address,
     required this.latitude,
     required this.longitude,
+    this.expectedUpdatedAtUtc,
   });
 
   final String name;
@@ -26,6 +27,7 @@ class ProjectInput {
   final String address;
   final double? latitude;
   final double? longitude;
+  final DateTime? expectedUpdatedAtUtc;
 
   Map<String, dynamic> toJson() => {
     'name': name.trim(),
@@ -40,10 +42,11 @@ class ProjectInput {
     'address': address.trim(),
     'latitude': latitude,
     'longitude': longitude,
+    'expectedUpdatedAtUtc': expectedUpdatedAtUtc?.toUtc().toIso8601String(),
   };
 
   Map<String, dynamic> toCreateJson(String clientRequestId) => {
     'clientRequestId': clientRequestId,
-    ...toJson(),
+    ...toJson()..remove('expectedUpdatedAtUtc'),
   };
 }

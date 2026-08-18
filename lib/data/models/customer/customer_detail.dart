@@ -1,4 +1,5 @@
 import '../common/user_reference.dart';
+import '../common/utc_date_time.dart';
 import 'customer_note.dart';
 import 'customer_reminder.dart';
 
@@ -16,6 +17,7 @@ class CustomerDetail {
     required this.latitude,
     required this.longitude,
     required this.createdAtUtc,
+    this.updatedAtUtc,
     required this.seller,
     required this.notes,
     required this.reminders,
@@ -35,7 +37,8 @@ class CustomerDetail {
       address: json['address'] as String? ?? '',
       latitude: (json['latitude'] as num?)?.toDouble(),
       longitude: (json['longitude'] as num?)?.toDouble(),
-      createdAtUtc: _optionalDate(json['createdAt']),
+      createdAtUtc: tryParseUtcDateTime(json['createdAt']),
+      updatedAtUtc: tryParseUtcDateTime(json['updatedAtUtc']),
       seller: seller is Map<String, dynamic>
           ? UserReference.fromJson(seller)
           : null,
@@ -56,6 +59,7 @@ class CustomerDetail {
   final double? latitude;
   final double? longitude;
   final DateTime? createdAtUtc;
+  final DateTime? updatedAtUtc;
   final UserReference? seller;
   final List<CustomerNote> notes;
   final List<CustomerReminder> reminders;
@@ -73,6 +77,7 @@ class CustomerDetail {
     'latitude': latitude,
     'longitude': longitude,
     'createdAt': createdAtUtc?.toUtc().toIso8601String(),
+    'updatedAtUtc': updatedAtUtc?.toUtc().toIso8601String(),
     'seller': seller?.toJson(),
     'notes': notes.map((note) => note.toJson()).toList(),
     'reminders': reminders.map((reminder) => reminder.toJson()).toList(),
@@ -92,7 +97,3 @@ List<CustomerReminder> _reminders(Object? value) => value is List
           .map(CustomerReminder.fromJson)
           .toList(growable: false)
     : const [];
-
-DateTime? _optionalDate(Object? value) {
-  return value is String ? DateTime.tryParse(value)?.toUtc() : null;
-}

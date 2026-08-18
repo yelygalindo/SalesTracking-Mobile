@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import '../common/utc_date_time.dart';
 import '../common/user_reference.dart';
 
 class ProjectTimelineItem {
@@ -25,7 +26,7 @@ class ProjectTimelineItem {
       eventTypeName: json['eventTypeName'] as String? ?? '',
       title: json['title'] as String? ?? '',
       description: json['description'] as String? ?? '',
-      occurredAtUtc: _requiredDate(json['occurredAtUtc']),
+      occurredAtUtc: parseUtcDateTime(json['occurredAtUtc']),
       createdBy: createdBy is Map<String, dynamic>
           ? UserReference.fromJson(createdBy)
           : null,
@@ -84,7 +85,9 @@ class ProjectTimelineMetadata {
         sizeBytes: (json['sizeBytes'] as num?)?.toInt() ?? 0,
         visitExternalId: json['visitExternalId'] as String?,
         downloadUrl: json['downloadUrl'] as String?,
-        downloadUrlExpiresAtUtc: _optionalDate(json['downloadUrlExpiresAtUtc']),
+        downloadUrlExpiresAtUtc: tryParseUtcDateTime(
+          json['downloadUrlExpiresAtUtc'],
+        ),
       );
 
   static ProjectTimelineMetadata? fromValue(Object? value) {
@@ -133,11 +136,3 @@ class ProjectTimelineMetadata {
         .toIso8601String(),
   };
 }
-
-DateTime _requiredDate(Object? value) => value is String
-    ? DateTime.tryParse(value)?.toUtc() ??
-          DateTime.fromMillisecondsSinceEpoch(0, isUtc: true)
-    : DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
-
-DateTime? _optionalDate(Object? value) =>
-    value is String ? DateTime.tryParse(value)?.toUtc() : null;

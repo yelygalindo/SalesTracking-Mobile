@@ -1,4 +1,5 @@
 import '../common/user_reference.dart';
+import '../common/utc_date_time.dart';
 
 class ProjectReminder {
   const ProjectReminder({
@@ -16,7 +17,7 @@ class ProjectReminder {
       id: json['id'] as int? ?? 0,
       externalId: json['externalId'] as String?,
       text: json['text'] as String? ?? '',
-      reminderAtUtc: _requiredDate(json['reminderAtUtc']),
+      reminderAtUtc: parseUtcDateTime(json['reminderAtUtc']),
       assignedTo: assignedTo is Map<String, dynamic>
           ? UserReference.fromJson(assignedTo)
           : null,
@@ -40,8 +41,3 @@ class ProjectReminder {
     'completed': completed,
   };
 }
-
-DateTime _requiredDate(Object? value) => value is String
-    ? DateTime.tryParse(value)?.toUtc() ??
-          DateTime.fromMillisecondsSinceEpoch(0, isUtc: true)
-    : DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);

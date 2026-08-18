@@ -62,7 +62,7 @@ void main() {
 
     expect(find.text('Registrar cliente'), findsOneWidget);
     expect(find.text('Teléfono *'), findsOneWidget);
-    expect(find.text('Correo *'), findsOneWidget);
+    expect(find.text('Correo (opcional)'), findsOneWidget);
     expect(find.text('Usar ubicación actual'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
@@ -81,6 +81,7 @@ class _ScreenCustomerRepository implements CustomerRepository {
     String externalId, {
     required String text,
     required DateTime reminderAtUtc,
+    required String clientRequestId,
     String? assignedToId,
   }) async =>
       const ResourceCreationResult(id: 'reminder-id', message: 'Created');
@@ -89,6 +90,7 @@ class _ScreenCustomerRepository implements CustomerRepository {
   Future<void> completeReminder(
     String customerExternalId,
     String reminderExternalId,
+    String clientRequestId,
   ) async {}
 
   @override

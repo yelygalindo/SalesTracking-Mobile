@@ -1,15 +1,19 @@
 import 'dart:async';
 
 import '../models/common/resource_creation_result.dart';
+import '../models/activity/pending_activity_operation.dart';
 import '../models/customer/customer_detail.dart';
 import '../models/customer/customer_input.dart';
 import '../models/customer/customer_page.dart';
 import '../models/customer/customer_status.dart';
 import '../models/customer/customer_summary.dart';
+import '../models/customer/customer_note.dart';
+import '../models/customer/customer_reminder.dart';
 import '../models/customer/pending_customer_operation.dart';
 import '../services/api_exception.dart';
 import '../services/network_status_service.dart';
 import 'customer_local_store.dart';
+import 'activity_local_store.dart';
 import 'customer_repository.dart';
 import 'customer_sync_repository.dart';
 
@@ -20,12 +24,15 @@ class OfflineFirstCustomerRepository
     this._local,
     this._network, {
     DateTime Function()? now,
-  }) : _now = now ?? DateTime.now;
+    ActivityLocalStore? activityLocalStore,
+  }) : _now = now ?? DateTime.now,
+       _activityLocal = activityLocalStore;
 
   final CustomerRepository _remote;
   final CustomerLocalStore _local;
   final NetworkStatusService _network;
   final DateTime Function() _now;
+  final ActivityLocalStore? _activityLocal;
 
   Future<void>? _activeSync;
 
@@ -81,7 +88,7 @@ class OfflineFirstCustomerRepository
   Future<CustomerDetail> getCustomer(String externalId) async {
     if (externalId.startsWith('local:')) {
       final local = await _local.readDetail(externalId);
-      if (local != null) return local;
+      if (local != null) return _withPendingActivity(local, externalId);
     }
 
     final resolvedId = await _resolveExternalId(externalId);
@@ -89,14 +96,14 @@ class OfflineFirstCustomerRepository
       try {
         final customer = await _remote.getCustomer(resolvedId);
         await _local.cacheDetail(customer);
-        return customer;
+        return _withPendingActivity(customer, externalId);
       } on ApiException catch (error) {
         if (!_isTransient(error)) rethrow;
       }
     }
 
     final cached = await _local.readDetail(resolvedId);
-    if (cached != null) return cached;
+    if (cached != null) return _withPendingActivity(cached, externalId);
     throw const ApiException(
       message: 'Este cliente todavía no está disponible sin conexión.',
     );
@@ -160,10 +167,35 @@ class OfflineFirstCustomerRepository
     String text,
     String clientRequestId,
   ) async {
-    final resolvedId = await _onlineCustomerId(externalId);
-    final result = await _remote.addNote(resolvedId, text, clientRequestId);
-    await _refreshDetail(resolvedId);
-    return result;
+    final activityLocal = _activityLocal;
+    if (activityLocal == null) {
+      final resolvedId = await _onlineCustomerId(externalId);
+      final result = await _remote.addNote(resolvedId, text, clientRequestId);
+      await _refreshDetail(resolvedId);
+      return result;
+    }
+    final resolvedId = await _resolveExternalId(externalId);
+    if (!resolvedId.startsWith('local:') && await _network.isConnected) {
+      try {
+        final result = await _remote.addNote(resolvedId, text, clientRequestId);
+        await _refreshDetail(resolvedId);
+        return result;
+      } on ApiException catch (error) {
+        if (!_isTransient(error)) rethrow;
+      }
+    }
+    return _enqueueActivity(
+      PendingActivityOperation(
+        requestId: clientRequestId,
+        resourceType: ActivityResourceType.customer,
+        resourceExternalId: externalId,
+        type: PendingActivityOperationType.note,
+        text: text.trim(),
+        eventAtUtc: _now().toUtc(),
+        createdAtUtc: _now().toUtc(),
+      ),
+      message: 'Nota guardada. Se sincronizará al recuperar conexión.',
+    );
   }
 
   @override
@@ -171,27 +203,100 @@ class OfflineFirstCustomerRepository
     String externalId, {
     required String text,
     required DateTime reminderAtUtc,
+    required String clientRequestId,
     String? assignedToId,
   }) async {
-    final resolvedId = await _onlineCustomerId(externalId);
-    final result = await _remote.addReminder(
-      resolvedId,
-      text: text,
-      reminderAtUtc: reminderAtUtc,
-      assignedToId: assignedToId,
+    final activityLocal = _activityLocal;
+    if (activityLocal == null) {
+      final resolvedId = await _onlineCustomerId(externalId);
+      final result = await _remote.addReminder(
+        resolvedId,
+        text: text,
+        reminderAtUtc: reminderAtUtc,
+        clientRequestId: clientRequestId,
+        assignedToId: assignedToId,
+      );
+      await _refreshDetail(resolvedId);
+      return result;
+    }
+    final resolvedId = await _resolveExternalId(externalId);
+    if (!resolvedId.startsWith('local:') && await _network.isConnected) {
+      try {
+        final result = await _remote.addReminder(
+          resolvedId,
+          text: text,
+          reminderAtUtc: reminderAtUtc,
+          clientRequestId: clientRequestId,
+          assignedToId: assignedToId,
+        );
+        await _refreshDetail(resolvedId);
+        return result;
+      } on ApiException catch (error) {
+        if (!_isTransient(error)) rethrow;
+      }
+    }
+    return _enqueueActivity(
+      PendingActivityOperation(
+        requestId: clientRequestId,
+        resourceType: ActivityResourceType.customer,
+        resourceExternalId: externalId,
+        type: PendingActivityOperationType.reminder,
+        text: text.trim(),
+        assignedToId: assignedToId,
+        eventAtUtc: reminderAtUtc.toUtc(),
+        createdAtUtc: _now().toUtc(),
+      ),
+      message: 'Recordatorio guardado. Se sincronizará al recuperar conexión.',
     );
-    await _refreshDetail(resolvedId);
-    return result;
   }
 
   @override
   Future<void> completeReminder(
     String customerExternalId,
     String reminderExternalId,
+    String clientRequestId,
   ) async {
-    final resolvedId = await _onlineCustomerId(customerExternalId);
-    await _remote.completeReminder(resolvedId, reminderExternalId);
-    await _refreshDetail(resolvedId);
+    final activityLocal = _activityLocal;
+    if (activityLocal == null) {
+      final resolvedId = await _onlineCustomerId(customerExternalId);
+      await _remote.completeReminder(
+        resolvedId,
+        reminderExternalId,
+        clientRequestId,
+      );
+      await _refreshDetail(resolvedId);
+      return;
+    }
+    if (reminderExternalId.startsWith('local:')) {
+      throw const ApiException(
+        message: 'Sincroniza el recordatorio antes de completarlo.',
+      );
+    }
+    final resolvedId = await _resolveExternalId(customerExternalId);
+    if (!resolvedId.startsWith('local:') && await _network.isConnected) {
+      try {
+        await _remote.completeReminder(
+          resolvedId,
+          reminderExternalId,
+          clientRequestId,
+        );
+        await _refreshDetail(resolvedId);
+        return;
+      } on ApiException catch (error) {
+        if (!_isTransient(error)) rethrow;
+      }
+    }
+    await activityLocal.enqueue(
+      PendingActivityOperation(
+        requestId: clientRequestId,
+        resourceType: ActivityResourceType.customer,
+        resourceExternalId: customerExternalId,
+        type: PendingActivityOperationType.completeReminder,
+        reminderExternalId: reminderExternalId,
+        eventAtUtc: _now().toUtc(),
+        createdAtUtc: _now().toUtc(),
+      ),
+    );
   }
 
   @override
@@ -358,6 +463,89 @@ class OfflineFirstCustomerRepository
   Future<void> _refreshDetail(String externalId) async {
     final refreshed = await _remote.getCustomer(externalId);
     await _local.cacheDetail(refreshed);
+  }
+
+  Future<ResourceCreationResult> _enqueueActivity(
+    PendingActivityOperation operation, {
+    required String message,
+  }) async {
+    await _activityLocal!.enqueue(operation);
+    return ResourceCreationResult(
+      id: 'local:${operation.requestId}',
+      message: message,
+    );
+  }
+
+  Future<CustomerDetail> _withPendingActivity(
+    CustomerDetail customer,
+    String requestedExternalId,
+  ) async {
+    final activityLocal = _activityLocal;
+    if (activityLocal == null) return customer;
+    final operations = await activityLocal.readPending(
+      resourceType: ActivityResourceType.customer,
+      resourceExternalId: requestedExternalId,
+    );
+    if (operations.isEmpty) return customer;
+    final completed = operations
+        .where(
+          (operation) =>
+              operation.type == PendingActivityOperationType.completeReminder,
+        )
+        .map((operation) => operation.reminderExternalId)
+        .whereType<String>()
+        .toSet();
+    final pendingNotes = operations
+        .where(
+          (operation) => operation.type == PendingActivityOperationType.note,
+        )
+        .map(
+          (operation) => CustomerNote(
+            id: 0,
+            externalId: 'local:${operation.requestId}',
+            text: operation.text ?? '',
+            author: null,
+            createdAtUtc: operation.eventAtUtc,
+          ),
+        );
+    final pendingReminders = operations
+        .where(
+          (operation) =>
+              operation.type == PendingActivityOperationType.reminder,
+        )
+        .map(
+          (operation) => CustomerReminder(
+            id: 0,
+            externalId: 'local:${operation.requestId}',
+            text: operation.text ?? '',
+            reminderAtUtc: operation.eventAtUtc,
+            assignedTo: null,
+            completed: false,
+          ),
+        );
+    return CustomerDetail(
+      id: customer.id,
+      externalId: customer.externalId,
+      name: customer.name,
+      companyName: customer.companyName,
+      phone: customer.phone,
+      email: customer.email,
+      statusId: customer.statusId,
+      status: customer.status,
+      address: customer.address,
+      latitude: customer.latitude,
+      longitude: customer.longitude,
+      createdAtUtc: customer.createdAtUtc,
+      updatedAtUtc: customer.updatedAtUtc,
+      seller: customer.seller,
+      notes: [...customer.notes, ...pendingNotes],
+      reminders: [
+        ...customer.reminders.where(
+          (reminder) => !completed.contains(reminder.externalId),
+        ),
+        ...pendingReminders,
+      ],
+    );
   }
 
   bool _isTransient(ApiException error) {

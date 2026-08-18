@@ -7,6 +7,8 @@ import 'package:http/http.dart' as http;
 import 'app/urbantrack_app.dart';
 import 'config/app_environment.dart';
 import 'data/repositories/composite_sync_repository.dart';
+import 'data/repositories/activity_sync_repository.dart';
+import 'data/repositories/sqflite_activity_local_store.dart';
 import 'data/repositories/attachment_sync_repository.dart';
 import 'data/repositories/customer_sync_repository.dart';
 import 'data/repositories/sync_repository.dart';
@@ -89,10 +91,12 @@ void main() {
     authRepository,
   );
   final customerLocalStore = SqfliteCustomerLocalStore(appDatabase);
+  final activityLocalStore = SqfliteActivityLocalStore(appDatabase);
   final customerRepository = OfflineFirstCustomerRepository(
     remoteCustomerRepository,
     customerLocalStore,
     networkStatusService,
+    activityLocalStore: activityLocalStore,
   );
   final remoteProjectRepository = RemoteProjectRepository(
     ProjectService(Uri.parse(environment.apiBaseUrl), http.Client()),
@@ -102,6 +106,7 @@ void main() {
     remoteProjectRepository,
     SqfliteProjectLocalStore(appDatabase),
     networkStatusService,
+    activityLocalStore: activityLocalStore,
   );
   final visitLocalStore = SqfliteVisitLocalStore(appDatabase);
   final visitRepository = OfflineFirstVisitRepository(
@@ -133,6 +138,12 @@ void main() {
   syncRepository = CompositeSyncRepository([
     workdaySyncRepository,
     CustomerSyncRepository(customerLocalStore, customerRepository),
+    ActivitySyncRepository(
+      activityLocalStore,
+      remoteCustomerRepository,
+      remoteProjectRepository,
+      customerLocalStore,
+    ),
     VisitSyncRepository(visitLocalStore, visitRepository),
     AttachmentSyncRepository(attachmentLocalStore, attachmentRepository),
   ]);

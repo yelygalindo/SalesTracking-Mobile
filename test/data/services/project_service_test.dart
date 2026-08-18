@@ -33,7 +33,7 @@ void main() {
     expect(statuses, hasLength(5));
     expect(statuses.first.value, 1);
     expect(statuses.first.label, 'Borrador');
-    expect(statuses.last.label, 'Cancelado');
+    expect(statuses.last.label, 'Perdido');
   });
 
   test('lists projects using the documented pagination envelope', () async {
@@ -181,9 +181,15 @@ void main() {
       'project/id',
       text: 'Confirmar materiales',
       reminderAtUtc: DateTime.utc(2026, 8, 18, 14),
+      clientRequestId: 'reminder-request-id',
       assignedToId: 'seller-id',
     );
-    await service.completeReminder('access-token', 'project/id', 'reminder/id');
+    await service.completeReminder(
+      'access-token',
+      'project/id',
+      'reminder/id',
+      'complete-request-id',
+    );
 
     expect(reminders.single.text, 'Confirmar materiales');
     expect(reminders.single.assignedTo?.externalId, 'seller-id');
@@ -193,14 +199,14 @@ void main() {
       'text': 'Confirmar materiales',
       'reminderAtUtc': '2026-08-18T14:00:00.000Z',
       'assignedToId': 'seller-id',
-      'clientRequestId': 'reminder-request-1',
+      'clientRequestId': 'reminder-request-id',
     });
     expect(
       requests[2].url.path,
       '/api/projects/project%2Fid/reminders/reminder%2Fid/complete',
     );
     expect(jsonDecode(requests[2].body), {
-      'clientRequestId': 'reminder-request-2',
+      'clientRequestId': 'complete-request-id',
     });
   });
 
@@ -233,6 +239,7 @@ void main() {
       address: 'Av. Banzer',
       latitude: -17.75,
       longitude: -63.18,
+      expectedUpdatedAtUtc: DateTime.utc(2026, 8, 18, 14, 30),
     );
 
     final created = await service.createProject(
@@ -247,10 +254,23 @@ void main() {
     expect(requests.map((request) => request.method), ['POST', 'PUT', 'PATCH']);
     expect(jsonDecode(requests[0].body)['clientRequestId'], 'request-id');
     expect(
+      jsonDecode(requests[0].body).containsKey('expectedUpdatedAtUtc'),
+      isFalse,
+    );
+    expect(
       jsonDecode(requests[1].body).containsKey('clientRequestId'),
       isFalse,
     );
-    expect(jsonDecode(requests[2].body), {'statusId': 3});
+    expect(
+      jsonDecode(requests[1].body)['expectedUpdatedAtUtc'],
+      '2026-08-18T14:30:00.000Z',
+    );
+    final statusBody = jsonDecode(requests[2].body) as Map<String, dynamic>;
+    expect(statusBody['statusId'], 3);
+    expect(
+      statusBody['clientRequestId'],
+      isA<String>().having((value) => value.isNotEmpty, 'isNotEmpty', isTrue),
+    );
   });
 }
 

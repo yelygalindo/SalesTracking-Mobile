@@ -14,6 +14,8 @@ import 'package:urbantrack/data/repositories/project_repository.dart';
 import 'package:urbantrack/data/services/api_exception.dart';
 import 'package:urbantrack/data/services/network_status_service.dart';
 
+import '../../support/memory_activity_local_store.dart';
+
 void main() {
   test('caches listed projects and exposes their details offline', () async {
     final network = _MutableNetworkStatusService(true);
@@ -119,6 +121,47 @@ void main() {
     expect(status.value, 2);
     expect(status.label, 'Activo');
   });
+
+  test('queues and displays project notes and reminders offline', () async {
+    final activityLocal = MemoryActivityLocalStore();
+    final network = _MutableNetworkStatusService(true);
+    final repository = OfflineFirstProjectRepository(
+      _ProjectRemoteRepository(),
+      _MemoryProjectLocalStore(),
+      network,
+      activityLocalStore: activityLocal,
+      now: () => DateTime.utc(2026, 8, 18, 15),
+    );
+    await repository.getProject('project-id');
+    network.connected = false;
+
+    final note = await repository.addNote(
+      'project-id',
+      content: '  Avance sin conexión  ',
+      clientRequestId: 'project-note',
+      occurredAtUtc: DateTime.utc(2026, 8, 18, 14, 30),
+    );
+    final reminder = await repository.addReminder(
+      'project-id',
+      text: '  Revisar materiales  ',
+      reminderAtUtc: DateTime.utc(2026, 8, 19, 16),
+      clientRequestId: 'project-reminder',
+      assignedToId: 'seller-id',
+    );
+    final notes = await repository.getNotes('project-id');
+    final reminders = await repository.getReminders('project-id');
+
+    expect(note.id, 'local:project-note');
+    expect(reminder.id, 'local:project-reminder');
+    expect(activityLocal.operations.map((item) => item.requestId), [
+      'project-note',
+      'project-reminder',
+    ]);
+    expect(notes.single.content, 'Avance sin conexión');
+    expect(notes.single.occurredAtUtc, DateTime.utc(2026, 8, 18, 14, 30));
+    expect(reminders.single.text, 'Revisar materiales');
+    expect(reminders.single.reminderAtUtc, DateTime.utc(2026, 8, 19, 16));
+  });
 }
 
 class _MutableNetworkStatusService implements NetworkStatusService {
@@ -209,6 +252,7 @@ class _ProjectRemoteRepository implements ProjectRepository {
     String projectExternalId, {
     required String text,
     required DateTime reminderAtUtc,
+    required String clientRequestId,
     String? assignedToId,
   }) async =>
       const ResourceCreationResult(id: 'reminder-id', message: 'Created');
@@ -217,6 +261,7 @@ class _ProjectRemoteRepository implements ProjectRepository {
   Future<void> completeReminder(
     String projectExternalId,
     String reminderExternalId,
+    String clientRequestId,
   ) async {}
 
   @override
