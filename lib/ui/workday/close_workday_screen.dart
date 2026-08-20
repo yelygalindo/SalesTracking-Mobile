@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../routing/app_router.dart';
+import '../core/branding/brand_scope.dart';
 import '../core/elapsed_time.dart';
 import 'workday_view_model.dart';
 
@@ -35,6 +36,7 @@ class _CloseWorkdayScreenState extends State<CloseWorkdayScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final brand = BrandScope.of(context);
     return Scaffold(
       appBar: AppBar(
         leading: BackButton(onPressed: () => context.pop()),
@@ -72,10 +74,10 @@ class _CloseWorkdayScreenState extends State<CloseWorkdayScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        const Text(
+                        Text(
                           'RESUMEN DEL DÍA',
                           style: TextStyle(
-                            color: Color(0xFFF97316),
+                            color: brand.primaryColor,
                             fontSize: 12,
                             fontWeight: FontWeight.w900,
                           ),
@@ -114,7 +116,7 @@ class _CloseWorkdayScreenState extends State<CloseWorkdayScreen> {
                                         size: 46,
                                         color: location == null
                                             ? const Color(0xFF6F788A)
-                                            : const Color(0xFFF97316),
+                                            : brand.primaryColor,
                                       ),
                               ),
                               Padding(

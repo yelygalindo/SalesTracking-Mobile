@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../routing/app_router.dart';
+import '../../core/branding/brand_mark.dart';
 import '../../core/branding/brand_scope.dart';
 import '../auth_view_model.dart';
 
@@ -61,22 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       children: [
                         Align(
                           alignment: Alignment.centerLeft,
-                          child: Container(
-                            width: 58,
-                            height: 58,
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              color: brand.inkColor,
-                              borderRadius: BorderRadius.circular(17),
-                            ),
-                            child: Text(
-                              brand.monogram,
-                              style: textTheme.titleLarge?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w900,
-                              ),
-                            ),
-                          ),
+                          child: const BrandMark(size: 58, borderRadius: 17),
                         ),
                         const SizedBox(height: 28),
                         Text(

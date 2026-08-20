@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../routing/app_router.dart';
 import '../auth/auth_view_model.dart';
+import '../core/branding/brand_mark.dart';
 import '../core/branding/brand_scope.dart';
 import '../core/elapsed_time.dart';
 import '../core/navigation/app_primary_navigation_bar.dart';
@@ -43,23 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: Row(
           children: [
-            Container(
-              width: 34,
-              height: 34,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: brand.inkColor,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Text(
-                brand.monogram,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-            ),
+            const BrandMark(size: 34, borderRadius: 10),
             const SizedBox(width: 9),
             Flexible(
               child: Text(

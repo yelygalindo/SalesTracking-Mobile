@@ -17,7 +17,7 @@ abstract final class AppTheme {
       useMaterial3: true,
       colorScheme: colorScheme,
       scaffoldBackgroundColor: brand.canvasColor,
-      fontFamily: 'Arial',
+      fontFamily: brand.fontFamily,
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: Colors.white,

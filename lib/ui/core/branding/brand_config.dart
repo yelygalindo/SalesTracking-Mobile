@@ -10,6 +10,7 @@ class BrandConfig {
     required this.primaryColor,
     required this.inkColor,
     required this.canvasColor,
+    required this.fontFamily,
     this.logoAsset,
   });
 
@@ -20,5 +21,6 @@ class BrandConfig {
   final Color primaryColor;
   final Color inkColor;
   final Color canvasColor;
+  final String fontFamily;
   final String? logoAsset;
 }

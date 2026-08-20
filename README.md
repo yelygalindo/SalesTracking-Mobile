@@ -212,7 +212,17 @@ de sincronizarse.
 - `lib/data/storage`: sesión segura, SQLite y archivos pendientes.
 - `lib/config`: parámetros no sensibles por entorno.
 
-La marca está desacoplada en `lib/ui/core/branding`. UrbanTrackCRM es la distribución inicial; otra distribución puede proporcionar un `BrandConfig`, nombre y recursos propios sin modificar la lógica de clientes, obras, visitas o sincronización.
+La marca está desacoplada en `lib/ui/core/branding`. UrbanTrackCRM es la distribución inicial; otra distribución puede proporcionar un `BrandConfig`, nombre, paleta, tipografía y recursos propios sin modificar la lógica de clientes, obras, visitas o sincronización.
+
+La distribución UrbanTrackCRM utiliza la paleta aprobada `#F87315`, `#0F162A`, `#F2F2F2` y `#FFFFFF`. La familia Poppins se empaqueta localmente en los pesos 400, 500, 600, 700, 800 y 900 para conservar la apariencia sin conexión. Su licencia OFL está incluida en `assets/fonts/OFL.txt`.
+
+El isotipo aprobado y los recursos fuente de los iconos se encuentran en
+`assets/branding/urbantrackcrm`. Para regenerar los iconos nativos después de
+cambiar esos archivos:
+
+```powershell
+dart run flutter_launcher_icons
+```
 
 ## Consideraciones actuales de la API
 
