@@ -42,6 +42,7 @@ class ProjectFormViewModel extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   String? get savedExternalId => _savedExternalId;
   bool get editing => externalId != null;
+  bool get canSave => !editing || _project?.updatedAtUtcToken != null;
   bool get isBusy =>
       _status == ProjectFormViewStatus.loading ||
       _status == ProjectFormViewStatus.locating ||
@@ -49,19 +50,27 @@ class ProjectFormViewModel extends ChangeNotifier {
 
   Future<void> initialize() async {
     _status = ProjectFormViewStatus.loading;
+    _errorMessage = null;
+    if (editing) _project = null;
     notifyListeners();
     try {
       final customersFuture = _customers.getCustomers(pageSize: 100);
       final projectFuture = editing
-          ? _projects.getProject(externalId!)
+          ? _projects.getProject(externalId!, requireFresh: true)
           : Future<ProjectDetail?>.value();
       final results = await Future.wait<Object?>([
         customersFuture,
         projectFuture,
       ]);
+      final project = results[1] as ProjectDetail?;
+      if (editing && project?.updatedAtUtcToken == null) {
+        throw const ApiException(
+          message:
+              'No pudimos obtener la versión actual de la obra. Reintenta antes de editar.',
+        );
+      }
       _customerOptions = (results[0] as CustomerPage).customers;
-      _project = results[1] as ProjectDetail?;
-      final project = _project;
+      _project = project;
       if (project?.latitude != null && project?.longitude != null) {
         _location = LocationSample(
           latitude: project!.latitude!,
@@ -107,6 +116,12 @@ class ProjectFormViewModel extends ChangeNotifier {
     required double? progressPercentage,
     required String address,
   }) async {
+    if (!canSave) {
+      _errorMessage =
+          'No pudimos obtener la versión actual de la obra. Recarga los datos antes de guardar.';
+      notifyListeners();
+      return false;
+    }
     if (name.trim().isEmpty || customerExternalId == null) {
       _errorMessage = 'Completa el nombre y selecciona un cliente.';
       notifyListeners();

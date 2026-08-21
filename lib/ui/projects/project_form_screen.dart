@@ -156,7 +156,14 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
                           ),
                           if (_viewModel.errorMessage case final error?) ...[
                             const SizedBox(height: 14),
-                            _FormError(message: error),
+                            _FormError(
+                              message: error,
+                              onRetry:
+                                  widget.externalId != null &&
+                                      _viewModel.project == null
+                                  ? _initialize
+                                  : null,
+                            ),
                           ],
                           const SizedBox(height: 18),
                           TextFormField(
@@ -290,7 +297,9 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
                           const SizedBox(height: 18),
                           FilledButton.icon(
                             key: const ValueKey('save-project-button'),
-                            onPressed: _viewModel.isBusy ? null : _save,
+                            onPressed: _viewModel.isBusy || !_viewModel.canSave
+                                ? null
+                                : _save,
                             icon:
                                 _viewModel.status ==
                                     ProjectFormViewStatus.saving
@@ -417,9 +426,10 @@ class _LocationCard extends StatelessWidget {
 }
 
 class _FormError extends StatelessWidget {
-  const _FormError({required this.message});
+  const _FormError({required this.message, this.onRetry});
 
   final String message;
+  final VoidCallback? onRetry;
 
   @override
   Widget build(BuildContext context) {
@@ -429,7 +439,13 @@ class _FormError extends StatelessWidget {
         color: const Color(0xFFFFEDEA),
         borderRadius: BorderRadius.circular(13),
       ),
-      child: Text(message),
+      child: Row(
+        children: [
+          Expanded(child: Text(message)),
+          if (onRetry != null)
+            TextButton(onPressed: onRetry, child: const Text('Reintentar')),
+        ],
+      ),
     );
   }
 }

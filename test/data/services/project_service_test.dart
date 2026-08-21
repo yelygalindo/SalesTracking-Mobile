@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:urbantrack/data/models/project/project_input.dart';
+import 'package:urbantrack/data/services/api_exception.dart';
 import 'package:urbantrack/data/services/project_service.dart';
 
 void main() {
@@ -290,6 +291,43 @@ void main() {
       statusBody['clientRequestId'],
       isA<String>().having((value) => value.isNotEmpty, 'isNotEmpty', isTrue),
     );
+  });
+
+  test('does not send an update without a concurrency timestamp', () async {
+    var requestCount = 0;
+    final service = ProjectService(
+      Uri.parse('https://api.example.test'),
+      MockClient((request) async {
+        requestCount += 1;
+        return http.Response('{}', 200);
+      }),
+    );
+    const input = ProjectInput(
+      name: 'Obra sin versión',
+      description: '',
+      customerExternalId: 'customer-id',
+      sellerExternalId: null,
+      estimatedAmount: null,
+      startDateUtc: null,
+      expectedCloseDateUtc: null,
+      progressPercentage: 0,
+      actualCloseDateUtc: null,
+      address: '',
+      latitude: null,
+      longitude: null,
+    );
+
+    await expectLater(
+      service.updateProject('access-token', 'project-id', input),
+      throwsA(
+        isA<ApiException>().having(
+          (error) => error.message,
+          'message',
+          contains('versión actual'),
+        ),
+      ),
+    );
+    expect(requestCount, 0);
   });
 }
 

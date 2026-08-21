@@ -55,6 +55,24 @@ void main() {
     expect(page.projects.single.name, 'Obra Norte');
   });
 
+  test('requires a fresh remote detail before editing a project', () async {
+    final local = _MemoryProjectLocalStore();
+    await local.cacheDetail(_detail);
+    final repository = OfflineFirstProjectRepository(
+      _ProjectRemoteRepository(failTransiently: true),
+      local,
+      _MutableNetworkStatusService(true),
+    );
+
+    final cached = await repository.getProject('project-id');
+    expect(cached.externalId, 'project-id');
+
+    expect(
+      () => repository.getProject('project-id', requireFresh: true),
+      throwsA(isA<ApiException>()),
+    );
+  });
+
   test('caches the project status catalog for offline use', () async {
     final network = _MutableNetworkStatusService(true);
     final local = _MemoryProjectLocalStore();
@@ -299,7 +317,15 @@ class _ProjectRemoteRepository implements ProjectRepository {
   }
 
   @override
-  Future<ProjectDetail> getProject(String externalId) async => _detail;
+  Future<ProjectDetail> getProject(
+    String externalId, {
+    bool requireFresh = false,
+  }) async {
+    if (failTransiently) {
+      throw const ApiException(message: 'No hay conexión a Internet.');
+    }
+    return _detail;
+  }
 
   @override
   Future<List<ProjectNote>> getNotes(String projectExternalId) async =>

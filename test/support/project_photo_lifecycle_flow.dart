@@ -231,7 +231,10 @@ class _ProjectPhotoRepository implements ProjectRepository {
   );
 
   @override
-  Future<ProjectDetail> getProject(String externalId) async => _projectDetail;
+  Future<ProjectDetail> getProject(
+    String externalId, {
+    bool requireFresh = false,
+  }) async => _projectDetail;
 
   @override
   Future<List<ProjectStatus>> getStatuses() async => const [

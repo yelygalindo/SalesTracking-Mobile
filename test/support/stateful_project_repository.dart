@@ -66,7 +66,10 @@ class StatefulProjectRepository implements ProjectRepository {
   }
 
   @override
-  Future<ProjectDetail> getProject(String externalId) async {
+  Future<ProjectDetail> getProject(
+    String externalId, {
+    bool requireFresh = false,
+  }) async {
     final current = project;
     if (current == null || current.externalId != externalId) {
       throw StateError('Project $externalId does not exist.');
@@ -243,26 +246,31 @@ class StatefulProjectRepository implements ProjectRepository {
     required String externalId,
     required ProjectStatus status,
     DateTime? createdAtUtc,
-  }) => ProjectDetail(
-    id: 1,
-    externalId: externalId,
-    name: input.name.trim(),
-    description: input.description.trim(),
-    customerExternalId: input.customerExternalId,
-    customerName: 'Constructora Integración',
-    sellerExternalId: input.sellerExternalId ?? _seller.externalId,
-    sellerName: _seller.name,
-    status: status.label,
-    estimatedAmount: input.estimatedAmount,
-    startDateUtc: input.startDateUtc,
-    expectedCloseDateUtc: input.expectedCloseDateUtc,
-    progressPercentage: input.progressPercentage ?? 0,
-    actualCloseDateUtc: input.actualCloseDateUtc,
-    address: input.address.trim(),
-    latitude: input.latitude,
-    longitude: input.longitude,
-    createdAtUtc: createdAtUtc ?? _now().toUtc(),
-  );
+  }) {
+    final updatedAtUtc = _now().toUtc();
+    return ProjectDetail(
+      id: 1,
+      externalId: externalId,
+      name: input.name.trim(),
+      description: input.description.trim(),
+      customerExternalId: input.customerExternalId,
+      customerName: 'Constructora Integración',
+      sellerExternalId: input.sellerExternalId ?? _seller.externalId,
+      sellerName: _seller.name,
+      status: status.label,
+      estimatedAmount: input.estimatedAmount,
+      startDateUtc: input.startDateUtc,
+      expectedCloseDateUtc: input.expectedCloseDateUtc,
+      progressPercentage: input.progressPercentage ?? 0,
+      actualCloseDateUtc: input.actualCloseDateUtc,
+      address: input.address.trim(),
+      latitude: input.latitude,
+      longitude: input.longitude,
+      createdAtUtc: createdAtUtc ?? updatedAtUtc,
+      updatedAtUtc: updatedAtUtc,
+      updatedAtUtcToken: updatedAtUtc.toIso8601String(),
+    );
+  }
 
   void _addTimeline({
     required String title,
@@ -335,6 +343,8 @@ ProjectDetail _copy(ProjectDetail project, {required String status}) =>
       latitude: project.latitude,
       longitude: project.longitude,
       createdAtUtc: project.createdAtUtc,
+      updatedAtUtc: project.updatedAtUtc,
+      updatedAtUtcToken: project.updatedAtUtcToken,
     );
 
 const _seller = UserReference(

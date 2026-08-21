@@ -150,11 +150,45 @@ void main() {
     expect(find.text('Usar ubicación actual'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('blocks editing and offers retry without a fresh version token', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final repository = _ProjectScreenRepository();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ProjectFormScreen(
+          projectRepository: repository,
+          customerRepository: EmptyCustomerRepository(),
+          locationService: FixedLocationService(),
+          externalId: 'project-1',
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(repository.lastRequireFresh, isTrue);
+    expect(find.textContaining('versión actual'), findsOneWidget);
+    expect(find.text('Reintentar'), findsOneWidget);
+    final saveButton = tester.widget<FilledButton>(
+      find.byKey(const ValueKey('save-project-button')),
+    );
+    expect(saveButton.onPressed, isNull);
+
+    await tester.tap(find.text('Reintentar'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('versión actual'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }
 
 class _ProjectScreenRepository implements ProjectRepository {
   final List<ProjectNote> notes = [_note];
   final List<ProjectReminder> reminders = [_reminder];
+  bool? lastRequireFresh;
 
   @override
   Future<ResourceCreationResult> addReminder(
@@ -241,7 +275,13 @@ class _ProjectScreenRepository implements ProjectRepository {
   );
 
   @override
-  Future<ProjectDetail> getProject(String externalId) async => _detail;
+  Future<ProjectDetail> getProject(
+    String externalId, {
+    bool requireFresh = false,
+  }) async {
+    lastRequireFresh = requireFresh;
+    return _detail;
+  }
 
   @override
   Future<List<ProjectNote>> getNotes(String projectExternalId) async =>

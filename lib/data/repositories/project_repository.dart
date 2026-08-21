@@ -16,7 +16,10 @@ abstract interface class ProjectRepository {
     int pageSize = 20,
   });
 
-  Future<ProjectDetail> getProject(String externalId);
+  Future<ProjectDetail> getProject(
+    String externalId, {
+    bool requireFresh = false,
+  });
 
   Future<List<ProjectStatus>> getStatuses();
 

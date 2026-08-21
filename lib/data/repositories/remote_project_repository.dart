@@ -38,7 +38,10 @@ class RemoteProjectRepository implements ProjectRepository {
   }
 
   @override
-  Future<ProjectDetail> getProject(String externalId) async {
+  Future<ProjectDetail> getProject(
+    String externalId, {
+    bool requireFresh = false,
+  }) async {
     final session = await _session();
     return _service.getProject(session.accessToken, externalId);
   }

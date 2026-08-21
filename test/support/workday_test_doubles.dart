@@ -264,7 +264,10 @@ class EmptyProjectRepository implements ProjectRepository {
   }
 
   @override
-  Future<ProjectDetail> getProject(String externalId) {
+  Future<ProjectDetail> getProject(
+    String externalId, {
+    bool requireFresh = false,
+  }) {
     throw UnimplementedError();
   }
 

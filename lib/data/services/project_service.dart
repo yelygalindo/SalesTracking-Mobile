@@ -229,11 +229,20 @@ class ProjectService {
     String externalId,
     ProjectInput input,
   ) async {
+    final payload = input.toJson();
+    final expectedUpdatedAtUtc = payload['expectedUpdatedAtUtc'];
+    if (expectedUpdatedAtUtc is! String ||
+        expectedUpdatedAtUtc.trim().isEmpty) {
+      throw const ApiException(
+        message:
+            'No pudimos obtener la versión actual de la obra. Recarga los datos antes de guardar.',
+      );
+    }
     await _request(
       'PUT',
       _baseUrl.resolve('/api/projects/${Uri.encodeComponent(externalId)}'),
       accessToken,
-      payload: input.toJson(),
+      payload: payload,
     );
   }
 

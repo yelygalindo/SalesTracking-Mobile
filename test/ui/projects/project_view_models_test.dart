@@ -81,6 +81,8 @@ void main() {
     );
     await viewModel.initialize();
 
+    expect(projects.lastRequireFresh, isTrue);
+
     expect(
       await viewModel.save(
         name: 'Obra Norte actualizada',
@@ -104,6 +106,43 @@ void main() {
       '2026-08-18T14:30:00.1234567Z',
     );
   });
+
+  test(
+    'blocks project updates when the API omits the concurrency token',
+    () async {
+      final projects = _RecordingProjectRepository(
+        detail: ProjectDetail.fromJson({
+          ..._detail.toJson(),
+          'updatedAtUtc': null,
+        }),
+      );
+      final viewModel = ProjectFormViewModel(
+        projects,
+        _CustomerOptionsRepository(),
+        _FixedLocationService(),
+        externalId: 'project-id',
+      );
+
+      await viewModel.initialize();
+
+      expect(viewModel.canSave, isFalse);
+      expect(viewModel.errorMessage, contains('versión actual'));
+      expect(
+        await viewModel.save(
+          name: 'Obra Norte actualizada',
+          description: 'Edificio residencial',
+          customerExternalId: 'customer-id',
+          estimatedAmount: 185000,
+          startDateUtc: DateTime.utc(2026, 8, 1),
+          expectedCloseDateUtc: DateTime.utc(2026, 10, 30),
+          progressPercentage: 55,
+          address: 'Av. Banzer',
+        ),
+        isFalse,
+      );
+      expect(projects.updatedInput, isNull);
+    },
+  );
 
   test('loads project detail and changes its status', () async {
     final projects = _RecordingProjectRepository();
@@ -160,6 +199,10 @@ void main() {
 }
 
 class _RecordingProjectRepository implements ProjectRepository {
+  _RecordingProjectRepository({ProjectDetail? detail})
+    : detail = detail ?? _detail;
+
+  final ProjectDetail detail;
   final List<String?> statuses = [];
   final List<String?> customerIds = [];
   ProjectInput? createdInput;
@@ -174,6 +217,7 @@ class _RecordingProjectRepository implements ProjectRepository {
   String? addedReminderText;
   DateTime? addedReminderAtUtc;
   String? completedReminderId;
+  bool? lastRequireFresh;
 
   @override
   Future<ResourceCreationResult> addReminder(
@@ -256,8 +300,16 @@ class _RecordingProjectRepository implements ProjectRepository {
   }
 
   @override
-  Future<ProjectDetail> getProject(String externalId) async =>
-      ProjectDetail.fromJson({..._detail.toJson(), 'status': currentStatus});
+  Future<ProjectDetail> getProject(
+    String externalId, {
+    bool requireFresh = false,
+  }) async {
+    lastRequireFresh = requireFresh;
+    return ProjectDetail.fromJson({
+      ...detail.toJson(),
+      'status': currentStatus,
+    });
+  }
 
   @override
   Future<List<ProjectNote>> getNotes(String projectExternalId) async => [
@@ -290,7 +342,7 @@ class _RecordingProjectRepository implements ProjectRepository {
   ) async {
     createdInput = input;
     createdRequestId = clientRequestId;
-    return _detail;
+    return detail;
   }
 
   @override

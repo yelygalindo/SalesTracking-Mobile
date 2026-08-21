@@ -62,7 +62,18 @@ class OfflineFirstProjectRepository implements ProjectRepository {
   }
 
   @override
-  Future<ProjectDetail> getProject(String externalId) async {
+  Future<ProjectDetail> getProject(
+    String externalId, {
+    bool requireFresh = false,
+  }) async {
+    if (requireFresh) {
+      await _requireConnection(
+        'Necesitas conexión para obtener la versión actual de esta obra.',
+      );
+      final project = await _remote.getProject(externalId, requireFresh: true);
+      await _local.cacheDetail(project);
+      return project;
+    }
     if (await _network.isConnected) {
       try {
         final project = await _remote.getProject(externalId);
