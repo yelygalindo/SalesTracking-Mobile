@@ -51,10 +51,22 @@ No sustituye los formularios ni las revisiones de Google Play o Apple.
       y muestran una instrucción recuperable al vendedor.
 - [x] Navegación principal autenticada y cierre de sesión validados con
       repositorios aislados en un Galaxy A21s físico de 720x1600.
-- [ ] Recibir e integrar logotipo, icono y recursos definitivos.
-- [ ] Completar y verificar las cuentas de Google Play y Apple Developer.
-- [ ] Configurar claves de firma de producción; actualmente Android `release`
-      usa deliberadamente la clave de depuración y no debe publicarse.
+- [x] Logotipo, icono, paleta y tipografía definitivos integrados.
+- [x] Cuenta de Google Play verificada y aplicación `UrbanTrackCRM` creada en
+      estado borrador con el paquete correcto.
+- [x] Política de privacidad publicada en `https://urbantrack.io/privacy`.
+- [ ] Confirmar la membresía Apple Developer y crear el registro en App Store
+      Connect.
+- [x] Upload key creada y configurada localmente fuera del repositorio; los
+      builds `release` fallan si intentan ejecutarse sin esa configuración.
+- [x] AAB firmado `1.0.0+13` validado con Bundletool: paquete
+      `io.urbantrack.crm.app`, SHA-256
+      `11D5B7313219241F9621E14BB617A6CED256B8957259EAB74D09BCE97F47E83F`.
+- [x] AAB `1.0.0 (13)` validado por Google Play y guardado como borrador de
+      prueba interna con el nombre `1.0.0 (13) - MVP`; no se inició la
+      distribución a testers.
+- [ ] Entregar al titular el respaldo de la upload key y sus credenciales por
+      canales separados y confirmar su conservación segura.
 - [ ] Publicar los archivos de asociación de enlaces de contraseña descritos
       en `docs/password-reset-links.md`.
 
@@ -120,13 +132,18 @@ y contar con autorización del cliente si el entorno no dispone de eliminación.
 
 ### Preparación
 
-- [ ] Cuenta de desarrollador completamente verificada.
-- [ ] Aplicación creada con `io.urbantrack.crm.app`.
-- [ ] Ficha, icono, capturas, política de privacidad y formularios completos.
-- [ ] Upload key propiedad del cliente, respaldada y configurada localmente.
-- [ ] Play App Signing habilitado.
-- [ ] `version` y build number incrementados en `pubspec.yaml`.
-- [ ] AAB de release firmado; no usar el APK ni la clave de depuración.
+- [x] Cuenta de desarrollador completamente verificada.
+- [x] Aplicación creada con `io.urbantrack.crm.app`.
+- [ ] Ficha, icono, capturas y formularios completos; la política de privacidad
+      ya está guardada en Play Console.
+- [ ] Upload key respaldada bajo control del cliente; ya está creada y
+      configurada localmente, pero falta confirmar la entrega segura.
+- [x] Play App Signing habilitado.
+- [x] `version` y build number incrementados a `1.0.0+13` en `pubspec.yaml`.
+- [x] AAB de release firmado y validado; no usa el APK ni la clave de
+      depuración.
+- [x] Primera versión cargada y guardada únicamente como borrador en la pista
+      de prueba interna.
 
 Build final:
 
@@ -137,6 +154,15 @@ flutter build appbundle --release
 El artefacto esperado es `build/app/outputs/bundle/release/app-release.aab`.
 Google Play exige Android App Bundles para aplicaciones nuevas y el bundle debe
 estar firmado con la upload key antes de cargarlo.
+
+La configuración local parte de `android/key.properties.example`. El archivo
+real y el keystore están excluidos de Git; las contraseñas no deben escribirse
+en comandos, documentación, commits ni mensajes compartidos. Antes de cargar
+el AAB, conservar un respaldo seguro bajo control del titular de la cuenta.
+
+Las respuestas propuestas para los formularios de contenido y seguridad están
+en [`google-play-declarations-draft.md`](google-play-declarations-draft.md). El
+titular debe aprobarlas antes de guardarlas o enviarlas a revisión.
 
 ### Prueba cerrada de la cuenta personal
 

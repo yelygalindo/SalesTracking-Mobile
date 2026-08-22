@@ -1,0 +1,6 @@
+# Copiar como android/key.properties y reemplazar los valores localmente.
+# No versionar key.properties ni el archivo .jks.
+storePassword=CHANGE_ME
+keyPassword=CHANGE_ME
+keyAlias=urbantrackcrm-upload
+storeFile=D:/FlutterBuild/UrbanTrackCRM-signing/urbantrackcrm-upload.jks

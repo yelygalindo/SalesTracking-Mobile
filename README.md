@@ -26,7 +26,7 @@ No se deben versionar usuarios, contraseñas, tokens, certificados ni llaves de 
 ```powershell
 flutter analyze
 flutter test
-flutter build apk --release
+flutter build apk --debug
 ```
 
 Para validar en un dispositivo Android el recorrido principal sin usar cuentas
@@ -134,6 +134,35 @@ flutter build ios --release --no-codesign
 ```
 
 Para firmar y distribuir iOS se requiere configurar el equipo de Apple Developer en Xcode. Para publicar Android se debe proporcionar un keystore de producción y su configuración local; esos secretos no deben subirse al repositorio.
+
+### Firma y bundle de Android
+
+Los builds Android de publicación nunca reutilizan la clave de depuración. La
+upload key debe quedar bajo control del cliente y almacenarse fuera del
+repositorio. Para crearla, `keytool` solicitará las contraseñas de forma
+interactiva, evitando incluirlas en el historial del terminal:
+
+```powershell
+New-Item -ItemType Directory -Force D:\FlutterBuild\UrbanTrackCRM-signing
+keytool -genkeypair -v `
+  -keystore D:\FlutterBuild\UrbanTrackCRM-signing\urbantrackcrm-upload.jks `
+  -keyalg RSA -keysize 2048 -validity 10000 `
+  -alias urbantrackcrm-upload
+```
+
+Copiar `android/key.properties.example` como `android/key.properties` y
+reemplazar los valores únicamente en el archivo local. Tanto
+`android/key.properties` como `*.jks` están excluidos de Git.
+
+```powershell
+flutter build appbundle --release
+```
+
+El resultado esperado es
+`build/app/outputs/bundle/release/app-release.aab`. Si falta la configuración
+de firma, Gradle detiene el build en lugar de generar un artefacto publicable
+con una clave incorrecta. La upload key y sus contraseñas deben respaldarse en
+un gestor seguro y entregarse al titular de Google Play por un canal separado.
 
 ### Comprobación iOS sin Mac local
 
