@@ -55,8 +55,10 @@ No sustituye los formularios ni las revisiones de Google Play o Apple.
 - [x] Cuenta de Google Play verificada y aplicación `UrbanTrackCRM` creada en
       estado borrador con el paquete correcto.
 - [x] Política de privacidad publicada en `https://urbantrack.io/privacy`.
-- [ ] Confirmar la membresía Apple Developer y crear el registro en App Store
-      Connect.
+- [x] Membresía Apple Developer activa, acuerdos aceptados y aplicación
+      `UrbanTrackCRM` creada en App Store Connect con el bundle ID correcto.
+- [x] Clave de equipo de App Store Connect configurada como secretos cifrados
+      de GitHub Actions; el archivo privado no está versionado.
 - [x] Upload key creada y configurada localmente fuera del repositorio; los
       builds `release` fallan si intentan ejecutarse sin esa configuración.
 - [x] AAB firmado `1.0.0+13` validado con Bundletool: paquete
@@ -180,18 +182,21 @@ y [firma de aplicaciones Android](https://developer.android.com/studio/publish/a
 
 ### Preparación
 
-- [ ] Membresía Apple Developer activa y acuerdos aceptados.
-- [ ] Bundle ID y registro de App Store Connect para `io.urbantrack.crm.app`.
-- [ ] Acceso del desarrollador con rol Developer o App Manager, según la tarea.
-- [ ] Certificados/perfiles administrados por Xcode o credenciales de CI seguras.
+- [x] Membresía Apple Developer activa y acuerdos aceptados.
+- [x] Bundle ID y registro de App Store Connect para `io.urbantrack.crm.app`.
+- [x] Acceso del desarrollador a App Store Connect con rol Administración.
+- [x] Credenciales de la clave de equipo guardadas en GitHub Actions Secrets.
+- [ ] Certificado y perfil administrados automáticamente durante el primer build
+      firmado en CI.
 - [ ] Información beta, correo de feedback, privacidad y export compliance.
-- [ ] Iconos y recursos definitivos integrados.
+- [x] Iconos y recursos definitivos integrados.
 - [ ] Build number nuevo para cada carga.
 
-El workflow actual solo genera una app de simulador sin firma. No puede
-instalarse en un iPhone ni cargarse a TestFlight. Una vez activada la cuenta de
-Apple se configurará un build firmado en una Mac o en CI; certificados, API
-keys y perfiles se guardarán como secretos y nunca en Git.
+El workflow `ios-compile.yml` solo genera una app de simulador sin firma. El
+workflow manual `ios-testflight.yml` prepara el archive y el IPA firmado usando
+la clave de equipo almacenada como secreto. La opción de carga a TestFlight
+permanece desactivada de forma predeterminada para separar la validación del IPA
+de la acción de transmitirlo a Apple.
 
 Flujo de entrega:
 
@@ -215,6 +220,8 @@ y [TestFlight](https://developer.apple.com/help/app-store-connect/test-a-beta-ve
 - No versionar `.env`, `key.properties`, keystores, certificados ni API keys.
 - Limitar accesos a cuentas y repositorio a las personas necesarias.
 - Retirar testers y accesos temporales al finalizar la publicación.
+- Revocar la clave temporal `UrbanTrackCRM CI temporal` cuando ya no sea
+  necesaria para builds o publicación automatizada.
 
 ## Liberación y reversión
 

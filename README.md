@@ -173,7 +173,28 @@ El workflow manual `.github/workflows/ios-compile.yml` compila una aplicación p
 3. Pulsar **Run workflow**.
 4. Descargar el artefacto `urbantrackcrm-ios-simulator` al finalizar.
 
-No se ejecuta con cada push para evitar consumo accidental. En repositorios privados, los runners macOS usan la cuota incluida de GitHub Actions y el uso adicional tiene una tarifa mayor que Linux; se debe revisar el consumo antes de lanzarlo. El artefacto confirma que el proyecto compila para iOS, pero no se instala en un iPhone físico. Para probar en el iPhone y distribuir con TestFlight todavía se requieren la membresía Apple Developer, certificados y perfiles de aprovisionamiento.
+No se ejecuta con cada push para evitar consumo accidental. En repositorios privados, los runners macOS usan la cuota incluida de GitHub Actions y el uso adicional tiene una tarifa mayor que Linux; se debe revisar el consumo antes de lanzarlo. El artefacto confirma que el proyecto compila para iOS, pero no se instala en un iPhone físico.
+
+El workflow separado `.github/workflows/ios-testflight.yml` genera un IPA de
+distribución firmado. Solo se ejecuta manualmente y exige estos valores en
+**Settings > Secrets and variables > Actions**:
+
+- Secret `APP_STORE_CONNECT_API_KEY_P8`: contenido completo de la clave privada
+  `.p8`, que nunca debe añadirse al repositorio.
+- Secret `APP_STORE_CONNECT_KEY_ID`: identificador de la clave de equipo.
+- Secret `APP_STORE_CONNECT_ISSUER_ID`: identificador del emisor de la cuenta.
+- Variable `APPLE_TEAM_ID`: identificador del equipo Apple Developer.
+
+Al ejecutar **iOS signed build and TestFlight** se debe indicar una versión y un
+build number. `upload_to_testflight` está desactivado de forma predeterminada:
+la primera ejecución debe conservar ese valor para validar firma y exportación
+sin cargar el binario. Una carga posterior debe usar un build number que Apple
+no haya recibido anteriormente. Activar la opción carga el IPA en App Store
+Connect, pero no lo distribuye automáticamente a testers ni lo envía a revisión.
+
+El workflow solo aparece para ejecución manual cuando su archivo está presente
+en la rama predeterminada del repositorio. Los secretos no se imprimen y la
+copia temporal de la clave privada se elimina del runner al terminar.
 
 El workflow usa `macos-26` porque la versión actual de `connectivity_plus` compila contra APIs recientes de `Network.framework`. Un runner con un SDK de Xcode anterior puede fallar aunque el código Dart y las pruebas sean correctos.
 

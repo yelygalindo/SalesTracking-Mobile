@@ -1,0 +1,277 @@
+name: iOS signed build and TestFlight
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_name:
+        description: Public version shown in App Store Connect
+        required: true
+        default: "1.0.0"
+        type: string
+      build_number:
+        description: Unique iOS build number (increase after every successful upload)
+        required: true
+        default: "13"
+        type: string
+      upload_to_testflight:
+        description: Upload the validated IPA to App Store Connect / TestFlight
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-distribution-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-ios-distribution:
+    name: Build signed iOS IPA
+    runs-on: macos-26
+    timeout-minutes: 45
+    env:
+      APPLE_TEAM_ID: ${{ vars.APPLE_TEAM_ID }}
+      ARCHIVE_PATH: ${{ github.workspace }}/build/ios/archive/Runner.xcarchive
+      EXPORT_PATH: ${{ github.workspace }}/build/ios/ipa
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Install Flutter 3.44.9
+        shell: bash
+        run: |
+          git clone \
+            --branch 3.44.9 \
+            --depth 1 \
+            https://github.com/flutter/flutter.git \
+            "$RUNNER_TEMP/flutter"
+          echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
+
+      - name: Validate release inputs and prepare Apple API key
+        shell: bash
+        env:
+          APP_STORE_CONNECT_API_KEY_P8: ${{ secrets.APP_STORE_CONNECT_API_KEY_P8 }}
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          BUILD_NAME: ${{ inputs.build_name }}
+          BUILD_NUMBER: ${{ inputs.build_number }}
+        run: |
+          set -euo pipefail
+
+          if [[ ! "$BUILD_NAME" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "build_name must use the format 1.0.0." >&2
+            exit 1
+          fi
+          if [[ ! "$BUILD_NUMBER" =~ ^[1-9][0-9]*$ ]]; then
+            echo "build_number must be a positive integer." >&2
+            exit 1
+          fi
+          if [[ ! "$APPLE_TEAM_ID" =~ ^[A-Z0-9]{10}$ ]]; then
+            echo "Repository variable APPLE_TEAM_ID is missing or invalid." >&2
+            exit 1
+          fi
+          if [[ ! "$APP_STORE_CONNECT_KEY_ID" =~ ^[A-Z0-9]{10}$ ]]; then
+            echo "Repository secret APP_STORE_CONNECT_KEY_ID is missing or invalid." >&2
+            exit 1
+          fi
+          if [[ ! "$APP_STORE_CONNECT_ISSUER_ID" =~ ^[0-9a-fA-F-]{36}$ ]]; then
+            echo "Repository secret APP_STORE_CONNECT_ISSUER_ID is missing or invalid." >&2
+            exit 1
+          fi
+
+          key_directory="$HOME/.appstoreconnect/private_keys"
+          key_path="$key_directory/AuthKey_${APP_STORE_CONNECT_KEY_ID}.p8"
+          install -d -m 700 "$key_directory"
+          printf '%s\n' "$APP_STORE_CONNECT_API_KEY_P8" | tr -d '\r' > "$key_path"
+          chmod 600 "$key_path"
+
+          if ! grep -q -- '-----BEGIN PRIVATE KEY-----' "$key_path" || \
+             ! grep -q -- '-----END PRIVATE KEY-----' "$key_path"; then
+            echo "Repository secret APP_STORE_CONNECT_API_KEY_P8 is not a complete .p8 private key." >&2
+            exit 1
+          fi
+
+          echo "ASC_KEY_ID=$APP_STORE_CONNECT_KEY_ID" >> "$GITHUB_ENV"
+          echo "ASC_ISSUER_ID=$APP_STORE_CONNECT_ISSUER_ID" >> "$GITHUB_ENV"
+          echo "ASC_KEY_PATH=$key_path" >> "$GITHUB_ENV"
+          echo "EXPORT_OPTIONS_PATH=$RUNNER_TEMP/UrbanTrackCRM-ExportOptions.plist" >> "$GITHUB_ENV"
+
+      - name: Resolve dependencies
+        run: |
+          flutter --version
+          flutter pub get
+
+      - name: Analyze and test
+        run: |
+          flutter analyze
+          flutter test
+
+      - name: Configure Flutter iOS release
+        env:
+          BUILD_NAME: ${{ inputs.build_name }}
+          BUILD_NUMBER: ${{ inputs.build_number }}
+        run: |
+          flutter build ios \
+            --release \
+            --config-only \
+            --no-codesign \
+            --build-name "$BUILD_NAME" \
+            --build-number "$BUILD_NUMBER" \
+            --dart-define=API_BASE_URL=https://api.urbantrack.io
+
+      - name: Archive signed iOS application
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcodebuild \
+            -workspace ios/Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$ARCHIVE_PATH" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$ASC_KEY_PATH" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
+            CODE_SIGN_STYLE=Automatic \
+            archive
+
+      - name: Create App Store export options
+        shell: bash
+        run: |
+          cat > "$EXPORT_OPTIONS_PATH" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>destination</key>
+            <string>export</string>
+            <key>manageAppVersionAndBuildNumber</key>
+            <false/>
+            <key>method</key>
+            <string>app-store-connect</string>
+            <key>signingStyle</key>
+            <string>automatic</string>
+            <key>stripSwiftSymbols</key>
+            <true/>
+            <key>teamID</key>
+            <string>$APPLE_TEAM_ID</string>
+            <key>uploadSymbols</key>
+            <true/>
+          </dict>
+          </plist>
+          PLIST
+          plutil -lint "$EXPORT_OPTIONS_PATH"
+
+      - name: Export signed IPA
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf "$EXPORT_PATH"
+          xcodebuild \
+            -exportArchive \
+            -archivePath "$ARCHIVE_PATH" \
+            -exportPath "$EXPORT_PATH" \
+            -exportOptionsPlist "$EXPORT_OPTIONS_PATH" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$ASC_KEY_PATH" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID"
+
+      - name: Verify exported application
+        shell: bash
+        env:
+          EXPECTED_BUILD_NAME: ${{ inputs.build_name }}
+          EXPECTED_BUILD_NUMBER: ${{ inputs.build_number }}
+        run: |
+          set -euo pipefail
+          ipa_path="$(find "$EXPORT_PATH" -maxdepth 1 -type f -name '*.ipa' -print -quit)"
+          if [[ -z "$ipa_path" ]]; then
+            echo "The export did not produce an IPA." >&2
+            exit 1
+          fi
+
+          verify_directory="$RUNNER_TEMP/urbantrackcrm-ipa"
+          rm -rf "$verify_directory"
+          mkdir -p "$verify_directory"
+          unzip -q "$ipa_path" -d "$verify_directory"
+          app_path="$(find "$verify_directory/Payload" -maxdepth 1 -type d -name '*.app' -print -quit)"
+          if [[ -z "$app_path" ]]; then
+            echo "The IPA does not contain an iOS application bundle." >&2
+            exit 1
+          fi
+
+          info_plist="$app_path/Info.plist"
+          actual_bundle_id="$(plutil -extract CFBundleIdentifier raw "$info_plist")"
+          actual_build_name="$(plutil -extract CFBundleShortVersionString raw "$info_plist")"
+          actual_build_number="$(plutil -extract CFBundleVersion raw "$info_plist")"
+
+          [[ "$actual_bundle_id" == "io.urbantrack.crm.app" ]] || {
+            echo "Unexpected bundle identifier: $actual_bundle_id" >&2
+            exit 1
+          }
+          [[ "$actual_build_name" == "$EXPECTED_BUILD_NAME" ]] || {
+            echo "Unexpected public version: $actual_build_name" >&2
+            exit 1
+          }
+          [[ "$actual_build_number" == "$EXPECTED_BUILD_NUMBER" ]] || {
+            echo "Unexpected build number: $actual_build_number" >&2
+            exit 1
+          }
+
+          codesign --verify --deep --strict "$app_path"
+          echo "IPA_PATH=$ipa_path" >> "$GITHUB_ENV"
+
+      - name: Upload to App Store Connect / TestFlight
+        if: ${{ inputs.upload_to_testflight }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcrun altool \
+            --validate-app \
+            --type ios \
+            -f "$IPA_PATH" \
+            --apiKey "$ASC_KEY_ID" \
+            --apiIssuer "$ASC_ISSUER_ID"
+          xcrun altool \
+            --upload-app \
+            --type ios \
+            -f "$IPA_PATH" \
+            --apiKey "$ASC_KEY_ID" \
+            --apiIssuer "$ASC_ISSUER_ID"
+
+      - name: Upload signed IPA artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: urbantrackcrm-ios-${{ inputs.build_name }}-${{ inputs.build_number }}
+          path: build/ios/ipa/*.ipa
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Write build summary
+        if: ${{ success() }}
+        shell: bash
+        run: |
+          {
+            echo "### UrbanTrackCRM iOS"
+            echo "- Version: ${{ inputs.build_name }} (${{ inputs.build_number }})"
+            echo "- Bundle ID: \`io.urbantrack.crm.app\`"
+            echo "- Signed IPA: validated"
+            if [[ "${{ inputs.upload_to_testflight }}" == "true" ]]; then
+              echo "- App Store Connect upload: requested; Apple will process the build before it appears in TestFlight"
+            else
+              echo "- App Store Connect upload: not requested"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Remove temporary Apple private key
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          if [[ -n "${ASC_KEY_PATH:-}" && -f "$ASC_KEY_PATH" ]]; then
+            rm -f "$ASC_KEY_PATH"
+          fi
