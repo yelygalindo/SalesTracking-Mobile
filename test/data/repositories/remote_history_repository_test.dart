@@ -10,6 +10,95 @@ import 'package:urbantrack/data/repositories/remote_history_repository.dart';
 import 'package:urbantrack/data/services/history_service.dart';
 
 void main() {
+  test('merges missing checkout events into the seller timeline', () async {
+    final service = HistoryService(
+      Uri.parse('https://api.example.test'),
+      MockClient((request) async {
+        if (request.url.path == '/api/sellers/seller-id/timeline') {
+          return http.Response(
+            jsonEncode({
+              'items': [],
+              'pagination': {
+                'page': 1,
+                'pageSize': 100,
+                'totalItems': 0,
+                'totalPages': 0,
+              },
+            }),
+            200,
+          );
+        }
+        expect(request.url.path, '/api/visits');
+        return http.Response(
+          jsonEncode([_visitJson]),
+          200,
+          headers: {'content-type': 'application/json; charset=utf-8'},
+        );
+      }),
+    );
+    final repository = RemoteHistoryRepository(
+      service,
+      _SessionAuthRepository(),
+    );
+
+    final page = await repository.getMyTimeline();
+
+    expect(page.items, hasLength(1));
+    expect(page.items.single.eventType, 'ProjectVisitCheckedOut');
+    expect(page.items.single.resourceExternalId, 'visit-id');
+  });
+
+  test('removes the duplicate visit registration emitted by the API', () async {
+    final service = HistoryService(
+      Uri.parse('https://api.example.test'),
+      MockClient((request) async {
+        if (request.url.path == '/api/visits') {
+          return http.Response('[]', 200);
+        }
+        return http.Response(
+          jsonEncode({
+            'items': [
+              {
+                'externalId': 'visit-id',
+                'eventType': 'Visit',
+                'resourceType': 'Visit',
+                'resourceExternalId': 'project-id',
+                'title': 'Visita registrada',
+                'description': '',
+                'occurredAtUtc': '2026-08-04T11:00:00Z',
+              },
+              {
+                'externalId': 'duplicate-id',
+                'eventType': 'VisitRegistered',
+                'resourceType': 'Project',
+                'resourceExternalId': 'project-id',
+                'title': 'Check-in de visita registrado',
+                'description': '',
+                'occurredAtUtc': '2026-08-04T11:00:01Z',
+              },
+            ],
+            'pagination': {
+              'page': 1,
+              'pageSize': 100,
+              'totalItems': 2,
+              'totalPages': 1,
+            },
+          }),
+          200,
+        );
+      }),
+    );
+    final repository = RemoteHistoryRepository(
+      service,
+      _SessionAuthRepository(),
+    );
+
+    final page = await repository.getMyTimeline();
+
+    expect(page.items, hasLength(1));
+    expect(page.items.single.eventType, 'Visit');
+  });
+
   test(
     'falls back to visit history when seller timeline is forbidden',
     () async {
@@ -40,10 +129,10 @@ void main() {
         to: DateTime.utc(2026, 8, 4),
       );
 
-      expect(requestedPaths, [
-        '/api/sellers/seller-id/timeline',
-        '/api/visits',
-      ]);
+      expect(
+        requestedPaths,
+        unorderedEquals(['/api/sellers/seller-id/timeline', '/api/visits']),
+      );
       expect(page.items, hasLength(2));
       expect(page.items.first.title, 'Visita finalizada · Obra Norte');
       expect(page.items.last.title, 'Visita iniciada · Obra Norte');

@@ -4,12 +4,16 @@ import 'package:go_router/go_router.dart';
 import '../../data/models/customer/customer_detail.dart';
 import '../../data/models/customer/customer_note.dart';
 import '../../data/models/customer/customer_reminder.dart';
+import '../../data/models/history/project_visit.dart';
+import '../../data/models/history/seller_timeline_item.dart';
 import '../../data/repositories/customer_repository.dart';
+import '../../data/repositories/history_repository.dart';
 import '../../data/repositories/visit_repository.dart';
 import '../../data/models/visit/visit_target_type.dart';
 import '../../routing/app_router.dart';
 import '../core/branding/brand_scope.dart';
 import '../core/device_actions.dart';
+import '../core/presentation_labels.dart';
 import 'customer_detail_view_model.dart';
 import '../visits/visit_action_card.dart';
 
@@ -18,12 +22,14 @@ class CustomerDetailScreen extends StatefulWidget {
     required this.repository,
     required this.externalId,
     required this.visitRepository,
+    this.historyRepository,
     super.key,
   });
 
   final CustomerRepository repository;
   final String externalId;
   final VisitRepository visitRepository;
+  final HistoryRepository? historyRepository;
 
   @override
   State<CustomerDetailScreen> createState() => _CustomerDetailScreenState();
@@ -38,8 +44,11 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _viewModel = CustomerDetailViewModel(widget.repository, widget.externalId)
-      ..load();
+    _viewModel = CustomerDetailViewModel(
+      widget.repository,
+      widget.externalId,
+      historyRepository: widget.historyRepository,
+    )..load();
   }
 
   @override
@@ -192,6 +201,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                               targetType: VisitTargetType.customer,
                               targetExternalId: customer.externalId,
                               targetName: customer.name,
+                              onActivityChanged: _viewModel.reloadHistory,
                             ),
                             const SizedBox(height: 12),
                             _CustomerQuickActions(
@@ -264,7 +274,11 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                               const SizedBox(height: 8),
                               _NoteList(notes: customer.notes),
                             ] else
-                              _CustomerHistory(customer: customer),
+                              _CustomerHistory(
+                                customer: customer,
+                                timeline: _viewModel.timeline,
+                                visits: _viewModel.visits,
+                              ),
                           ],
                         ),
                       ),
@@ -453,20 +467,53 @@ class _CustomerSectionTabs extends StatelessWidget {
 }
 
 class _CustomerHistory extends StatelessWidget {
-  const _CustomerHistory({required this.customer});
+  const _CustomerHistory({
+    required this.customer,
+    required this.timeline,
+    required this.visits,
+  });
 
   final CustomerDetail customer;
+  final List<SellerTimelineItem> timeline;
+  final List<ProjectVisit> visits;
 
   @override
   Widget build(BuildContext context) {
-    final events = <({String title, DateTime date})>[];
+    final events = <({String title, String description, DateTime date})>[
+      for (final item in timeline)
+        (
+          title: timelineEventTitle(
+            eventType: item.eventType,
+            serverTitle: item.title,
+          ),
+          description: item.description,
+          date: item.occurredAtUtc,
+        ),
+      for (final visit in visits) ...[
+        (
+          title: 'Visita iniciada',
+          description: visit.notes?.trim() ?? '',
+          date: visit.visitedAtUtc,
+        ),
+        if (visit.checkOutAtUtc case final checkOutAt?)
+          (
+            title: 'Visita finalizada',
+            description: _visitCompletionDescription(visit),
+            date: checkOutAt,
+          ),
+      ],
+    ];
     final updatedAt = customer.updatedAtUtc;
     final createdAt = customer.createdAtUtc;
-    if (updatedAt != null && updatedAt != createdAt) {
-      events.add((title: 'Cliente actualizado', date: updatedAt));
+    if (timeline.isEmpty && updatedAt != null && updatedAt != createdAt) {
+      events.add((
+        title: 'Cliente actualizado',
+        description: '',
+        date: updatedAt,
+      ));
     }
-    if (createdAt != null) {
-      events.add((title: 'Cliente creado', date: createdAt));
+    if (timeline.isEmpty && createdAt != null) {
+      events.add((title: 'Cliente creado', description: '', date: createdAt));
     }
     events.sort((left, right) => right.date.compareTo(left.date));
 
@@ -516,6 +563,16 @@ class _CustomerHistory extends StatelessWidget {
                               fontSize: 12,
                             ),
                           ),
+                          if (event.description.trim().isNotEmpty) ...[
+                            const SizedBox(height: 3),
+                            Text(
+                              event.description.trim(),
+                              style: const TextStyle(
+                                color: Color(0xFF6F788A),
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -932,4 +989,13 @@ String _dateTime(DateTime utc) {
       '${local.month.toString().padLeft(2, '0')} · '
       '${local.hour.toString().padLeft(2, '0')}:'
       '${local.minute.toString().padLeft(2, '0')}';
+}
+
+String _visitCompletionDescription(ProjectVisit visit) {
+  final parts = <String>[
+    if (visit.result?.trim().isNotEmpty == true) visit.result!.trim(),
+    if (visit.checkOutNote?.trim().isNotEmpty == true)
+      visit.checkOutNote!.trim(),
+  ];
+  return parts.join(' · ');
 }

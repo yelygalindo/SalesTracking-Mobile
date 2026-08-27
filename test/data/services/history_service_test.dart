@@ -114,6 +114,65 @@ void main() {
       DateTime.utc(2026, 8, 4, 12),
     );
   });
+
+  test('loads customer timeline and preserves author information', () async {
+    final service = HistoryService(
+      Uri.parse('https://api.example.test'),
+      MockClient((request) async {
+        expect(request.url.path, '/api/customers/customer-id/timeline');
+        return http.Response(
+          jsonEncode({
+            'items': [
+              {
+                'externalId': 'event-id',
+                'eventType': 'CustomerNoteAdded',
+                'description': 'Nota agregada al cliente.',
+                'createdAtUtc': '2026-08-04T11:00:00Z',
+                'createdBy': {'externalId': 'seller-id', 'name': 'Ana'},
+              },
+            ],
+            'pagination': {
+              'page': 1,
+              'pageSize': 20,
+              'totalItems': 1,
+              'totalPages': 1,
+            },
+          }),
+          200,
+        );
+      }),
+    );
+
+    final items = await service.getCustomerTimeline(
+      'access-token',
+      'customer-id',
+    );
+
+    expect(items.single.eventType, 'CustomerNoteAdded');
+    expect(items.single.description, 'Nota agregada al cliente. · Ana');
+  });
+
+  test('loads visits associated with a customer', () async {
+    final service = HistoryService(
+      Uri.parse('https://api.example.test'),
+      MockClient((request) async {
+        expect(request.url.path, '/api/customers/customer-id/visits');
+        return http.Response(
+          jsonEncode([_visitJson]),
+          200,
+          headers: {'content-type': 'application/json; charset=utf-8'},
+        );
+      }),
+    );
+
+    final visits = await service.getCustomerVisits(
+      'access-token',
+      'customer-id',
+    );
+
+    expect(visits.single.customerExternalId, 'customer-id');
+    expect(visits.single.checkOutAtUtc, isNotNull);
+  });
 }
 
 final _timelineJson = {

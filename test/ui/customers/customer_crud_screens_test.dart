@@ -9,6 +9,7 @@ import 'package:urbantrack/data/models/customer/customer_note.dart';
 import 'package:urbantrack/data/models/customer/customer_page.dart';
 import 'package:urbantrack/data/models/customer/customer_reminder.dart';
 import 'package:urbantrack/data/models/customer/customer_status.dart';
+import 'package:urbantrack/data/models/history/seller_timeline_item.dart';
 import 'package:urbantrack/data/repositories/customer_repository.dart';
 import 'package:urbantrack/data/services/location_service.dart';
 import 'package:urbantrack/ui/core/branding/brand_scope.dart';
@@ -30,6 +31,7 @@ void main() {
           home: CustomerDetailScreen(
             repository: _ScreenCustomerRepository(),
             visitRepository: EmptyVisitRepository(),
+            historyRepository: _ScreenHistoryRepository(),
             externalId: 'customer-id',
           ),
         ),
@@ -48,7 +50,8 @@ void main() {
 
     await tester.tap(find.text('Historial'));
     await tester.pumpAndSettle();
-    expect(find.text('Cliente creado'), findsOneWidget);
+    expect(find.text('Nota agregada'), findsOneWidget);
+    expect(find.text('Nota agregada al cliente.'), findsOneWidget);
     expect(find.text('Solicitó una cotización.'), findsNothing);
 
     await tester.tap(find.text('Seguimiento'));
@@ -77,6 +80,23 @@ void main() {
     expect(find.text('Usar ubicación actual'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+}
+
+class _ScreenHistoryRepository extends EmptyHistoryRepository {
+  @override
+  Future<List<SellerTimelineItem>> getCustomerTimeline(
+    String customerExternalId,
+  ) async => [
+    SellerTimelineItem(
+      externalId: 'event-id',
+      eventType: 'CustomerNoteAdded',
+      resourceType: 'Customer',
+      resourceExternalId: customerExternalId,
+      title: '',
+      description: 'Nota agregada al cliente.',
+      occurredAtUtc: DateTime.utc(2026, 8, 4, 11),
+    ),
+  ];
 }
 
 class _ScreenCustomerRepository implements CustomerRepository {

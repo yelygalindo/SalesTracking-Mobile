@@ -3,7 +3,10 @@ import 'package:uuid/uuid.dart';
 
 import '../../data/models/customer/customer_detail.dart';
 import '../../data/models/customer/customer_status.dart';
+import '../../data/models/history/project_visit.dart';
+import '../../data/models/history/seller_timeline_item.dart';
 import '../../data/repositories/customer_repository.dart';
+import '../../data/repositories/history_repository.dart';
 import '../../data/services/api_exception.dart';
 
 enum CustomerDetailViewStatus {
@@ -18,21 +21,28 @@ class CustomerDetailViewModel extends ChangeNotifier {
   CustomerDetailViewModel(
     this._repository,
     this.externalId, {
+    HistoryRepository? historyRepository,
     String Function()? requestId,
-  }) : _requestId = requestId ?? const Uuid().v4;
+  }) : _historyRepository = historyRepository,
+       _requestId = requestId ?? const Uuid().v4;
 
   final CustomerRepository _repository;
   final String externalId;
+  final HistoryRepository? _historyRepository;
   final String Function() _requestId;
 
   CustomerDetailViewStatus _status = CustomerDetailViewStatus.initial;
   CustomerDetail? _customer;
   List<CustomerStatus> _statuses = const [];
+  List<SellerTimelineItem> _timeline = const [];
+  List<ProjectVisit> _visits = const [];
   String? _errorMessage;
 
   CustomerDetailViewStatus get status => _status;
   CustomerDetail? get customer => _customer;
   List<CustomerStatus> get statuses => _statuses;
+  List<SellerTimelineItem> get timeline => _timeline;
+  List<ProjectVisit> get visits => _visits;
   String? get errorMessage => _errorMessage;
   bool get isBusy =>
       _status == CustomerDetailViewStatus.loading ||
@@ -51,6 +61,11 @@ class CustomerDetailViewModel extends ChangeNotifier {
       ]);
       _customer = results[0] as CustomerDetail;
       _statuses = results[1] as List<CustomerStatus>;
+      _status = CustomerDetailViewStatus.ready;
+      notifyListeners();
+      await _loadHistory();
+      notifyListeners();
+      return;
     } on ApiException catch (error) {
       _errorMessage = error.message;
     } catch (_) {
@@ -58,6 +73,11 @@ class CustomerDetailViewModel extends ChangeNotifier {
     }
 
     _status = CustomerDetailViewStatus.ready;
+    notifyListeners();
+  }
+
+  Future<void> reloadHistory() async {
+    await _loadHistory();
     notifyListeners();
   }
 
@@ -71,6 +91,7 @@ class CustomerDetailViewModel extends ChangeNotifier {
     try {
       await _repository.changeStatus(externalId, status.value);
       _customer = await _repository.getCustomer(externalId);
+      await _loadHistory();
       _status = CustomerDetailViewStatus.ready;
       notifyListeners();
       return true;
@@ -132,6 +153,7 @@ class CustomerDetailViewModel extends ChangeNotifier {
     try {
       await action();
       _customer = await _repository.getCustomer(externalId);
+      await _loadHistory();
       _status = CustomerDetailViewStatus.ready;
       notifyListeners();
       return true;
@@ -143,5 +165,16 @@ class CustomerDetailViewModel extends ChangeNotifier {
     _status = CustomerDetailViewStatus.ready;
     notifyListeners();
     return false;
+  }
+
+  Future<void> _loadHistory() async {
+    final repository = _historyRepository;
+    if (repository == null || externalId.startsWith('local:')) return;
+    final results = await Future.wait<Object>([
+      repository.getCustomerTimeline(externalId).catchError((_) => _timeline),
+      repository.getCustomerVisits(externalId).catchError((_) => _visits),
+    ]);
+    _timeline = results[0] as List<SellerTimelineItem>;
+    _visits = results[1] as List<ProjectVisit>;
   }
 }

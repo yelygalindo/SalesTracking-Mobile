@@ -6,6 +6,7 @@ import '../../data/models/history/seller_timeline_item.dart';
 import '../../data/repositories/history_repository.dart';
 import '../../routing/app_router.dart';
 import '../core/branding/brand_scope.dart';
+import '../core/presentation_labels.dart';
 import '../core/navigation/app_primary_navigation_bar.dart';
 import 'history_view_model.dart';
 import 'visit_photo_strip.dart';
@@ -250,9 +251,12 @@ class _TimelineRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    item.title.isEmpty
-                        ? presentation.fallbackTitle
-                        : item.title,
+                    timelineEventTitle(
+                      eventType: item.eventType,
+                      serverTitle: item.title.isEmpty
+                          ? presentation.fallbackTitle
+                          : item.title,
+                    ),
                     style: const TextStyle(fontWeight: FontWeight.w900),
                   ),
                   if (item.description.trim().isNotEmpty) ...[

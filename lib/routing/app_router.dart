@@ -261,6 +261,7 @@ abstract final class AppRouter {
           builder: (context, state) => CustomerDetailScreen(
             repository: customerRepository,
             visitRepository: visitRepository,
+            historyRepository: historyRepository,
             externalId: state.pathParameters['externalId']!,
           ),
         ),

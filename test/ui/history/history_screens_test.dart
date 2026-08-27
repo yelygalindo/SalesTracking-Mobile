@@ -65,6 +65,16 @@ void main() {
 
 class _HistoryScreenRepository implements HistoryRepository {
   @override
+  Future<List<SellerTimelineItem>> getCustomerTimeline(
+    String customerExternalId,
+  ) async => const [];
+
+  @override
+  Future<List<ProjectVisit>> getCustomerVisits(
+    String customerExternalId,
+  ) async => const [];
+
+  @override
   Future<List<ProjectAttachment>> getVisitAttachments(
     String visitExternalId,
   ) async => [

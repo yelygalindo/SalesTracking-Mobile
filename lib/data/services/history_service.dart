@@ -5,7 +5,9 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 
 import '../models/attachment/project_attachment.dart';
+import '../models/common/utc_date_time.dart';
 import '../models/history/project_visit.dart';
+import '../models/history/seller_timeline_item.dart';
 import '../models/history/seller_timeline_page.dart';
 import 'api_exception.dart';
 
@@ -102,6 +104,66 @@ class HistoryService {
     }
     throw const ApiException(
       message: 'El servidor devolvió un historial de visitas no válido.',
+    );
+  }
+
+  Future<List<SellerTimelineItem>> getCustomerTimeline(
+    String accessToken,
+    String customerExternalId,
+  ) async {
+    final uri = _baseUrl
+        .resolve(
+          '/api/customers/${Uri.encodeComponent(customerExternalId)}/timeline',
+        )
+        .replace(queryParameters: {'Page': '1', 'PageSize': '100'});
+    final response = await _get(uri, accessToken);
+    final decoded = _decodeObject(response.bodyBytes);
+    final rawItems = decoded['items'];
+    if (rawItems is! List) {
+      throw const ApiException(
+        message: 'El servidor devolvió un historial de cliente no válido.',
+      );
+    }
+    return rawItems
+        .whereType<Map<String, dynamic>>()
+        .map((json) {
+          final createdBy = json['createdBy'];
+          final author = createdBy is Map<String, dynamic>
+              ? createdBy['name'] as String? ?? ''
+              : '';
+          final description = json['description'] as String? ?? '';
+          return SellerTimelineItem(
+            externalId: json['externalId'] as String? ?? '',
+            eventType: json['eventType'] as String? ?? '',
+            resourceType: 'Customer',
+            resourceExternalId: customerExternalId,
+            title: '',
+            description: author.trim().isEmpty
+                ? description
+                : '$description · ${author.trim()}',
+            occurredAtUtc: parseUtcDateTime(json['createdAtUtc']),
+          );
+        })
+        .toList(growable: false);
+  }
+
+  Future<List<ProjectVisit>> getCustomerVisits(
+    String accessToken,
+    String customerExternalId,
+  ) async {
+    final uri = _baseUrl.resolve(
+      '/api/customers/${Uri.encodeComponent(customerExternalId)}/visits',
+    );
+    final response = await _get(uri, accessToken);
+    final decoded = _decode(response.bodyBytes);
+    if (decoded is List) {
+      return decoded
+          .whereType<Map<String, dynamic>>()
+          .map(ProjectVisit.fromJson)
+          .toList(growable: false);
+    }
+    throw const ApiException(
+      message: 'El servidor devolvió visitas de cliente no válidas.',
     );
   }
 

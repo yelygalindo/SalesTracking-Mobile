@@ -28,6 +28,7 @@ import 'package:urbantrack/data/repositories/visit_repository.dart';
 import 'package:urbantrack/data/repositories/project_attachment_repository.dart';
 import 'package:urbantrack/data/repositories/history_repository.dart';
 import 'package:urbantrack/data/models/history/project_visit.dart';
+import 'package:urbantrack/data/models/history/seller_timeline_item.dart';
 import 'package:urbantrack/data/models/history/seller_timeline_page.dart';
 import 'package:urbantrack/data/services/location_service.dart';
 import 'package:urbantrack/data/services/network_status_service.dart';
@@ -386,6 +387,16 @@ class EmptyAttachmentRepository implements ProjectAttachmentRepository {
 }
 
 class EmptyHistoryRepository implements HistoryRepository {
+  @override
+  Future<List<SellerTimelineItem>> getCustomerTimeline(
+    String customerExternalId,
+  ) async => const [];
+
+  @override
+  Future<List<ProjectVisit>> getCustomerVisits(
+    String customerExternalId,
+  ) async => const [];
+
   @override
   Future<List<ProjectAttachment>> getVisitAttachments(
     String visitExternalId,

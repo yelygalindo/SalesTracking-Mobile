@@ -12,6 +12,7 @@ class VisitActionCard extends StatefulWidget {
     required this.targetType,
     required this.targetExternalId,
     required this.targetName,
+    this.onActivityChanged,
     super.key,
   });
 
@@ -19,6 +20,7 @@ class VisitActionCard extends StatefulWidget {
   final VisitTargetType targetType;
   final String targetExternalId;
   final String targetName;
+  final Future<void> Function()? onActivityChanged;
 
   @override
   State<VisitActionCard> createState() => _VisitActionCardState();
@@ -62,12 +64,18 @@ class _VisitActionCardState extends State<VisitActionCard> {
         widget.targetName,
       ),
     );
-    if (changed == true) await _load();
+    if (changed == true) {
+      await _load();
+      await widget.onActivityChanged?.call();
+    }
   }
 
   Future<void> _finish() async {
     final changed = await context.push<bool>(AppRoutes.visitCheckOut);
-    if (changed == true) await _load();
+    if (changed == true) {
+      await _load();
+      await widget.onActivityChanged?.call();
+    }
   }
 
   Future<void> _addPhotos(CurrentVisit visit) async {
@@ -75,6 +83,8 @@ class _VisitActionCardState extends State<VisitActionCard> {
       AppRoutes.projectAttachments(widget.targetExternalId, visit.externalId),
     );
     if (changed == true && mounted) {
+      await widget.onActivityChanged?.call();
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Fotografías guardadas.')));

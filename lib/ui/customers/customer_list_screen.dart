@@ -5,6 +5,7 @@ import '../../data/models/customer/customer_summary.dart';
 import '../../data/repositories/customer_repository.dart';
 import '../../routing/app_router.dart';
 import '../core/branding/brand_scope.dart';
+import '../core/presentation_labels.dart';
 import '../core/navigation/app_primary_navigation_bar.dart';
 import 'customer_list_view_model.dart';
 
@@ -97,6 +98,8 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                             Text(
                               _viewModel.totalItems == 0
                                   ? 'Clientes'
+                                  : _viewModel.totalItems == 1
+                                  ? '1 cliente'
                                   : '${_viewModel.totalItems} clientes',
                               style: Theme.of(context).textTheme.headlineSmall
                                   ?.copyWith(fontWeight: FontWeight.w900),
@@ -369,7 +372,7 @@ class _CustomerStatusBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
-        status.isEmpty ? 'Sin estado' : status,
+        status.isEmpty ? 'Sin estado' : customerStatusLabel(status),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: TextStyle(

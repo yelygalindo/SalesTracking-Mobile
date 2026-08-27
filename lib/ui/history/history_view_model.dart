@@ -30,7 +30,7 @@ class HistoryViewModel extends ChangeNotifier {
 
   List<ProjectAttachment> attachmentsFor(SellerTimelineItem item) {
     if (!_photoHostEventIds.contains(item.externalId)) return const [];
-    return _attachmentsByVisit[item.resourceExternalId] ?? const [];
+    return _attachmentsByVisit[_visitExternalId(item)] ?? const [];
   }
 
   Future<void> selectDate(DateTime date) async {
@@ -83,8 +83,7 @@ class HistoryViewModel extends ChangeNotifier {
 
   Future<void> _loadAttachments(List<SellerTimelineItem> items) async {
     final visitIds = items
-        .where(_isVisitItem)
-        .map((item) => item.resourceExternalId.trim())
+        .map(_visitExternalId)
         .where((externalId) => externalId.isNotEmpty)
         .toSet()
         .where((externalId) => !_attachmentsByVisit.containsKey(externalId));
@@ -112,7 +111,7 @@ bool _isVisitItem(SellerTimelineItem item) {
 Set<String> _selectPhotoHosts(List<SellerTimelineItem> items) {
   final byVisit = <String, List<SellerTimelineItem>>{};
   for (final item in items.where(_isVisitItem)) {
-    final visitId = item.resourceExternalId.trim();
+    final visitId = _visitExternalId(item);
     if (visitId.isEmpty) continue;
     byVisit.putIfAbsent(visitId, () => []).add(item);
   }
@@ -121,6 +120,18 @@ Set<String> _selectPhotoHosts(List<SellerTimelineItem> items) {
       (entries.where(_isVisitCompletion).firstOrNull ?? entries.first)
           .externalId,
   };
+}
+
+String _visitExternalId(SellerTimelineItem item) {
+  final eventType = item.eventType.trim().toLowerCase();
+  if (eventType == 'visit') return item.externalId.trim();
+  final resourceType = item.resourceType.trim().toLowerCase();
+  if (resourceType.contains('projectvisit') ||
+      eventType.contains('checkedin') ||
+      eventType.contains('checkedout')) {
+    return item.resourceExternalId.trim();
+  }
+  return '';
 }
 
 bool _isVisitCompletion(SellerTimelineItem item) {

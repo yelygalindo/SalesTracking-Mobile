@@ -12,6 +12,7 @@ import '../../data/repositories/visit_repository.dart';
 import '../../data/models/visit/visit_target_type.dart';
 import '../../routing/app_router.dart';
 import '../core/branding/brand_scope.dart';
+import '../core/presentation_labels.dart';
 import '../core/device_actions.dart';
 import '../history/visit_photo_strip.dart';
 import 'project_detail_view_model.dart';
@@ -276,6 +277,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                               targetType: VisitTargetType.project,
                               targetExternalId: project.externalId,
                               targetName: project.name,
+                              onActivityChanged: _viewModel.reloadActivity,
                             ),
                             const SizedBox(height: 12),
                             _ProjectQuickActions(
@@ -533,7 +535,7 @@ class _ProjectMetadata extends StatelessWidget {
     final items = <_ProjectMetadataItem>[
       _ProjectMetadataItem(
         label: 'Estado',
-        value: project.status,
+        value: projectStatusLabel(project.status),
         icon: Icons.swap_horiz,
         onTap: canChangeStatus && !changingStatus ? onChangeStatus : null,
         key: const ValueKey('change-project-status-button'),

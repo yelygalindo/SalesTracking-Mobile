@@ -6,6 +6,7 @@ import '../../data/repositories/customer_repository.dart';
 import '../../data/repositories/project_repository.dart';
 import '../../routing/app_router.dart';
 import '../core/branding/brand_scope.dart';
+import '../core/presentation_labels.dart';
 import '../core/navigation/app_primary_navigation_bar.dart';
 import 'project_list_view_model.dart';
 
@@ -347,7 +348,7 @@ class _StatusBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
-        status.isEmpty ? 'Sin estado' : status,
+        status.isEmpty ? 'Sin estado' : projectStatusLabel(status),
         style: const TextStyle(
           color: Color(0xFF287A43),
           fontSize: 11,
