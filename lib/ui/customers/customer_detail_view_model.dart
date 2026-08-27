@@ -21,10 +21,9 @@ class CustomerDetailViewModel extends ChangeNotifier {
   CustomerDetailViewModel(
     this._repository,
     this.externalId, {
-    HistoryRepository? historyRepository,
+    this._historyRepository,
     String Function()? requestId,
-  }) : _historyRepository = historyRepository,
-       _requestId = requestId ?? const Uuid().v4;
+  }) : _requestId = requestId ?? const Uuid().v4;
 
   final CustomerRepository _repository;
   final String externalId;
