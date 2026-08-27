@@ -28,6 +28,8 @@
 	<true/>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>UrbanTrackCRM utiliza tu ubicación al iniciar y finalizar jornadas y visitas.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>UrbanTrackCRM utiliza tu ubicación para completar el registro de jornadas y visitas cuando lo solicitas.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>UrbanTrackCRM utiliza la cámara para registrar evidencia fotográfica de las visitas a obras.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
