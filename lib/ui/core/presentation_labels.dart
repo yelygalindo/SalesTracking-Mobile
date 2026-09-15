@@ -32,7 +32,7 @@ String timelineEventTitle({
   required String eventType,
   required String serverTitle,
 }) {
-  final normalized = eventType.trim().toLowerCase();
+  final normalized = _normalizedEventCode(eventType);
   final localized = switch (normalized) {
     'customernoteadded' => 'Nota agregada',
     'customerremindercreated' => 'Recordatorio creado',
@@ -40,19 +40,37 @@ String timelineEventTitle({
     'customerstatuschanged' => 'Estado comercial actualizado',
     'customerupdated' => 'Cliente actualizado',
     'customercreated' => 'Cliente creado',
+    'projectnoteadded' => 'Nota agregada',
+    'projectremindercreated' => 'Recordatorio creado',
+    'projectremindercompleted' => 'Recordatorio completado',
+    'projectstatuschanged' => 'Estado de obra actualizado',
+    'projectprogressupdated' ||
+    'projectprogresschanged' => 'Avance actualizado',
+    'projectupdated' => 'Obra actualizada',
+    'projectcreated' => 'Obra creada',
     'projectvisitcheckedin' => 'Visita iniciada',
-    'projectvisitcheckedout' => 'Visita finalizada',
+    'projectvisitcheckedout' || 'projectvisitcompleted' => 'Visita finalizada',
     'visitregistered' || 'visit' => 'Visita registrada',
     'attachmentuploaded' => 'Archivo agregado a la visita',
     'workdaystarted' => 'Jornada iniciada',
-    'workdayended' => 'Jornada finalizada',
+    'workdayended' || 'workdayclosed' => 'Jornada finalizada',
     _ => '',
   };
   final title = serverTitle.trim();
-  if (title.isNotEmpty && title.toLowerCase() != normalized) return title;
-  if (localized.isNotEmpty) return localized;
-  return title.isEmpty ? _readableFallback(eventType) : title;
+  if (localized.isNotEmpty) {
+    if (title.toLowerCase().startsWith(localized.toLowerCase())) return title;
+    return localized;
+  }
+  if (title.isNotEmpty &&
+      (title.contains(RegExp(r'\s')) ||
+          _normalizedEventCode(title) != normalized)) {
+    return title;
+  }
+  return 'Actividad registrada';
 }
+
+String _normalizedEventCode(String value) =>
+    value.trim().toLowerCase().replaceAll(RegExp('[^a-z0-9]'), '');
 
 String _readableFallback(String value) {
   final normalized = value

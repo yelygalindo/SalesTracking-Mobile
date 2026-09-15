@@ -230,10 +230,10 @@ class _ProjectGrid extends StatelessWidget {
                 return _ProjectCard(
                   project: project,
                   onTap: () async {
-                    final changed = await context.push<bool>(
+                    await context.push<void>(
                       AppRoutes.projectDetail(project.externalId),
                     );
-                    if (changed == true) await viewModel.refresh();
+                    if (context.mounted) await viewModel.refresh();
                   },
                 );
               },

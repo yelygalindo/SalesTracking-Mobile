@@ -1,0 +1,153 @@
+name: Android signed app bundle
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_name:
+        description: Public version shown in Google Play
+        required: true
+        default: "1.0.0"
+        type: string
+      build_number:
+        description: Unique Android version code
+        required: true
+        default: "16"
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-distribution-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-android-distribution:
+    name: Build signed Android AAB
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Install Java 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Install Flutter 3.44.9
+        shell: bash
+        run: |
+          git clone \
+            --branch 3.44.9 \
+            --depth 1 \
+            https://github.com/flutter/flutter.git \
+            "$RUNNER_TEMP/flutter"
+          echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
+
+      - name: Validate release inputs
+        shell: bash
+        env:
+          BUILD_NAME: ${{ inputs.build_name }}
+          BUILD_NUMBER: ${{ inputs.build_number }}
+          ANDROID_UPLOAD_KEYSTORE_BASE64: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_BASE64 }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+        run: |
+          set -euo pipefail
+
+          if [[ ! "$BUILD_NAME" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "build_name must use the format 1.0.0." >&2
+            exit 1
+          fi
+          if [[ ! "$BUILD_NUMBER" =~ ^[1-9][0-9]*$ ]]; then
+            echo "build_number must be a positive integer." >&2
+            exit 1
+          fi
+          for secret_name in \
+            ANDROID_UPLOAD_KEYSTORE_BASE64 \
+            ANDROID_KEY_ALIAS \
+            ANDROID_KEY_PASSWORD \
+            ANDROID_STORE_PASSWORD; do
+            if [[ -z "${!secret_name}" ]]; then
+              echo "Repository secret $secret_name is missing." >&2
+              exit 1
+            fi
+          done
+
+      - name: Prepare Android upload key
+        shell: bash
+        env:
+          ANDROID_UPLOAD_KEYSTORE_BASE64: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_BASE64 }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+        run: |
+          set -euo pipefail
+          keystore_path="$RUNNER_TEMP/urbantrack-upload.jks"
+          printf '%s' "$ANDROID_UPLOAD_KEYSTORE_BASE64" | base64 --decode > "$keystore_path"
+          chmod 600 "$keystore_path"
+          cat > android/key.properties <<PROPERTIES
+          storePassword=$ANDROID_STORE_PASSWORD
+          keyPassword=$ANDROID_KEY_PASSWORD
+          keyAlias=$ANDROID_KEY_ALIAS
+          storeFile=$keystore_path
+          PROPERTIES
+          chmod 600 android/key.properties
+
+      - name: Resolve dependencies
+        run: |
+          flutter --version
+          flutter pub get
+
+      - name: Analyze and test
+        run: |
+          flutter analyze
+          flutter test
+
+      - name: Build signed Android app bundle
+        env:
+          BUILD_NAME: ${{ inputs.build_name }}
+          BUILD_NUMBER: ${{ inputs.build_number }}
+        run: |
+          flutter build appbundle \
+            --release \
+            --build-name "$BUILD_NAME" \
+            --build-number "$BUILD_NUMBER" \
+            --dart-define=API_BASE_URL=https://api.urbantrack.io
+
+      - name: Verify signed app bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          aab_path="build/app/outputs/bundle/release/app-release.aab"
+          test -s "$aab_path"
+          jarsigner -verify "$aab_path"
+
+      - name: Upload signed AAB artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: urbantrackcrm-android-${{ inputs.build_name }}-${{ inputs.build_number }}
+          path: build/app/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Write build summary
+        if: ${{ success() }}
+        shell: bash
+        run: |
+          {
+            echo "### UrbanTrackCRM Android"
+            echo "- Version: ${{ inputs.build_name }} (${{ inputs.build_number }})"
+            echo "- Application ID: \`io.urbantrack.crm.app\`"
+            echo "- Signed AAB: validated"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Remove temporary signing files
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          rm -f android/key.properties "$RUNNER_TEMP/urbantrack-upload.jks"

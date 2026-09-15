@@ -7,6 +7,7 @@ import '../../data/models/customer/customer_input.dart';
 import '../../data/repositories/customer_repository.dart';
 import '../../data/services/api_exception.dart';
 import '../../data/services/location_service.dart';
+import '../core/input_validators.dart';
 
 enum CustomerFormViewStatus { initial, loading, ready, locating, saving }
 
@@ -97,6 +98,11 @@ class CustomerFormViewModel extends ChangeNotifier {
         companyName.trim().isEmpty ||
         phone.trim().isEmpty) {
       _errorMessage = 'Completa los campos obligatorios.';
+      notifyListeners();
+      return false;
+    }
+    if (optionalEmailValidationError(email) case final emailError?) {
+      _errorMessage = emailError;
       notifyListeners();
       return false;
     }

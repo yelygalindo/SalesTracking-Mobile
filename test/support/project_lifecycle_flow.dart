@@ -223,6 +223,10 @@ Future<void> runProjectLifecycleFlow(WidgetTester tester) async {
   expect(visits.checkOutLocation?.longitude, -77.0428);
   expect(visits.current, isNull);
   expect(find.byKey(const ValueKey('start-visit-button')), findsOneWidget);
+
+  await tester.pageBack();
+  await _pumpUi(tester);
+  expect(find.text('Avance 55%'), findsOneWidget);
 }
 
 Future<void> _pumpUi(WidgetTester tester) async {

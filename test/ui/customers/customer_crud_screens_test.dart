@@ -78,6 +78,11 @@ void main() {
     expect(find.text('Teléfono *'), findsOneWidget);
     expect(find.text('Correo (opcional)'), findsOneWidget);
     expect(find.text('Usar ubicación actual'), findsOneWidget);
+    expect(
+      find.text('El vendedor será asignado automáticamente.'),
+      findsOneWidget,
+    );
+    expect(find.textContaining('backend'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 }

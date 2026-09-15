@@ -958,7 +958,10 @@ class _ProjectTimelinePanel extends StatelessWidget {
                     bottom: index == items.length - 1 ? 0 : 14,
                   ),
                   child: _ActivityItem(
-                    title: item.title.isEmpty ? item.eventTypeName : item.title,
+                    title: timelineEventTitle(
+                      eventType: item.eventTypeName,
+                      serverTitle: item.title,
+                    ),
                     description: item.description,
                     metadata: _activityMetadata(
                       item.occurredAtUtc,

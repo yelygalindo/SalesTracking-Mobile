@@ -232,10 +232,10 @@ class _CustomerResults extends StatelessWidget {
             return _CustomerCard(
               customer: customer,
               onTap: () async {
-                final changed = await context.push<bool>(
+                await context.push<void>(
                   AppRoutes.customerDetail(customer.externalId),
                 );
-                if (changed == true) await viewModel.refresh();
+                if (context.mounted) await viewModel.refresh();
               },
             );
           },

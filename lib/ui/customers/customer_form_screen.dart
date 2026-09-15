@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../data/repositories/customer_repository.dart';
 import '../../data/services/location_service.dart';
+import '../core/input_validators.dart';
 import 'customer_form_view_model.dart';
 
 class CustomerFormScreen extends StatefulWidget {
@@ -173,7 +174,7 @@ class _CustomerFormScreenState extends State<CustomerFormScreen> {
                                   SizedBox(width: 10),
                                   Expanded(
                                     child: Text(
-                                      'El backend asignará por defecto al vendedor que registra el cliente.',
+                                      'El vendedor será asignado automáticamente.',
                                       style: TextStyle(
                                         color: Color(0xFF6F788A),
                                         fontSize: 12,
@@ -250,12 +251,7 @@ class _ContactFields extends StatelessWidget {
             labelText: 'Correo (opcional)',
             hintText: 'correo@empresa.com',
           ),
-          validator: (value) {
-            final normalized = value?.trim() ?? '';
-            if (normalized.isEmpty) return null;
-            if (!normalized.contains('@')) return 'Ingresa un correo válido.';
-            return null;
-          },
+          validator: optionalEmailValidationError,
         );
         if (constraints.maxWidth >= 600) {
           return Row(

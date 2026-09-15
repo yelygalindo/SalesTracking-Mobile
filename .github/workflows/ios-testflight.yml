@@ -11,7 +11,7 @@ on:
       build_number:
         description: Unique iOS build number (increase after every successful upload)
         required: true
-        default: "13"
+        default: "16"
         type: string
       upload_to_testflight:
         description: Upload the validated IPA to App Store Connect / TestFlight

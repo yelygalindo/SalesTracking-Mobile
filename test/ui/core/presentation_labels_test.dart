@@ -23,5 +23,26 @@ void main() {
       ),
       'Visita finalizada · Obra Norte',
     );
+    expect(
+      timelineEventTitle(
+        eventType: 'CustomerStatusChanged',
+        serverTitle: 'Customer status changed',
+      ),
+      'Estado comercial actualizado',
+    );
+    expect(
+      timelineEventTitle(
+        eventType: 'ProjectProgressUpdated',
+        serverTitle: 'ProjectProgressUpdated',
+      ),
+      'Avance actualizado',
+    );
+    expect(
+      timelineEventTitle(
+        eventType: 'UnknownBackendEvent',
+        serverTitle: 'UnknownBackendEvent',
+      ),
+      'Actividad registrada',
+    );
   });
 }

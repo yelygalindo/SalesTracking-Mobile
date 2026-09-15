@@ -69,6 +69,31 @@ void main() {
     expect(repository.updatedInput?.email, isEmpty);
   });
 
+  test(
+    'rejects an invalid optional email before calling the repository',
+    () async {
+      final repository = _CrudCustomerRepository();
+      final viewModel = CustomerFormViewModel(
+        repository,
+        _FixedLocationService(),
+      );
+      await viewModel.initialize();
+
+      expect(
+        await viewModel.save(
+          name: 'Ricardo',
+          companyName: 'Horizonte',
+          phone: '70010001',
+          email: 'ricardo@correo-incompleto',
+          address: 'Av. Banzer',
+        ),
+        isFalse,
+      );
+      expect(viewModel.errorMessage, 'Ingresa un correo válido.');
+      expect(repository.createdInput, isNull);
+    },
+  );
+
   test('loads detail and refreshes after changing commercial status', () async {
     final repository = _CrudCustomerRepository();
     final viewModel = CustomerDetailViewModel(repository, 'customer-id');

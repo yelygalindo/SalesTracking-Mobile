@@ -60,17 +60,29 @@ Future<void> runCustomerLifecycleFlow(WidgetTester tester) async {
   );
   await tester.enterText(
     find.byKey(const ValueKey('customer-email-field')),
-    'ana@example.test',
+    'ana@correo-incompleto',
   );
   await tester.enterText(
     find.byKey(const ValueKey('customer-address-field')),
     'Av. Integración 123',
   );
 
+  await tester.ensureVisible(saveCustomer);
+  await tester.tap(saveCustomer);
+  await _pumpUi(tester);
+  expect(find.text('Ingresa un correo válido.'), findsOneWidget);
+  expect(customers.createCalls, 0);
+
+  await tester.enterText(
+    find.byKey(const ValueKey('customer-email-field')),
+    'ana@example.test',
+  );
+
   final captureLocation = find.byKey(
     const ValueKey('capture-customer-location-button'),
   );
   await tester.ensureVisible(captureLocation);
+  await _pumpUi(tester);
   await tester.tap(captureLocation);
   await _pumpUi(tester);
   expect(find.text('-12.04640, -77.04280'), findsOneWidget);
@@ -160,6 +172,13 @@ Future<void> runCustomerLifecycleFlow(WidgetTester tester) async {
   await _pumpUi(tester);
   expect(customers.completeReminderCalls, 1);
   expect(find.text('No hay recordatorios pendientes.'), findsOneWidget);
+
+  await tester.pageBack();
+  await _pumpUi(tester);
+  expect(
+    find.descendant(of: customerCard, matching: find.text('Contactado')),
+    findsOneWidget,
+  );
 }
 
 Finder _dialogConfirmation() {
