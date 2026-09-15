@@ -69,6 +69,7 @@ Publicar UrbanTrackCRM para Android e iOS y validar el MVP de seguimiento comerc
 
 - Si el número de verificadores activos baja de 12, Google puede interrumpir o reiniciar el conteo continuo.
 - La verificación del desarrollador de Android tiene fecha límite del 30/09/2026.
+- Apple aceptó el build iOS actual, pero advirtió que desde primavera de 2027 exigirá `MinimumOSVersion` 15.0 o superior; elevar ese mínimo deberá evaluarse en una versión futura por su impacto en dispositivos antiguos.
 - La compilación Android local del 15/09/2026 no pudo iniciar Gradle por un rechazo de loopback del host; el riesgo quedó mitigado con un flujo de CI que generó y verificó correctamente el artefacto firmado.
 
 # Change Requests / Additional Work
