@@ -14,7 +14,7 @@ Publicar UrbanTrackCRM para Android e iOS y validar el MVP de seguimiento comerc
 - Entregable: versión Android disponible para verificadores autorizados.
 - Estado: en curso.
 - Criterio de aceptación de Google: al menos 12 verificadores inscritos durante 14 días consecutivos.
-- Avance confirmado el 10/09/2026: 12 verificadores durante 3 días consecutivos.
+- Avance confirmado el 15/09/2026: 12 verificadores durante 8 días consecutivos.
 
 ## Acceso a producción de Google Play
 
@@ -28,7 +28,8 @@ Publicar UrbanTrackCRM para Android e iOS y validar el MVP de seguimiento comerc
 # Confirmed Decisions
 
 - Canal de prueba cerrada: Alpha.
-- Versión Android en prueba: `1.0.0 (13)`.
+- Versión Android activa en prueba: `1.0.0 (13)`.
+- Versión Android preparada para sustituirla en Alpha: `1.0.0 (16)`.
 - Lista configurada: 20 verificadores.
 - Canal de comentarios: `support@urbantrack.io`.
 
@@ -44,11 +45,14 @@ Publicar UrbanTrackCRM para Android e iOS y validar el MVP de seguimiento comerc
 - Se alcanzó el mínimo de 12 verificadores.
 - Correcciones incluidas del feedback implementadas y validadas el 15/09/2026: títulos técnicos del historial traducidos, refresco de avance de obra y estado del cliente al volver al listado, texto funcional de asignación de vendedor y validación completa del formato de correo. Evidencia local: 142 pruebas aprobadas y `dart analyze lib test` sin observaciones.
 - Restricción de GPS al iniciar jornada revisada: es intencional y el mensaje existente ya indica cómo continuar cuando la ubicación está desactivada; no requirió cambios.
+- Build Android firmado `1.0.0 (16)` generado y verificado mediante GitHub Actions el 15/09/2026; AAB cargado, validado y enviado a revisión en el canal cerrado Alpha. Google Play confirmó el envío y dejó las verificaciones automáticas previas en curso.
+- Build iOS firmado `1.0.0 (16)` generado, verificado y cargado correctamente en App Store Connect/TestFlight el 15/09/2026; pendiente de confirmar que Apple finalice el procesamiento para los testers.
 
 # Pending Work
 
-- Completar los 11 días consecutivos restantes indicados por Google Play al 10/09/2026.
-- Generar y distribuir un nuevo build con las correcciones incluidas para validación de los testers.
+- Completar los 6 días consecutivos restantes indicados por Google Play al 15/09/2026.
+- Confirmar la disponibilidad de la versión Android `1.0.0 (16)` en Alpha una vez finalicen las verificaciones y la revisión de Google Play.
+- Confirmar la disponibilidad de la versión iOS `1.0.0 (16)` en TestFlight una vez finalice el procesamiento de Apple.
 - Solicitar acceso a producción cuando Google habilite la opción.
 - Completar la verificación de desarrolladores de Android antes del 30/09/2026.
 
@@ -65,12 +69,12 @@ Publicar UrbanTrackCRM para Android e iOS y validar el MVP de seguimiento comerc
 
 - Si el número de verificadores activos baja de 12, Google puede interrumpir o reiniciar el conteo continuo.
 - La verificación del desarrollador de Android tiene fecha límite del 30/09/2026.
-- La compilación Android local del 15/09/2026 no pudo iniciar Gradle porque el host rechazó su conexión interna de loopback (`java.io.IOException: Unable to establish loopback connection`); el código sí superó análisis y pruebas, pero el siguiente artefacto debe generarse mediante CI o un host de compilación compatible.
+- La compilación Android local del 15/09/2026 no pudo iniciar Gradle por un rechazo de loopback del host; el riesgo quedó mitigado con un flujo de CI que generó y verificó correctamente el artefacto firmado.
 
 # Change Requests / Additional Work
 
 - Documento de feedback recibido: `UrbanTrack CRM - movil - testers`, con 14 observaciones.
-- Correcciones clasificadas como incluidas: implementadas y validadas localmente; pendientes de distribución en un nuevo build.
+- Correcciones clasificadas como incluidas: implementadas, validadas y empaquetadas en los builds Android/iOS `1.0.0 (16)`; distribución externa en proceso.
 - Observación mixta resuelta: el inicio de jornada sigue exigiendo GPS según el comportamiento acordado y el mensaje actual ya explica que debe activarse la ubicación. Permitir iniciar sin GPS continúa fuera del alcance.
 - Propuestas clasificadas como mejoras o ampliaciones fuera del alcance actual: incluir el nombre de la obra en todos los mensajes/notificaciones; iniciar la jornada desde el detalle de una obra; añadir un control específico `+/-` o `Actualizar avance`; selección manual de ubicación en mapa; pin GPS ajustable; alta de obras offline; edición de obras offline; rediseño de la pantalla principal con contenido dinámico.
 - Las mejoras fuera de alcance requieren definición, estimación y cotización separada antes de implementarse.
