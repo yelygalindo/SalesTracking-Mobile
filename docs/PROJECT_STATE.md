@@ -28,8 +28,7 @@ Publicar UrbanTrackCRM para Android e iOS y validar el MVP de seguimiento comerc
 # Confirmed Decisions
 
 - Canal de prueba cerrada: Alpha.
-- Versión Android activa en prueba: `1.0.0 (13)`.
-- Versión Android preparada para sustituirla en Alpha: `1.0.0 (16)`.
+- Versión Android activa en prueba cerrada Alpha: `1.0.0 (16)`.
 - Lista configurada: 20 verificadores.
 - Canal de comentarios: `support@urbantrack.io`.
 
@@ -45,21 +44,20 @@ Publicar UrbanTrackCRM para Android e iOS y validar el MVP de seguimiento comerc
 - Se alcanzó el mínimo de 12 verificadores.
 - Correcciones incluidas del feedback implementadas y validadas el 15/09/2026: títulos técnicos del historial traducidos, refresco de avance de obra y estado del cliente al volver al listado, texto funcional de asignación de vendedor y validación completa del formato de correo. Evidencia local: 142 pruebas aprobadas y `dart analyze lib test` sin observaciones.
 - Restricción de GPS al iniciar jornada revisada: es intencional y el mensaje existente ya indica cómo continuar cuando la ubicación está desactivada; no requirió cambios.
-- Build Android firmado `1.0.0 (16)` generado y verificado mediante GitHub Actions el 15/09/2026; AAB cargado, validado y enviado a revisión en el canal cerrado Alpha. Google Play confirmó el envío y dejó las verificaciones automáticas previas en curso.
-- Build iOS firmado `1.0.0 (16)` generado, verificado y cargado correctamente en App Store Connect/TestFlight el 15/09/2026; pendiente de confirmar que Apple finalice el procesamiento para los testers.
+- Build Android firmado `1.0.0 (16)` generado y verificado mediante GitHub Actions el 15/09/2026; Google Play confirmó el envío 2 como `Publicado` en el canal cerrado Alpha el 15/09/2026 a las 13:21.
+- Build iOS firmado `1.0.0 (16)` generado, verificado, cargado y procesado correctamente en App Store Connect/TestFlight el 15/09/2026; asignado al grupo `Equipo interno` con 2 invitaciones y disponible para pruebas internas.
 
 # Pending Work
 
 - Completar los 6 días consecutivos restantes indicados por Google Play al 15/09/2026.
-- Confirmar la disponibilidad de la versión Android `1.0.0 (16)` en Alpha una vez finalicen las verificaciones y la revisión de Google Play.
-- Confirmar la disponibilidad de la versión iOS `1.0.0 (16)` en TestFlight una vez finalice el procesamiento de Apple.
+- Confirmar que los testers internos instalen y validen la versión iOS `1.0.0 (16)` desde TestFlight.
 - Solicitar acceso a producción cuando Google habilite la opción.
 - Completar la verificación de desarrolladores de Android antes del 30/09/2026.
 
 # Required Access
 
 - Google Play Console: administración de la app y seguimiento de la prueba; disponible.
-- App Store Connect: distribución iOS; disponible durante el proceso de publicación.
+- App Store Connect: distribución iOS; disponible.
 
 # Blockers
 
