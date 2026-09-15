@@ -76,6 +76,7 @@ Publicar UrbanTrackCRM para Android e iOS y validar el MVP de seguimiento comerc
 
 - Documento de feedback recibido: `UrbanTrack CRM - movil - testers`, con 14 observaciones.
 - Correcciones clasificadas como incluidas: implementadas, validadas y empaquetadas en los builds Android/iOS `1.0.0 (16)`; distribución externa en proceso.
+- Documento compartido de feedback actualizado el 15/09/2026: los puntos 1, 5, 6, 7, 10 y 13 quedaron resaltados en verde como atendidos dentro del hito; las ampliaciones fuera de alcance permanecen sin marcar.
 - Observación mixta resuelta: el inicio de jornada sigue exigiendo GPS según el comportamiento acordado y el mensaje actual ya explica que debe activarse la ubicación. Permitir iniciar sin GPS continúa fuera del alcance.
 - Propuestas clasificadas como mejoras o ampliaciones fuera del alcance actual: incluir el nombre de la obra en todos los mensajes/notificaciones; iniciar la jornada desde el detalle de una obra; añadir un control específico `+/-` o `Actualizar avance`; selección manual de ubicación en mapa; pin GPS ajustable; alta de obras offline; edición de obras offline; rediseño de la pantalla principal con contenido dinámico.
 - Las mejoras fuera de alcance requieren definición, estimación y cotización separada antes de implementarse.
