@@ -45,13 +45,13 @@ Publicar UrbanTrackCRM para Android e iOS y validar el MVP de seguimiento comerc
 - Correcciones incluidas del feedback implementadas y validadas el 15/09/2026: títulos técnicos del historial traducidos, refresco de avance de obra y estado del cliente al volver al listado, texto funcional de asignación de vendedor y validación completa del formato de correo. Evidencia local: 142 pruebas aprobadas y `dart analyze lib test` sin observaciones.
 - Restricción de GPS al iniciar jornada revisada: es intencional y el mensaje existente ya indica cómo continuar cuando la ubicación está desactivada; no requirió cambios.
 - Build Android firmado `1.0.0 (16)` generado y verificado mediante GitHub Actions el 15/09/2026; Google Play confirmó el envío 2 como `Publicado` en el canal cerrado Alpha el 15/09/2026 a las 13:21.
-- Build iOS firmado `1.0.0 (16)` generado, verificado, cargado y procesado correctamente en App Store Connect/TestFlight el 15/09/2026; asignado al grupo `Equipo interno` con 2 invitaciones y disponible para pruebas internas.
+- Build iOS firmado `1.0.0 (16)` generado, verificado, cargado y procesado correctamente en App Store Connect/TestFlight el 15/09/2026; asignado al grupo `Equipo interno` con 2 invitaciones. La cliente confirmó el 18/09/2026 que instaló la actualización y validó las correcciones en iOS.
 
 # Pending Work
 
 - Completar los 3 días consecutivos restantes indicados por Google Play al 18/09/2026.
 - Validar en los dispositivos Android reportados que Google Play use el correo invitado y que el usuario siga adherido mediante el vínculo web de la prueba; la consola confirma que Alpha está activo con `16 (1.0.0)`, 20 correos seleccionados y cobertura en 177 países o regiones.
-- Confirmar que los testers internos instalen y validen la versión iOS `1.0.0 (16)` desde TestFlight.
+- Revisar los campos obligatorios de la ficha pública en App Store Connect, seleccionar el build iOS `1.0.0 (16)` y enviar la versión a App Review.
 - Solicitar acceso a producción cuando Google habilite la opción.
 - Completar la verificación de desarrolladores de Android antes del 30/09/2026.
 
