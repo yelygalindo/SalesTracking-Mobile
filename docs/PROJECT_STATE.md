@@ -14,7 +14,7 @@ Publicar UrbanTrackCRM para Android e iOS y validar el MVP de seguimiento comerc
 - Entregable: versión Android disponible para verificadores autorizados.
 - Estado: en curso.
 - Criterio de aceptación de Google: al menos 12 verificadores inscritos durante 14 días consecutivos.
-- Avance confirmado el 15/09/2026: 12 verificadores durante 8 días consecutivos.
+- Avance confirmado el 18/09/2026: 12 verificadores durante 11 días consecutivos; faltan 3 días continuos para cumplir el mínimo.
 
 ## Acceso a producción de Google Play
 
@@ -49,7 +49,7 @@ Publicar UrbanTrackCRM para Android e iOS y validar el MVP de seguimiento comerc
 
 # Pending Work
 
-- Completar los 6 días consecutivos restantes indicados por Google Play al 15/09/2026.
+- Completar los 3 días consecutivos restantes indicados por Google Play al 18/09/2026.
 - Validar en los dispositivos Android reportados que Google Play use el correo invitado y que el usuario siga adherido mediante el vínculo web de la prueba; la consola confirma que Alpha está activo con `16 (1.0.0)`, 20 correos seleccionados y cobertura en 177 países o regiones.
 - Confirmar que los testers internos instalen y validen la versión iOS `1.0.0 (16)` desde TestFlight.
 - Solicitar acceso a producción cuando Google habilite la opción.
