@@ -46,14 +46,17 @@ Publicar UrbanTrackCRM para Android e iOS y validar el MVP de seguimiento comerc
 - Restricción de GPS al iniciar jornada revisada: es intencional y el mensaje existente ya indica cómo continuar cuando la ubicación está desactivada; no requirió cambios.
 - Build Android firmado `1.0.0 (16)` generado y verificado mediante GitHub Actions el 15/09/2026; Google Play confirmó el envío 2 como `Publicado` en el canal cerrado Alpha el 15/09/2026 a las 13:21.
 - Build iOS firmado `1.0.0 (16)` generado, verificado, cargado y procesado correctamente en App Store Connect/TestFlight el 15/09/2026; asignado al grupo `Equipo interno` con 2 invitaciones. La cliente confirmó el 18/09/2026 que instaló la actualización y validó las correcciones en iOS. El build 16 quedó seleccionado y guardado en la versión pública iOS 1.0 el 18/09/2026.
+- Ficha pública iOS 1.0 completada el 18/09/2026 con texto promocional, descripción, palabras clave, URLs de soporte y marketing, copyright, categoría principal `Economía y empresa`, clasificación por edades 4+, datos disponibles para App Review y publicación automática tras la aprobación.
+- Privacidad de iOS publicada el 18/09/2026: ocho tipos de datos declarados para funcionalidad de la app, vinculados a la identidad y sin uso para rastreo; política configurada en `https://urbantrack.io/privacy`.
+- Precio iOS configurado como gratuito y disponibilidad confirmada para los 175 países o regiones. La distribución adicional en Mac con Apple silicon y Apple Vision Pro queda desactivada para mantener el lanzamiento en iOS/iPadOS probado.
 
 # Pending Work
 
 - Completar los 3 días consecutivos restantes indicados por Google Play al 18/09/2026.
 - Validar en los dispositivos Android reportados que Google Play use el correo invitado y que el usuario siga adherido mediante el vínculo web de la prueba; la consola confirma que Alpha está activo con `16 (1.0.0)`, 20 correos seleccionados y cobertura en 177 países o regiones.
-- Completar la ficha pública iOS: capturas, descripción, palabras clave, URL de soporte, copyright, datos de revisión y cuestionarios generales.
-- Configurar la privacidad de la app, el precio inicial y los territorios de disponibilidad en App Store Connect.
-- Añadir la versión iOS 1.0 a revisión y enviarla a App Review una vez completados y verificados los requisitos anteriores.
+- Cargar las dos capturas iPhone provistas por la cliente en el gestor multimedia de App Store Connect.
+- Completar el teléfono de contacto de App Review y obtener de la titular las declaraciones pendientes sobre derechos de contenido de terceros y condición de comerciante DSA para la Unión Europea.
+- Añadir la versión iOS 1.0 a revisión y enviarla a App Review una vez completados y verificados los requisitos pendientes.
 - Solicitar acceso a producción cuando Google habilite la opción.
 - Completar la verificación de desarrolladores de Android antes del 30/09/2026.
 
@@ -65,6 +68,8 @@ Publicar UrbanTrackCRM para Android e iOS y validar el MVP de seguimiento comerc
 # Blockers
 
 - El botón para solicitar acceso a producción permanece deshabilitado hasta completar 14 días consecutivos con al menos 12 verificadores.
+- La carga de capturas iOS desde Chrome requiere habilitar `Allow access to file URLs` para la extensión del navegador de Codex/ChatGPT; los dos archivos ya están descargados y validados localmente con dimensiones `1320 × 2868`.
+- Faltan decisiones/datos de la titular que no deben inferirse: teléfono de contacto para App Review, declaración de derechos de contenido de terceros y estado de comerciante DSA para la Unión Europea.
 
 # Relevant Risks
 
