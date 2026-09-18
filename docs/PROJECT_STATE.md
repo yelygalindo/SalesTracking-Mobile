@@ -50,6 +50,7 @@ Publicar UrbanTrackCRM para Android e iOS y validar el MVP de seguimiento comerc
 # Pending Work
 
 - Completar los 6 días consecutivos restantes indicados por Google Play al 15/09/2026.
+- Validar en los dispositivos Android reportados que Google Play use el correo invitado y que el usuario siga adherido mediante el vínculo web de la prueba; la consola confirma que Alpha está activo con `16 (1.0.0)`, 20 correos seleccionados y cobertura en 177 países o regiones.
 - Confirmar que los testers internos instalen y validen la versión iOS `1.0.0 (16)` desde TestFlight.
 - Solicitar acceso a producción cuando Google habilite la opción.
 - Completar la verificación de desarrolladores de Android antes del 30/09/2026.
@@ -66,6 +67,7 @@ Publicar UrbanTrackCRM para Android e iOS y validar el MVP de seguimiento comerc
 # Relevant Risks
 
 - Si el número de verificadores activos baja de 12, Google puede interrumpir o reiniciar el conteo continuo.
+- No desinstalar la app Android como primer paso de diagnóstico si existen operaciones offline pendientes, porque podrían perderse datos locales aún no sincronizados.
 - La verificación del desarrollador de Android tiene fecha límite del 30/09/2026.
 - Apple aceptó el build iOS actual, pero advirtió que desde primavera de 2027 exigirá `MinimumOSVersion` 15.0 o superior; elevar ese mínimo deberá evaluarse en una versión futura por su impacto en dispositivos antiguos.
 - La compilación Android local del 15/09/2026 no pudo iniciar Gradle por un rechazo de loopback del host; el riesgo quedó mitigado con un flujo de CI que generó y verificó correctamente el artefacto firmado.
