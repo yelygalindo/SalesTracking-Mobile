@@ -31,6 +31,7 @@ Publicar UrbanTrackCRM para Android e iOS y validar el MVP de seguimiento comerc
 - Versión Android activa en prueba cerrada Alpha: `1.0.0 (16)`.
 - Lista configurada: 20 verificadores.
 - Canal de comentarios: `support@urbantrack.io`.
+- Para la ficha iOS, Yely confirmó el 21/09/2026 un teléfono de contacto para App Review, que la app no muestra contenido de terceros que requiera licencias adicionales y que la distribución en la UE se realiza como actividad comercial. Falta registrar estas respuestas en App Store Connect.
 
 # Confirmed Requirements
 
@@ -55,7 +56,8 @@ Publicar UrbanTrackCRM para Android e iOS y validar el MVP de seguimiento comerc
 - Completar los 3 días consecutivos restantes indicados por Google Play al 18/09/2026.
 - Validar en los dispositivos Android reportados que Google Play use el correo invitado y que el usuario siga adherido mediante el vínculo web de la prueba; la consola confirma que Alpha está activo con `16 (1.0.0)`, 20 correos seleccionados y cobertura en 177 países o regiones.
 - Cargar las dos capturas iPhone provistas por la cliente en el gestor multimedia de App Store Connect.
-- Completar el teléfono de contacto de App Review y obtener de la titular las declaraciones pendientes sobre derechos de contenido de terceros y condición de comerciante DSA para la Unión Europea.
+- Registrar en App Store Connect el teléfono de contacto de App Review y las respuestas confirmadas por Yely sobre derechos de contenido y condición de comerciante DSA; la verificación DSA podría requerir pasos de la titular.
+- Obtener pasos reproducibles del reporte de textos excesivamente largos (campo, longitud aproximada, plataforma/versión y efecto observado), clasificarlo y corregirlo dentro del alcance si se confirma como defecto del MVP.
 - Añadir la versión iOS 1.0 a revisión y enviarla a App Review una vez completados y verificados los requisitos pendientes.
 - Solicitar acceso a producción cuando Google habilite la opción.
 - Completar la verificación de desarrolladores de Android antes del 30/09/2026.
@@ -69,7 +71,7 @@ Publicar UrbanTrackCRM para Android e iOS y validar el MVP de seguimiento comerc
 
 - El botón para solicitar acceso a producción permanece deshabilitado hasta completar 14 días consecutivos con al menos 12 verificadores.
 - La carga de capturas iOS desde Chrome requiere habilitar `Allow access to file URLs` para la extensión del navegador de Codex/ChatGPT; los dos archivos ya están descargados y validados localmente con dimensiones `1320 × 2868`.
-- Faltan decisiones/datos de la titular que no deben inferirse: teléfono de contacto para App Review, declaración de derechos de contenido de terceros y estado de comerciante DSA para la Unión Europea.
+- La sesión de App Store Connect expiró el 21/09/2026; se necesita nuevo inicio de sesión para continuar. Las respuestas de la titular ya están recibidas y pendientes de registrar.
 
 # Relevant Risks
 
@@ -87,3 +89,4 @@ Publicar UrbanTrackCRM para Android e iOS y validar el MVP de seguimiento comerc
 - Observación mixta resuelta: el inicio de jornada sigue exigiendo GPS según el comportamiento acordado y el mensaje actual ya explica que debe activarse la ubicación. Permitir iniciar sin GPS continúa fuera del alcance.
 - Propuestas clasificadas como mejoras o ampliaciones fuera del alcance actual: incluir el nombre de la obra en todos los mensajes/notificaciones; iniciar la jornada desde el detalle de una obra; añadir un control específico `+/-` o `Actualizar avance`; selección manual de ubicación en mapa; pin GPS ajustable; alta de obras offline; edición de obras offline; rediseño de la pantalla principal con contenido dinámico.
 - Las mejoras fuera de alcance requieren definición, estimación y cotización separada antes de implementarse.
+- Reporte del 21/09/2026: al ingresar textos muy largos, según la cliente, la app y el backend dejan de responder. Incidencia aún no reproducida ni clasificada; no se han hecho cambios. Si se confirma como fallo de estabilidad en campos existentes, tratarlo como corrección del MVP, no como nueva función.
