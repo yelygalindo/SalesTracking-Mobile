@@ -8,15 +8,15 @@ Fuente del cuestionario: [Ayuda oficial de Google Play](https://support.google.c
 
 ### ¿Cómo se reclutaron los verificadores? (máximo 300 caracteres en la captura)
 
-Propuesta, **pendiente de confirmar con Yely si se usó algún servicio pagado**:
+Respuesta basada en lo confirmado por Yely (22/09/2026):
 
-> La titular invitó a personas de su red de contactos a la prueba cerrada mediante sus cuentas de Google. Se compartió el enlace de adhesión y al menos 12 permanecieron inscritos durante 14 días. [Confirmar si se usó un proveedor de pruebas pagado.]
+> Invitamos a conocidos de la empresa, amigos, la diseñadora y contactos de los sectores de tecnología y comercio. Les compartimos la prueba cerrada y les pedimos instalar la app, usarla y enviarnos comentarios.
 
-La frase entre corchetes es una nota de revisión, no debe copiarse al formulario.
+Yely no mencionó un proveedor de pruebas pagado. Si Google lo pregunta de forma separada, confirmar antes de responder que no se utilizó uno.
 
 ### ¿Qué tan fácil fue reclutar verificadores?
 
-**Pendiente de Yely.** No seleccionar «Fácil», «Difícil» u otra opción sin su experiencia real.
+Seleccionar **«Difícil»**. Yely indicó que fue complicado lograr que las personas instalaran y usaran la app, porque esperaban encontrarla directamente en la tienda.
 
 ### Participación y similitud con el uso esperado
 
@@ -54,8 +54,8 @@ Propuesta, sujeta a confirmar qué flujos probaron las personas además de los o
 
 ## Decisiones y evidencia pendientes
 
-1. Yely confirma el origen de los verificadores, el uso o no de un proveedor pagado y la facilidad real del reclutamiento.
-2. Yely confirma qué funciones utilizaron los verificadores y qué comportamiento difirió del uso previsto.
+1. Confirmar expresamente si se utilizó algún proveedor de pruebas pagado; Yely solo describió contactos personales y profesionales.
+2. Describir únicamente las funciones de cuyo uso hay evidencia en el documento de feedback; no afirmar que todos los verificadores probaron todo.
 3. Yely estima la franja de instalaciones del primer año que muestra el formulario.
-4. Desarrollo genera y valida el siguiente build Android sin modificar producción; luego se prueba la corrección de notas en la pista cerrada.
+4. El AAB Android `1.0.0 (17)` ya se generó y verificó en CI; falta probar la corrección de notas en un dispositivo antes de distribuirlo.
 5. Antes de «Aplicar», ambas partes revisan las respuestas finales y la estabilidad de la versión candidata. Google revisa el acceso a producción por separado de la publicación pública.
