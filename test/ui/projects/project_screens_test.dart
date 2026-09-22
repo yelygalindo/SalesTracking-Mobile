@@ -12,11 +12,13 @@ import 'package:urbantrack/data/models/project/project_timeline_page.dart';
 import 'package:urbantrack/data/models/common/resource_creation_result.dart';
 import 'package:urbantrack/data/models/common/user_reference.dart';
 import 'package:urbantrack/data/repositories/project_repository.dart';
+import 'package:urbantrack/data/services/api_exception.dart';
 import 'package:urbantrack/ui/core/branding/brand_scope.dart';
 import 'package:urbantrack/ui/core/branding/urbantrack_brand.dart';
 import 'package:urbantrack/ui/projects/project_detail_screen.dart';
 import 'package:urbantrack/ui/projects/project_form_screen.dart';
 import 'package:urbantrack/ui/projects/project_list_screen.dart';
+import 'package:urbantrack/ui/core/note_input_limit.dart';
 
 import '../../support/workday_test_doubles.dart';
 
@@ -183,12 +185,125 @@ void main() {
     expect(find.textContaining('versión actual'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('limits pasted text in a project note', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final repository = _ProjectScreenRepository();
+    await tester.pumpWidget(
+      BrandScope(
+        brand: UrbanTrackBrand.config,
+        child: MaterialApp(
+          home: ProjectDetailScreen(
+            repository: repository,
+            visitRepository: EmptyVisitRepository(),
+            externalId: 'project-1',
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Agregar nota'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Agregar nota'));
+    await tester.pumpAndSettle();
+
+    final noteField = find.byKey(const ValueKey('project-note-field'));
+    final innerField = find.descendant(
+      of: noteField,
+      matching: find.byType(TextField),
+    );
+    expect(tester.widget<TextField>(innerField).maxLength, maxNoteCharacters);
+    await tester.enterText(
+      noteField,
+      List.filled(maxNoteCharacters + 100, 'a').join(),
+    );
+    await tester.pump();
+    expect(
+      tester.widget<TextField>(innerField).controller!.text.length,
+      maxNoteCharacters,
+    );
+    expect(find.text('$maxNoteCharacters/$maxNoteCharacters'), findsOneWidget);
+  });
+
+  testWidgets('keeps a failed project note editable and retries the save', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final repository = _ProjectScreenRepository()..failNextNoteSaves = 1;
+    await tester.pumpWidget(
+      BrandScope(
+        brand: UrbanTrackBrand.config,
+        child: MaterialApp(
+          home: ProjectDetailScreen(
+            repository: repository,
+            visitRepository: EmptyVisitRepository(),
+            externalId: 'project-1',
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Agregar nota'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Agregar nota'));
+    await tester.pumpAndSettle();
+
+    final noteField = find.byKey(const ValueKey('project-note-field'));
+    await tester.enterText(noteField, 'Texto que debe conservarse');
+    await tester.tap(find.byKey(const ValueKey('save-project-note-button')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Nueva nota de obra'), findsOneWidget);
+    expect(find.text('Texto que debe conservarse'), findsOneWidget);
+    expect(find.text('Error temporal de prueba'), findsOneWidget);
+    expect(find.text('Reintentar'), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('save-project-note-button')));
+    await tester.pumpAndSettle();
+    expect(find.text('Nueva nota de obra'), findsNothing);
+    expect(repository.notes.first.content, 'Texto que debe conservarse');
+    expect(repository.noteRequestIds, hasLength(2));
+    expect(repository.noteRequestIds[0], repository.noteRequestIds[1]);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('retries activity loading only when a read failed', (
+    tester,
+  ) async {
+    final repository = _ProjectScreenRepository()..failNextNoteLoads = 1;
+    await tester.pumpWidget(
+      BrandScope(
+        brand: UrbanTrackBrand.config,
+        child: MaterialApp(
+          home: ProjectDetailScreen(
+            repository: repository,
+            visitRepository: EmptyVisitRepository(),
+            externalId: 'project-1',
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Reintentar'));
+    await tester.pumpAndSettle();
+    expect(find.text('Error de lectura de prueba'), findsOneWidget);
+
+    await tester.tap(find.text('Reintentar'));
+    await tester.pumpAndSettle();
+    expect(find.text('Error de lectura de prueba'), findsNothing);
+    expect(find.text('Reintentar'), findsNothing);
+  });
 }
 
 class _ProjectScreenRepository implements ProjectRepository {
   final List<ProjectNote> notes = [_note];
   final List<ProjectReminder> reminders = [_reminder];
   bool? lastRequireFresh;
+  int failNextNoteSaves = 0;
+  int failNextNoteLoads = 0;
+  final List<String> noteRequestIds = [];
 
   @override
   Future<ResourceCreationResult> addReminder(
@@ -242,6 +357,11 @@ class _ProjectScreenRepository implements ProjectRepository {
     required String clientRequestId,
     required DateTime occurredAtUtc,
   }) async {
+    noteRequestIds.add(clientRequestId);
+    if (failNextNoteSaves > 0) {
+      failNextNoteSaves -= 1;
+      throw const ApiException(message: 'Error temporal de prueba');
+    }
     notes.insert(
       0,
       ProjectNote(
@@ -284,8 +404,13 @@ class _ProjectScreenRepository implements ProjectRepository {
   }
 
   @override
-  Future<List<ProjectNote>> getNotes(String projectExternalId) async =>
-      List.unmodifiable(notes);
+  Future<List<ProjectNote>> getNotes(String projectExternalId) async {
+    if (failNextNoteLoads > 0) {
+      failNextNoteLoads -= 1;
+      throw const ApiException(message: 'Error de lectura de prueba');
+    }
+    return List.unmodifiable(notes);
+  }
 
   @override
   Future<List<ProjectStatus>> getStatuses() async => const [

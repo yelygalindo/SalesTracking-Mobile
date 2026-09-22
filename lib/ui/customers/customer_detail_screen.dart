@@ -13,6 +13,7 @@ import '../../data/models/visit/visit_target_type.dart';
 import '../../routing/app_router.dart';
 import '../core/branding/brand_scope.dart';
 import '../core/device_actions.dart';
+import '../core/note_input_limit.dart';
 import '../core/presentation_labels.dart';
 import 'customer_detail_view_model.dart';
 import '../visits/visit_action_card.dart';
@@ -83,6 +84,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
       label: 'Nota',
       actionLabel: 'Guardar nota',
       fieldKey: const ValueKey('customer-note-field'),
+      maxLength: maxNoteCharacters,
     );
     if (text == null || !mounted) return;
     await _viewModel.addNote(text);
@@ -127,6 +129,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
     required String label,
     required String actionLabel,
     required Key fieldKey,
+    int? maxLength,
   }) async {
     final value = await showDialog<String>(
       context: context,
@@ -135,6 +138,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
         label: label,
         actionLabel: actionLabel,
         fieldKey: fieldKey,
+        maxLength: maxLength,
       ),
     );
     return value?.isEmpty == true ? null : value;
@@ -300,12 +304,14 @@ class _ActivityTextDialog extends StatefulWidget {
     required this.label,
     required this.actionLabel,
     required this.fieldKey,
+    this.maxLength,
   });
 
   final String title;
   final String label;
   final String actionLabel;
   final Key fieldKey;
+  final int? maxLength;
 
   @override
   State<_ActivityTextDialog> createState() => _ActivityTextDialogState();
@@ -330,7 +336,13 @@ class _ActivityTextDialogState extends State<_ActivityTextDialog> {
         autofocus: true,
         minLines: 2,
         maxLines: 4,
-        decoration: InputDecoration(labelText: widget.label),
+        maxLength: widget.maxLength,
+        decoration: InputDecoration(
+          labelText: widget.label,
+          helperText: widget.maxLength == null
+              ? null
+              : 'Máximo $maxNoteCharacters caracteres; el texto adicional se recortará.',
+        ),
       ),
       actions: [
         TextButton(

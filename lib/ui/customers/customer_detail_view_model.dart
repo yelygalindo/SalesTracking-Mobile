@@ -8,6 +8,7 @@ import '../../data/models/history/seller_timeline_item.dart';
 import '../../data/repositories/customer_repository.dart';
 import '../../data/repositories/history_repository.dart';
 import '../../data/services/api_exception.dart';
+import '../core/note_input_limit.dart';
 
 enum CustomerDetailViewStatus {
   initial,
@@ -106,8 +107,9 @@ class CustomerDetailViewModel extends ChangeNotifier {
   }
 
   Future<bool> addNote(String text) async {
-    if (text.trim().isEmpty) {
-      _errorMessage = 'Escribe una nota antes de guardarla.';
+    final validationError = validateNote(text);
+    if (validationError != null) {
+      _errorMessage = validationError;
       notifyListeners();
       return false;
     }

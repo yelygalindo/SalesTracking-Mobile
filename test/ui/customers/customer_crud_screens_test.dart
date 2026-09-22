@@ -16,6 +16,7 @@ import 'package:urbantrack/ui/core/branding/brand_scope.dart';
 import 'package:urbantrack/ui/core/branding/urbantrack_brand.dart';
 import 'package:urbantrack/ui/customers/customer_detail_screen.dart';
 import 'package:urbantrack/ui/customers/customer_form_screen.dart';
+import 'package:urbantrack/ui/core/note_input_limit.dart';
 
 import '../../support/workday_test_doubles.dart';
 
@@ -84,6 +85,42 @@ void main() {
     );
     expect(find.textContaining('backend'), findsNothing);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('limits pasted text in a customer note', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(
+      BrandScope(
+        brand: UrbanTrackBrand.config,
+        child: MaterialApp(
+          home: CustomerDetailScreen(
+            repository: _ScreenCustomerRepository(),
+            visitRepository: EmptyVisitRepository(),
+            historyRepository: _ScreenHistoryRepository(),
+            externalId: 'customer-id',
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byTooltip('Nueva nota'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Nueva nota'));
+    await tester.pumpAndSettle();
+
+    final noteField = find.byKey(const ValueKey('customer-note-field'));
+    expect(tester.widget<TextField>(noteField).maxLength, maxNoteCharacters);
+    await tester.enterText(
+      noteField,
+      List.filled(maxNoteCharacters + 100, 'a').join(),
+    );
+    await tester.pump();
+    expect(
+      tester.widget<TextField>(noteField).controller!.text.length,
+      maxNoteCharacters,
+    );
+    expect(find.text('$maxNoteCharacters/$maxNoteCharacters'), findsOneWidget);
   });
 }
 

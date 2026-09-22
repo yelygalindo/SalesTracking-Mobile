@@ -8,6 +8,7 @@ import '../../data/models/project/project_status.dart';
 import '../../data/models/project/project_timeline_item.dart';
 import '../../data/repositories/project_repository.dart';
 import '../../data/services/api_exception.dart';
+import '../core/note_input_limit.dart';
 
 enum ProjectDetailViewStatus { initial, loading, ready }
 
@@ -33,6 +34,9 @@ class ProjectDetailViewModel extends ChangeNotifier {
   List<ProjectTimelineItem> _timeline = const [];
   String? _errorMessage;
   String? _activityErrorMessage;
+  String? _activityLoadErrorMessage;
+  String? _retryNoteContent;
+  String? _retryNoteRequestId;
   bool _changingStatus = false;
   bool _loadingActivity = false;
   bool _savingNote = false;
@@ -46,10 +50,16 @@ class ProjectDetailViewModel extends ChangeNotifier {
   List<ProjectTimelineItem> get timeline => _timeline;
   String? get errorMessage => _errorMessage;
   String? get activityErrorMessage => _activityErrorMessage;
+  String? get activityLoadErrorMessage => _activityLoadErrorMessage;
   bool get changingStatus => _changingStatus;
   bool get loadingActivity => _loadingActivity;
   bool get savingNote => _savingNote;
   bool get savingReminder => _savingReminder;
+
+  void discardFailedNoteRetry() {
+    _retryNoteContent = null;
+    _retryNoteRequestId = null;
+  }
 
   Future<void> load() async {
     _status = ProjectDetailViewStatus.loading;
@@ -88,8 +98,9 @@ class ProjectDetailViewModel extends ChangeNotifier {
 
   Future<bool> addNote(String content) async {
     final normalized = content.trim();
-    if (normalized.isEmpty) {
-      _activityErrorMessage = 'Escribe una nota antes de guardarla.';
+    final validationError = validateNote(normalized);
+    if (validationError != null) {
+      _activityErrorMessage = validationError;
       notifyListeners();
       return false;
     }
@@ -97,20 +108,29 @@ class ProjectDetailViewModel extends ChangeNotifier {
     _savingNote = true;
     _activityErrorMessage = null;
     notifyListeners();
+    final requestId = normalized == _retryNoteContent
+        ? _retryNoteRequestId ?? _requestId()
+        : _requestId();
     try {
       await _repository.addNote(
         externalId,
         content: normalized,
-        clientRequestId: _requestId(),
+        clientRequestId: requestId,
         occurredAtUtc: _now().toUtc(),
       );
+      _retryNoteContent = null;
+      _retryNoteRequestId = null;
       await _loadActivity();
       _savingNote = false;
       notifyListeners();
       return true;
     } on ApiException catch (error) {
+      _retryNoteContent = normalized;
+      _retryNoteRequestId = requestId;
       _activityErrorMessage = error.message;
     } catch (_) {
+      _retryNoteContent = normalized;
+      _retryNoteRequestId = requestId;
       _activityErrorMessage = 'No pudimos agregar la nota a esta obra.';
     }
     _savingNote = false;
@@ -207,6 +227,7 @@ class ProjectDetailViewModel extends ChangeNotifier {
 
   Future<void> _loadActivity() async {
     _activityErrorMessage = null;
+    _activityLoadErrorMessage = null;
     final errors = <String>[];
     await Future.wait<void>([
       _repository
@@ -228,7 +249,10 @@ class ProjectDetailViewModel extends ChangeNotifier {
             onError: (Object error) => errors.add(_activityError(error)),
           ),
     ]);
-    if (errors.isNotEmpty) _activityErrorMessage = errors.first;
+    if (errors.isNotEmpty) {
+      _activityLoadErrorMessage = errors.first;
+      _activityErrorMessage = errors.first;
+    }
   }
 
   String _activityError(Object error) => error is ApiException

@@ -10,6 +10,7 @@ import 'package:urbantrack/data/repositories/customer_repository.dart';
 import 'package:urbantrack/data/services/location_service.dart';
 import 'package:urbantrack/ui/customers/customer_detail_view_model.dart';
 import 'package:urbantrack/ui/customers/customer_form_view_model.dart';
+import 'package:urbantrack/ui/core/note_input_limit.dart';
 
 void main() {
   test('creates a customer with stable request id and captured GPS', () async {
@@ -136,6 +137,19 @@ void main() {
     expect(repository.reminderAtUtc, reminderAt);
     expect(repository.completedReminderId, 'reminder-id');
   });
+
+  test(
+    'rejects an oversized customer note before using the repository',
+    () async {
+      final repository = _CrudCustomerRepository();
+      final viewModel = CustomerDetailViewModel(repository, 'customer-id');
+      final pastedText = List.filled(maxNoteCharacters + 1, 'a').join();
+
+      expect(await viewModel.addNote(pastedText), isFalse);
+      expect(viewModel.errorMessage, contains('$maxNoteCharacters caracteres'));
+      expect(repository.noteText, isNull);
+    },
+  );
 }
 
 class _CrudCustomerRepository implements CustomerRepository {

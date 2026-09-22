@@ -14,6 +14,7 @@ import '../../routing/app_router.dart';
 import '../core/branding/brand_scope.dart';
 import '../core/presentation_labels.dart';
 import '../core/device_actions.dart';
+import '../core/note_input_limit.dart';
 import '../history/visit_photo_strip.dart';
 import 'project_detail_view_model.dart';
 import '../visits/visit_action_card.dart';
@@ -126,21 +127,24 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
-      builder: (context) => const _AddProjectTextSheet(),
-    );
-    if (content == null) return;
-    final saved = await _viewModel.addNote(content);
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          saved
-              ? 'Nota agregada a la obra.'
+      builder: (context) => _AddProjectTextSheet(
+        onSubmit: (content) async {
+          final saved = await _viewModel.addNote(content);
+          return saved
+              ? null
               : _viewModel.activityErrorMessage ??
-                    'No pudimos agregar la nota.',
-        ),
+                    'No pudimos agregar la nota.';
+        },
       ),
     );
+    if (content == null) {
+      _viewModel.discardFailedNoteRetry();
+      return;
+    }
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Nota agregada a la obra.')));
   }
 
   Future<void> _addReminder() async {
@@ -157,6 +161,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
         saveKey: ValueKey('continue-project-reminder-button'),
         actionLabel: 'Elegir fecha',
         icon: Icons.calendar_today_outlined,
+        maxLength: null,
       ),
     );
     if (text == null || !mounted) return;
@@ -833,7 +838,7 @@ class _ProjectActivitySection extends StatelessWidget {
             ),
           )
         else ...[
-          if (viewModel.activityErrorMessage case final message?) ...[
+          if (viewModel.activityLoadErrorMessage case final message?) ...[
             _ActivityError(
               message: message,
               onRetry: loading ? null : viewModel.reloadActivity,
@@ -1089,6 +1094,8 @@ class _AddProjectTextSheet extends StatefulWidget {
     this.saveKey = const ValueKey('save-project-note-button'),
     this.actionLabel = 'Guardar nota',
     this.icon = Icons.save_outlined,
+    this.maxLength = maxNoteCharacters,
+    this.onSubmit,
   });
 
   final String title;
@@ -1099,6 +1106,8 @@ class _AddProjectTextSheet extends StatefulWidget {
   final Key saveKey;
   final String actionLabel;
   final IconData icon;
+  final int? maxLength;
+  final Future<String?> Function(String)? onSubmit;
 
   @override
   State<_AddProjectTextSheet> createState() => _AddProjectTextSheetState();
@@ -1107,6 +1116,30 @@ class _AddProjectTextSheet extends StatefulWidget {
 class _AddProjectTextSheetState extends State<_AddProjectTextSheet> {
   final _formKey = GlobalKey<FormState>();
   final _controller = TextEditingController();
+  bool _saving = false;
+  String? _submitError;
+
+  Future<void> _save() async {
+    if (_saving || _formKey.currentState?.validate() != true) return;
+    final text = _controller.text.trim();
+    final onSubmit = widget.onSubmit;
+    if (onSubmit != null) {
+      setState(() {
+        _saving = true;
+        _submitError = null;
+      });
+      final error = await onSubmit(text);
+      if (!mounted) return;
+      if (error != null) {
+        setState(() {
+          _saving = false;
+          _submitError = error;
+        });
+        return;
+      }
+    }
+    if (mounted) Navigator.of(context).pop(text);
+  }
 
   @override
   void dispose() {
@@ -1125,46 +1158,74 @@ class _AddProjectTextSheetState extends State<_AddProjectTextSheet> {
       ),
       child: SafeArea(
         top: false,
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                widget.title,
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
-              ),
-              const SizedBox(height: 6),
-              Text(widget.subtitle, style: TextStyle(color: Color(0xFF6F788A))),
-              const SizedBox(height: 16),
-              TextFormField(
-                key: widget.fieldKey,
-                controller: _controller,
-                autofocus: true,
-                minLines: 3,
-                maxLines: 6,
-                textCapitalization: TextCapitalization.sentences,
-                decoration: InputDecoration(
-                  labelText: widget.label,
-                  hintText: widget.hint,
-                  alignLabelWithHint: true,
+        child: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  widget.title,
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
                 ),
-                validator: (value) => value?.trim().isEmpty ?? true
-                    ? 'Escribe una nota antes de guardarla.'
-                    : null,
-              ),
-              const SizedBox(height: 16),
-              FilledButton.icon(
-                key: widget.saveKey,
-                onPressed: () {
-                  if (_formKey.currentState?.validate() != true) return;
-                  Navigator.of(context).pop(_controller.text.trim());
-                },
-                icon: Icon(widget.icon),
-                label: Text(widget.actionLabel),
-              ),
-            ],
+                const SizedBox(height: 6),
+                Text(
+                  widget.subtitle,
+                  style: TextStyle(color: Color(0xFF6F788A)),
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  key: widget.fieldKey,
+                  controller: _controller,
+                  enabled: !_saving,
+                  onChanged: (_) {
+                    if (_submitError != null) {
+                      setState(() => _submitError = null);
+                    }
+                  },
+                  autofocus: true,
+                  minLines: 3,
+                  maxLines: 6,
+                  maxLength: widget.maxLength,
+                  textCapitalization: TextCapitalization.sentences,
+                  decoration: InputDecoration(
+                    labelText: widget.label,
+                    hintText: widget.hint,
+                    helperText: widget.maxLength == null
+                        ? null
+                        : 'Máximo $maxNoteCharacters caracteres; el texto adicional se recortará.',
+                    alignLabelWithHint: true,
+                  ),
+                  validator: (value) => widget.maxLength == null
+                      ? (value?.trim().isEmpty ?? true
+                            ? 'Escribe un recordatorio antes de guardarlo.'
+                            : null)
+                      : validateNote(value),
+                ),
+                if (_submitError != null) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    _submitError!,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 16),
+                FilledButton.icon(
+                  key: widget.saveKey,
+                  onPressed: _saving ? null : _save,
+                  icon: _saving
+                      ? const SizedBox.square(
+                          dimension: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Icon(widget.icon),
+                  label: Text(widget.actionLabel),
+                ),
+              ],
+            ),
           ),
         ),
       ),

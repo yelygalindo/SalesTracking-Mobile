@@ -22,6 +22,7 @@ import 'package:urbantrack/data/services/location_service.dart';
 import 'package:urbantrack/ui/projects/project_detail_view_model.dart';
 import 'package:urbantrack/ui/projects/project_form_view_model.dart';
 import 'package:urbantrack/ui/projects/project_list_view_model.dart';
+import 'package:urbantrack/ui/core/note_input_limit.dart';
 
 void main() {
   test('filters and paginates the project list', () async {
@@ -196,6 +197,22 @@ void main() {
     expect(projects.changedStatusId, 4);
     expect(viewModel.project?.status, 'Completado');
   });
+
+  test(
+    'rejects an oversized project note before using the repository',
+    () async {
+      final projects = _RecordingProjectRepository();
+      final viewModel = ProjectDetailViewModel(projects, 'project-id');
+      final pastedText = List.filled(maxNoteCharacters + 1, 'a').join();
+
+      expect(await viewModel.addNote(pastedText), isFalse);
+      expect(
+        viewModel.activityErrorMessage,
+        contains('$maxNoteCharacters caracteres'),
+      );
+      expect(projects.addedNoteContent, isNull);
+    },
+  );
 }
 
 class _RecordingProjectRepository implements ProjectRepository {
