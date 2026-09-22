@@ -62,10 +62,10 @@ El reporte posterior sobre una nota de obra muy larga motivó una protección ad
 
 ### ¿Cómo se determinó que está lista para producción?
 
-**No responder afirmativamente todavía.** La corrección del error de notas pasa 150 pruebas Flutter y `dart analyze lib test`; CI generó y verificó el AAB firmado `1.0.0 (17)`. Falta validar el guardado/reintento de notas en un Android real y revisar los flujos críticos antes de considerarlo listo para distribución. No presentar el build 17 como entregado a testers ni afirmar que el error del backend quedó resuelto.
+**No responder afirmativamente todavía.** La corrección del error de notas pasa 150 pruebas Flutter y `dart analyze lib test`; CI generó y verificó el AAB firmado `1.0.0 (17)`. En un Galaxy S10, la cuenta de demostración inició sesión, el formulario limitó a 2.000 caracteres un ingreso de 2.200, guardó una nota de 2.000, la mostró tras reiniciar y Sincronización indicó que no había pendientes. Las 9 pruebas de pantallas de clientes y obras volvieron a aprobar. El reintento ante un error de servidor está cubierto por prueba automatizada, pero no se reprodujo físicamente. El build 17 aún no se entregó a testers mediante Google Play; no afirmar que el error del backend quedó resuelto.
 
 ## Decisiones y evidencia pendientes
 
 1. Yely confirma que «entre 0 y 10.000» es su estimación intencional para el primer año.
-2. El AAB Android `1.0.0 (17)` ya se generó y verificó en CI; falta probar la corrección de notas en un dispositivo antes de distribuirlo.
+2. El AAB Android `1.0.0 (17)` ya se generó y verificó en CI; el límite y guardado de notas se probaron en el Galaxy S10. Falta distribuirlo en la prueba cerrada de Play y verificar la actualización desde esa vía antes de considerarlo candidato de producción.
 3. Antes de «Aplicar», ambas partes revisan las respuestas finales y la estabilidad de la versión candidata. Google revisa el acceso a producción por separado de la publicación pública.

@@ -53,7 +53,7 @@ Publicar UrbanTrackCRM para Android e iOS y validar el MVP de seguimiento comerc
 - Precio iOS configurado como gratuito y disponibilidad confirmada para los 175 países o regiones. La distribución adicional en Mac con Apple silicon y Apple Vision Pro queda desactivada para mantener el lanzamiento en iOS/iPadOS probado.
 - El 21/09/2026 se guardaron el acceso de prueba y contacto para App Review en la versión iOS 1.0; Apple habilitó `Añadir a revisión`. Se declaró que la app no contiene, muestra ni accede a contenido de terceros. No se añadió ni envió la versión a revisión.
 - Corrección local del 21/09/2026 para notas de clientes y obras: límite visible de 2.000 caracteres al escribir o pegar, con validación adicional antes del repositorio. En notas de obra, un fallo al guardar ya conserva el texto dentro del formulario y permite reintentar con el mismo identificador de solicitud; el botón de recarga del historial solo se muestra ante errores de lectura. La suite Flutter aprobó 150 pruebas y `dart analyze lib test` no reportó observaciones. La corrección aún no se ha distribuido a los testers.
-- El 22/09/2026 se preparó `docs/google-play-production-access-draft.md` con respuestas basadas en el feedback y campos pendientes de confirmación de Yely; no se envió la solicitud. CI generó y verificó un AAB firmado de validación `1.0.0 (17)` desde la rama `codex/android-notes-ci-validation` (run `35754448098`). El AAB aún no se cargó en Google Play ni se probó en dispositivo.
+- El 22/09/2026 se preparó `docs/google-play-production-access-draft.md` con respuestas basadas en el feedback y campos pendientes de confirmación de Yely; no se envió la solicitud. CI generó y verificó un AAB firmado de validación `1.0.0 (17)` desde la rama `codex/android-notes-ci-validation` (run `35754448098`). El AAB no se cargó en Google Play. `bundletool` generó una APK universal de prueba firmada con la clave debug local y se instaló temporalmente en el Galaxy S10 `SM-G973U`: el sistema confirmó `versionCode=17`, abrió la app e inició sesión con la cuenta de demostración. En una obra de demostración, el formulario limitó a 2.000 caracteres un ingreso de 2.200, guardó una nota de 2.000 y la mostró después de reiniciar la app; Sincronización indicó que no quedaban registros pendientes. La copia debug se desinstaló tras la prueba, sin operaciones pendientes. Las 9 pruebas de pantallas de clientes y obras volvieron a aprobar.
 
 # Pending Work
 
@@ -61,11 +61,11 @@ Publicar UrbanTrackCRM para Android e iOS y validar el MVP de seguimiento comerc
 - Validar en los dispositivos Android reportados que Google Play use el correo invitado y que el usuario siga adherido mediante el vínculo web de la prueba; la consola confirma que Alpha está activo con `16 (1.0.0)`, 20 correos seleccionados y cobertura en 177 países o regiones.
 - Cargar las dos capturas iPhone provistas por la cliente en el gestor multimedia de App Store Connect.
 - Completar la verificación DSA del comerciante: Apple requiere dirección postal, teléfono y correo para mostrar públicamente en la ficha de la UE, sujetos a verificación. Solicitar a Yely los datos comerciales específicos que autoriza publicar; no asumir que la dirección de su cuenta sea la correcta.
-- La captura recibida confirma que la nota problemática era de obra y muestra «Ocurrió un error al agregar la nota» con un botón «Reintentar». Confirmar con la tester la longitud aproximada y si la nota apareció tras reiniciar o quedó una operación pendiente en Sincronización. No eliminar ni truncar operaciones pendientes sin preservar el texto original. Validar el nuevo flujo en Android antes de distribuirlo.
+- La captura recibida confirma que la nota problemática era de obra y muestra «Ocurrió un error al agregar la nota» con un botón «Reintentar». Confirmar con la tester la longitud aproximada y si la nota apareció tras reiniciar o quedó una operación pendiente en Sincronización. No eliminar ni truncar operaciones pendientes sin preservar el texto original. El límite y guardado de 2.000 caracteres de la versión 17 se validaron en Android; el reintento específico ante un error de servidor solo tiene cobertura de prueba automatizada y no se reprodujo físicamente.
 - La captura de Yely del 22/09/2026 muestra seleccionada «entre 0 y 10.000» instalaciones para el primer año; confirmar que fue una elección intencional. Revisar las respuestas del borrador, todas ajustadas al límite de 300 caracteres por campo, antes de completar el formulario de acceso a producción.
 - Añadir la versión iOS 1.0 a revisión y enviarla a App Review una vez completados y verificados los requisitos pendientes.
 - Preparar y enviar la solicitud de acceso a producción cuando la opción quede habilitada, respondiendo con evidencia real de la prueba; el envío no publica automáticamente la app.
-- Completar la verificación de desarrolladores de Android antes del 30/09/2026.
+- Verificación de desarrolladores de Android: Play Console mostró el 22/09/2026 «Todas tus apps se registraron correctamente para cumplir con los requisitos de verificación de desarrolladores de Android»; no queda acción pendiente para esta app según ese aviso.
 
 # Required Access
 
@@ -77,15 +77,16 @@ Publicar UrbanTrackCRM para Android e iOS y validar el MVP de seguimiento comerc
 - El 22/09/2026 Google Play Console muestra cumplidos los 14 días y 12 verificadores. En nuestra sesión el botón de solicitud continúa deshabilitado y no tenemos acceso a «Usuarios y permisos»; en la cuenta titular de Yely sí se abrió el formulario. La causa exacta de la diferencia de acceso no está confirmada.
 - La carga de capturas iOS desde Chrome requiere habilitar `Allow access to file URLs` para la extensión del navegador de Codex/ChatGPT; los dos archivos ya están descargados y validados localmente con dimensiones `1320 × 2868`.
 - La sesión de App Store Connect se recuperó el 21/09/2026. La declaración DSA no se completó porque faltan los datos de contacto comercial público elegidos por la titular; el formulario quedó cancelado sin enviar.
-- El build Android local de la corrección de notas volvió a fallar por `Unable to establish loopback connection` de Gradle en Windows; CI sí compiló y firmó el AAB `1.0.0 (17)`. Falta validación funcional en Android antes de distribuirlo.
+- El build Android local de la corrección de notas volvió a fallar por `Unable to establish loopback connection` de Gradle en Windows; CI sí compiló y firmó el AAB `1.0.0 (17)`. Un primer ingreso por ADB falló por interacción incorrecta con los campos; la cuenta de demostración se comprobó válida contra la API y luego inició sesión correctamente en el Galaxy S10. El límite y guardado de notas se validaron físicamente; la reproducción del error de servidor y del reintento real sigue sin probarse en el dispositivo.
 
 # Relevant Risks
 
 - Si el número de verificadores activos baja de 12, Google puede interrumpir o reiniciar el conteo continuo.
 - No desinstalar la app Android como primer paso de diagnóstico si existen operaciones offline pendientes, porque podrían perderse datos locales aún no sincronizados.
-- La verificación del desarrollador de Android tiene fecha límite del 30/09/2026.
+- Google Play Console mostró completado el registro de todas las apps para la verificación de desarrolladores de Android el 22/09/2026; conservar evidencia si la consola vuelve a pedir una acción.
 - Apple aceptó el build iOS actual, pero advirtió que desde primavera de 2027 exigirá `MinimumOSVersion` 15.0 o superior; elevar ese mínimo deberá evaluarse en una versión futura por su impacto en dispositivos antiguos.
 - La compilación Android local del 15/09/2026 no pudo iniciar Gradle por un rechazo de loopback del host; el riesgo quedó mitigado con un flujo de CI que generó y verificó correctamente el artefacto firmado.
+- La APK de validación usó firma debug local, distinta de la distribución de Google Play. Se retiró del Galaxy S10 al terminar la prueba, después de confirmar que no quedaban registros pendientes; la nota de prueba quedó en la obra de demostración del servidor.
 
 # Change Requests / Additional Work
 
