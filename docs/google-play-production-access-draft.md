@@ -26,7 +26,7 @@ Respuesta conservadora basada en el feedback documentado (277 de 300 caracteres)
 
 ### Comentarios recibidos y cómo se recopilaron
 
-Respuesta para el campo de 300 caracteres (257 caracteres):
+Respuesta para el campo de 300 caracteres (264 caracteres):
 
 > Recibimos comentarios por mensajes y audios; la titular los reunió en un documento con 14 observaciones. Señalaron textos en inglés, listados sin refrescar, validación de correo, ubicación y uso sin conexión. Además reportaron un error al guardar una nota extensa.
 
