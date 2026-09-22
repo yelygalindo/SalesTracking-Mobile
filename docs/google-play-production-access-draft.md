@@ -36,15 +36,19 @@ Las correcciones efectivamente distribuidas y las propuestas fuera de alcance se
 
 ### Público objetivo
 
-> Adultos que trabajan en equipos comerciales y realizan seguimiento de clientes, obras y visitas en campo. No está dirigida a menores.
+Respuesta para el campo de 300 caracteres (227 caracteres):
+
+> UrbanTrackCRM está dirigida a adultos de equipos comerciales que gestionan clientes, obras y visitas de campo para sus empresas. La usan vendedores y responsables de seguimiento comercial; no está diseñada para menores de edad.
 
 ### Valor para los usuarios
 
-> UrbanTrackCRM permite consultar y actualizar clientes y obras, registrar visitas y jornadas con ubicación, gestionar notas y recordatorios y revisar el historial. Algunas operaciones pueden registrarse sin conexión y sincronizarse al restablecer Internet.
+Respuesta para el campo de 300 caracteres (262 caracteres):
+
+> Centraliza clientes, obras, visitas, jornadas, notas y recordatorios para registrar y consultar la actividad desde el móvil. Permite adjuntar fotos y ubicación a las visitas, y registrar ciertas operaciones sin conexión para sincronizarlas al recuperar Internet.
 
 ### Instalaciones estimadas durante el primer año
 
-**Pendiente de Yely.** La estimación de negocio no se deduce de los 20 correos invitados a la prueba.
+En la captura de Yely aparece seleccionada la opción **«entre 0 y 10.000»**. Confirmar que refleja su previsión real antes de continuar; no deducirla de los 20 correos invitados a la prueba.
 
 ## 3. Preparación para producción
 
@@ -54,10 +58,10 @@ Las correcciones efectivamente distribuidas y las propuestas fuera de alcance se
 
 ### ¿Cómo se determinó que está lista para producción?
 
-**No responder afirmativamente todavía.** La corrección del error de notas pasa 150 pruebas Flutter y `dart analyze lib test`, pero el build Android local está bloqueado por `Unable to establish loopback connection` de Gradle. Falta generar el build firmado en CI, distribuirlo en la pista cerrada, validar el guardado/reintento de notas en dispositivo y revisar los flujos críticos. No presentar una corrección local como entregada ni afirmar que el error del backend quedó resuelto.
+**No responder afirmativamente todavía.** La corrección del error de notas pasa 150 pruebas Flutter y `dart analyze lib test`; CI generó y verificó el AAB firmado `1.0.0 (17)`. Falta validar el guardado/reintento de notas en un Android real y revisar los flujos críticos antes de considerarlo listo para distribución. No presentar el build 17 como entregado a testers ni afirmar que el error del backend quedó resuelto.
 
 ## Decisiones y evidencia pendientes
 
-1. Yely estima la franja de instalaciones del primer año que muestra el formulario.
+1. Yely confirma que «entre 0 y 10.000» es su estimación intencional para el primer año.
 2. El AAB Android `1.0.0 (17)` ya se generó y verificó en CI; falta probar la corrección de notas en un dispositivo antes de distribuirlo.
 3. Antes de «Aplicar», ambas partes revisan las respuestas finales y la estabilidad de la versión candidata. Google revisa el acceso a producción por separado de la publicación pública.
