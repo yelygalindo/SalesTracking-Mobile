@@ -51,7 +51,8 @@ Publicar UrbanTrackCRM para Android e iOS y validar el MVP de seguimiento comerc
 - Privacidad de iOS publicada el 18/09/2026: ocho tipos de datos declarados para funcionalidad de la app, vinculados a la identidad y sin uso para rastreo; política configurada en `https://urbantrack.io/privacy`.
 - Precio iOS configurado como gratuito y disponibilidad confirmada para los 175 países o regiones. La distribución adicional en Mac con Apple silicon y Apple Vision Pro queda desactivada para mantener el lanzamiento en iOS/iPadOS probado.
 - El 21/09/2026 se guardaron el acceso de prueba y contacto para App Review en la versión iOS 1.0; Apple habilitó `Añadir a revisión`. Se declaró que la app no contiene, muestra ni accede a contenido de terceros. No se añadió ni envió la versión a revisión.
-- Corrección local del 21/09/2026 para notas de clientes y obras: límite visible de 2.000 caracteres al escribir o pegar, con validación adicional antes del repositorio. En notas de obra, un fallo al guardar ya conserva el texto dentro del formulario y permite reintentar con el mismo identificador de solicitud; el botón de recarga del historial solo se muestra ante errores de lectura. La suite Flutter aprobó 150 pruebas y `dart analyze lib test` no reportó observaciones. Aún no se generó ni distribuyó un build con este cambio.
+- Corrección local del 21/09/2026 para notas de clientes y obras: límite visible de 2.000 caracteres al escribir o pegar, con validación adicional antes del repositorio. En notas de obra, un fallo al guardar ya conserva el texto dentro del formulario y permite reintentar con el mismo identificador de solicitud; el botón de recarga del historial solo se muestra ante errores de lectura. La suite Flutter aprobó 150 pruebas y `dart analyze lib test` no reportó observaciones. La corrección aún no se ha distribuido a los testers.
+- El 22/09/2026 se preparó `docs/google-play-production-access-draft.md` con respuestas basadas en el feedback y campos pendientes de confirmación de Yely; no se envió la solicitud. CI generó y verificó un AAB firmado de validación `1.0.0 (17)` desde la rama `codex/android-notes-ci-validation` (run `35754448098`). El AAB aún no se cargó en Google Play ni se probó en dispositivo.
 
 # Pending Work
 
@@ -60,6 +61,7 @@ Publicar UrbanTrackCRM para Android e iOS y validar el MVP de seguimiento comerc
 - Cargar las dos capturas iPhone provistas por la cliente en el gestor multimedia de App Store Connect.
 - Completar la verificación DSA del comerciante: Apple requiere dirección postal, teléfono y correo para mostrar públicamente en la ficha de la UE, sujetos a verificación. Solicitar a Yely los datos comerciales específicos que autoriza publicar; no asumir que la dirección de su cuenta sea la correcta.
 - La captura recibida confirma que la nota problemática era de obra y muestra «Ocurrió un error al agregar la nota» con un botón «Reintentar». Confirmar con la tester la longitud aproximada y si la nota apareció tras reiniciar o quedó una operación pendiente en Sincronización. No eliminar ni truncar operaciones pendientes sin preservar el texto original. Validar el nuevo flujo en Android antes de distribuirlo.
+- Confirmar con Yely el origen y la facilidad de reclutamiento de testers, su participación y la estimación de instalaciones del primer año; revisar las respuestas del borrador antes de completar el formulario de acceso a producción.
 - Añadir la versión iOS 1.0 a revisión y enviarla a App Review una vez completados y verificados los requisitos pendientes.
 - Preparar y enviar la solicitud de acceso a producción cuando la opción quede habilitada, respondiendo con evidencia real de la prueba; el envío no publica automáticamente la app.
 - Completar la verificación de desarrolladores de Android antes del 30/09/2026.
@@ -74,7 +76,7 @@ Publicar UrbanTrackCRM para Android e iOS y validar el MVP de seguimiento comerc
 - El 22/09/2026 Google Play Console muestra cumplidos los 14 días y 12 verificadores. En nuestra sesión el botón de solicitud continúa deshabilitado y no tenemos acceso a «Usuarios y permisos»; en la cuenta titular de Yely sí se abrió el formulario. La causa exacta de la diferencia de acceso no está confirmada.
 - La carga de capturas iOS desde Chrome requiere habilitar `Allow access to file URLs` para la extensión del navegador de Codex/ChatGPT; los dos archivos ya están descargados y validados localmente con dimensiones `1320 × 2868`.
 - La sesión de App Store Connect se recuperó el 21/09/2026. La declaración DSA no se completó porque faltan los datos de contacto comercial público elegidos por la titular; el formulario quedó cancelado sin enviar.
-- El build Android local de la corrección de notas volvió a fallar por `Unable to establish loopback connection` de Gradle en Windows; la compilación debe validarse mediante el CI existente antes de distribuirla.
+- El build Android local de la corrección de notas volvió a fallar por `Unable to establish loopback connection` de Gradle en Windows; CI sí compiló y firmó el AAB `1.0.0 (17)`. Falta validación funcional en Android antes de distribuirlo.
 
 # Relevant Risks
 
