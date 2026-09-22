@@ -32,7 +32,7 @@ Publicar UrbanTrackCRM para Android e iOS y validar el MVP de seguimiento comerc
 - Lista configurada: 20 verificadores.
 - Canal de comentarios: `support@urbantrack.io`.
 - Para la ficha iOS, Yely confirmó el 21/09/2026 un teléfono de contacto para App Review, que la app no muestra contenido de terceros que requiera licencias adicionales y que la distribución en la UE se realiza como actividad comercial. El contacto de App Review y los derechos de contenido ya se registraron; la verificación DSA sigue pendiente.
-- Para la solicitud de acceso a producción de Google Play, Yely confirmó el 22/09/2026 que invitó a conocidos de la empresa, amigos, la diseñadora y contactos de tecnología y comercio. Consideró difícil conseguir que instalaran y usaran la app porque esperaban descargarla directamente desde la tienda. Confirmó que los comentarios recibidos están en el documento compartido de testers.
+- Para la solicitud de acceso a producción de Google Play, Yely confirmó el 22/09/2026 que invitó a conocidos de la empresa, amigos, la diseñadora y contactos de tecnología y comercio, sin contratar testers pagados. Consideró difícil conseguir que instalaran y usaran la app porque esperaban descargarla directamente desde la tienda. Confirmó que los comentarios recibidos están en el documento compartido de testers.
 
 # Confirmed Requirements
 
@@ -62,7 +62,7 @@ Publicar UrbanTrackCRM para Android e iOS y validar el MVP de seguimiento comerc
 - Cargar las dos capturas iPhone provistas por la cliente en el gestor multimedia de App Store Connect.
 - Completar la verificación DSA del comerciante: Apple requiere dirección postal, teléfono y correo para mostrar públicamente en la ficha de la UE, sujetos a verificación. Solicitar a Yely los datos comerciales específicos que autoriza publicar; no asumir que la dirección de su cuenta sea la correcta.
 - La captura recibida confirma que la nota problemática era de obra y muestra «Ocurrió un error al agregar la nota» con un botón «Reintentar». Confirmar con la tester la longitud aproximada y si la nota apareció tras reiniciar o quedó una operación pendiente en Sincronización. No eliminar ni truncar operaciones pendientes sin preservar el texto original. Validar el nuevo flujo en Android antes de distribuirlo.
-- Confirmar si se usó algún proveedor de pruebas pagado, la participación no documentada en el feedback y la estimación de instalaciones del primer año; revisar las respuestas del borrador antes de completar el formulario de acceso a producción.
+- Obtener de Yely la estimación de instalaciones del primer año; revisar las respuestas de participación y feedback (ambas de máximo 300 caracteres) del borrador antes de completar el formulario de acceso a producción.
 - Añadir la versión iOS 1.0 a revisión y enviarla a App Review una vez completados y verificados los requisitos pendientes.
 - Preparar y enviar la solicitud de acceso a producción cuando la opción quede habilitada, respondiendo con evidencia real de la prueba; el envío no publica automáticamente la app.
 - Completar la verificación de desarrolladores de Android antes del 30/09/2026.

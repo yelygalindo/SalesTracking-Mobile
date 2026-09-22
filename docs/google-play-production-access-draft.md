@@ -10,9 +10,9 @@ Fuente del cuestionario: [Ayuda oficial de Google Play](https://support.google.c
 
 Respuesta basada en lo confirmado por Yely (22/09/2026):
 
-> Invitamos a conocidos de la empresa, amigos, la diseñadora y contactos de los sectores de tecnología y comercio. Les compartimos la prueba cerrada y les pedimos instalar la app, usarla y enviarnos comentarios.
+> Invitamos a conocidos de la empresa, amigos, la diseñadora y contactos de tecnología y comercio. Compartimos el enlace de la prueba cerrada y solicitamos que instalaran y usaran la app. No contratamos proveedores de testers.
 
-Yely no mencionó un proveedor de pruebas pagado. Si Google lo pregunta de forma separada, confirmar antes de responder que no se utilizó uno.
+Yely confirmó expresamente que no se usaron testers pagados. Texto: 224 de 300 caracteres.
 
 ### ¿Qué tan fácil fue reclutar verificadores?
 
@@ -20,13 +20,17 @@ Seleccionar **«Difícil»**. Yely indicó que fue complicado lograr que las per
 
 ### Participación y similitud con el uso esperado
 
-Propuesta, sujeta a confirmar qué flujos probaron las personas además de los observados en el feedback:
+Respuesta conservadora basada en el feedback documentado (277 de 300 caracteres):
 
-> Se probó la app en Android durante la prueba cerrada y recibimos observaciones sobre clientes, obras, jornadas, ubicación, notas, navegación y uso sin conexión. Las pruebas reprodujeron tareas de seguimiento comercial, aunque no tenemos evidencia de que cada verificador haya usado todas las funciones. Se documentaron errores y propuestas de mejora por separado.
+> Según los comentarios, se usaron clientes, obras, jornadas, ubicación, notas y funciones sin conexión. No consta que cada persona probara todas las funciones. El uso se pareció al seguimiento comercial previsto; en producción esperamos una actividad más frecuente y prolongada.
 
 ### Comentarios recibidos y cómo se recopilaron
 
-> La titular reunió comentarios de los verificadores y los consolidó en un documento con 14 observaciones. Se detectaron textos sin traducir, listados que no se actualizaban al cambiar el avance de obra o estado del cliente, mensajes técnicos y validación insuficiente del correo; se corrigieron en la versión 1.0.0 (16) de la prueba cerrada. También se registraron propuestas de ampliación para evaluar aparte. Posteriormente se reportó un error al guardar una nota de obra con texto muy largo; su corrección aún no se ha distribuido ni validado en dispositivo.
+Respuesta para el campo de 300 caracteres (257 caracteres):
+
+> Recibimos comentarios por mensajes y audios; la titular los reunió en un documento con 14 observaciones. Señalaron textos en inglés, listados sin refrescar, validación de correo, ubicación y uso sin conexión. Además reportaron un error al guardar una nota extensa.
+
+Las correcciones efectivamente distribuidas y las propuestas fuera de alcance se detallan más abajo; el error de la nota extensa sigue pendiente de validación en dispositivo.
 
 ## 2. Acerca de la app
 
@@ -54,8 +58,6 @@ Propuesta, sujeta a confirmar qué flujos probaron las personas además de los o
 
 ## Decisiones y evidencia pendientes
 
-1. Confirmar expresamente si se utilizó algún proveedor de pruebas pagado; Yely solo describió contactos personales y profesionales.
-2. Describir únicamente las funciones de cuyo uso hay evidencia en el documento de feedback; no afirmar que todos los verificadores probaron todo.
-3. Yely estima la franja de instalaciones del primer año que muestra el formulario.
-4. El AAB Android `1.0.0 (17)` ya se generó y verificó en CI; falta probar la corrección de notas en un dispositivo antes de distribuirlo.
-5. Antes de «Aplicar», ambas partes revisan las respuestas finales y la estabilidad de la versión candidata. Google revisa el acceso a producción por separado de la publicación pública.
+1. Yely estima la franja de instalaciones del primer año que muestra el formulario.
+2. El AAB Android `1.0.0 (17)` ya se generó y verificó en CI; falta probar la corrección de notas en un dispositivo antes de distribuirlo.
+3. Antes de «Aplicar», ambas partes revisan las respuestas finales y la estabilidad de la versión candidata. Google revisa el acceso a producción por separado de la publicación pública.
