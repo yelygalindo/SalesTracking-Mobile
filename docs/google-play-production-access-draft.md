@@ -54,7 +54,11 @@ En la captura de Yely aparece seleccionada la opción **«entre 0 y 10.000»**. 
 
 ### Cambios realizados a partir de la prueba
 
-> A partir del feedback, la versión 1.0.0 (16) corrigió textos visibles en el historial, la actualización de listados tras cambiar datos de clientes y obras, el texto de asignación de vendedor y la validación del formato de correo. El reporte posterior sobre una nota de obra muy larga motivó una protección adicional en el código; esta última corrección aún no se ha distribuido ni probado en un Android real.
+Respuesta para el campo de 300 caracteres (287 caracteres):
+
+> El feedback llevó a traducir textos del historial, actualizar inmediatamente el avance de obras y el estado de clientes en los listados, aclarar el mensaje de asignación de vendedor y validar el formato de correo. Esos cambios se incluyeron en la versión 1.0.0 (16) de la prueba cerrada.
+
+El reporte posterior sobre una nota de obra muy larga motivó una protección adicional en el código; esta última corrección aún no se ha distribuido ni probado en un Android real y, por ello, no figura entre los cambios distribuidos.
 
 ### ¿Cómo se determinó que está lista para producción?
 
