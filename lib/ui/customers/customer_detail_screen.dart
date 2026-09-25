@@ -96,6 +96,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
       label: '¿Qué necesitas recordar?',
       actionLabel: 'Elegir fecha',
       fieldKey: const ValueKey('customer-reminder-field'),
+      maxLength: maxReminderCharacters,
     );
     if (text == null || !mounted) return;
     final now = DateTime.now();
@@ -337,11 +338,22 @@ class _ActivityTextDialogState extends State<_ActivityTextDialog> {
         minLines: 2,
         maxLines: 4,
         maxLength: widget.maxLength,
+        inputFormatters: widget.maxLength == null
+            ? null
+            : [BackendLengthLimitingTextInputFormatter(widget.maxLength!)],
+        buildCounter: widget.maxLength == null
+            ? null
+            : (
+                context, {
+                required currentLength,
+                required isFocused,
+                maxLength,
+              }) => Text('${_controller.text.length}/${widget.maxLength}'),
         decoration: InputDecoration(
           labelText: widget.label,
           helperText: widget.maxLength == null
               ? null
-              : 'Máximo $maxNoteCharacters caracteres; el texto adicional se recortará.',
+              : 'Máximo ${widget.maxLength} caracteres; el texto adicional se recortará.',
         ),
       ),
       actions: [

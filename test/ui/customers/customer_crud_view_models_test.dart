@@ -150,6 +150,28 @@ void main() {
       expect(repository.noteText, isNull);
     },
   );
+
+  test(
+    'rejects an oversized customer reminder before using the repository',
+    () async {
+      final repository = _CrudCustomerRepository();
+      final viewModel = CustomerDetailViewModel(repository, 'customer-id');
+      final pastedText = List.filled(maxReminderCharacters + 1, 'a').join();
+
+      expect(
+        await viewModel.addReminder(
+          text: pastedText,
+          reminderAtUtc: DateTime.utc(2026, 9, 25),
+        ),
+        isFalse,
+      );
+      expect(
+        viewModel.errorMessage,
+        contains('$maxReminderCharacters caracteres'),
+      );
+      expect(repository.reminderAtUtc, isNull);
+    },
+  );
 }
 
 class _CrudCustomerRepository implements CustomerRepository {

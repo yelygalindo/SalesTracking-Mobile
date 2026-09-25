@@ -213,6 +213,28 @@ void main() {
       expect(projects.addedNoteContent, isNull);
     },
   );
+
+  test(
+    'rejects an oversized project reminder before using the repository',
+    () async {
+      final projects = _RecordingProjectRepository();
+      final viewModel = ProjectDetailViewModel(projects, 'project-id');
+      final pastedText = List.filled(maxReminderCharacters + 1, 'a').join();
+
+      expect(
+        await viewModel.addReminder(
+          text: pastedText,
+          reminderAtUtc: DateTime.utc(2026, 9, 25),
+        ),
+        isFalse,
+      );
+      expect(
+        viewModel.activityErrorMessage,
+        contains('$maxReminderCharacters caracteres'),
+      );
+      expect(projects.addedReminderText, isNull);
+    },
+  );
 }
 
 class _RecordingProjectRepository implements ProjectRepository {

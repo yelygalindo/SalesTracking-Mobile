@@ -122,6 +122,45 @@ void main() {
     );
     expect(find.text('$maxNoteCharacters/$maxNoteCharacters'), findsOneWidget);
   });
+
+  testWidgets('limits pasted text in a customer reminder', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(
+      BrandScope(
+        brand: UrbanTrackBrand.config,
+        child: MaterialApp(
+          home: CustomerDetailScreen(
+            repository: _ScreenCustomerRepository(),
+            visitRepository: EmptyVisitRepository(),
+            historyRepository: _ScreenHistoryRepository(),
+            externalId: 'customer-id',
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byTooltip('Nuevo recordatorio'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Nuevo recordatorio'));
+    await tester.pumpAndSettle();
+
+    final field = find.byKey(const ValueKey('customer-reminder-field'));
+    expect(tester.widget<TextField>(field).maxLength, maxReminderCharacters);
+    await tester.enterText(
+      field,
+      List.filled(maxReminderCharacters + 100, 'a').join(),
+    );
+    await tester.pump();
+    expect(
+      tester.widget<TextField>(field).controller!.text.length,
+      maxReminderCharacters,
+    );
+    expect(
+      find.text('$maxReminderCharacters/$maxReminderCharacters'),
+      findsOneWidget,
+    );
+  });
 }
 
 class _ScreenHistoryRepository extends EmptyHistoryRepository {

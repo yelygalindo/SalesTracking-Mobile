@@ -143,8 +143,9 @@ class ProjectDetailViewModel extends ChangeNotifier {
     required DateTime reminderAtUtc,
   }) async {
     final normalized = text.trim();
-    if (normalized.isEmpty) {
-      _activityErrorMessage = 'Escribe un recordatorio antes de guardarlo.';
+    final validationError = validateReminder(normalized);
+    if (validationError != null) {
+      _activityErrorMessage = validationError;
       notifyListeners();
       return false;
     }

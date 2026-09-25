@@ -122,8 +122,9 @@ class CustomerDetailViewModel extends ChangeNotifier {
     required String text,
     required DateTime reminderAtUtc,
   }) async {
-    if (text.trim().isEmpty) {
-      _errorMessage = 'Escribe un recordatorio antes de guardarlo.';
+    final validationError = validateReminder(text);
+    if (validationError != null) {
+      _errorMessage = validationError;
       notifyListeners();
       return false;
     }

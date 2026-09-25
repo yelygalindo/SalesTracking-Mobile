@@ -224,6 +224,65 @@ void main() {
       maxNoteCharacters,
     );
     expect(find.text('$maxNoteCharacters/$maxNoteCharacters'), findsOneWidget);
+
+    await tester.enterText(
+      noteField,
+      List.filled(maxNoteCharacters, '😊').join(),
+    );
+    await tester.pump();
+    expect(
+      tester.widget<TextField>(innerField).controller!.text.length,
+      maxNoteCharacters,
+    );
+    expect(find.text('$maxNoteCharacters/$maxNoteCharacters'), findsOneWidget);
+  });
+
+  testWidgets('limits pasted text in a project reminder to the server field', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(
+      BrandScope(
+        brand: UrbanTrackBrand.config,
+        child: MaterialApp(
+          home: ProjectDetailScreen(
+            repository: _ProjectScreenRepository(),
+            visitRepository: EmptyVisitRepository(),
+            externalId: 'project-1',
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final addButton = find.byKey(const ValueKey('add-project-reminder-button'));
+    await tester.ensureVisible(addButton);
+    await tester.pumpAndSettle();
+    await tester.tap(addButton);
+    await tester.pumpAndSettle();
+
+    final reminderField = find.byKey(const ValueKey('project-reminder-field'));
+    final innerField = find.descendant(
+      of: reminderField,
+      matching: find.byType(TextField),
+    );
+    expect(
+      tester.widget<TextField>(innerField).maxLength,
+      maxReminderCharacters,
+    );
+    await tester.enterText(
+      reminderField,
+      List.filled(maxReminderCharacters + 100, 'a').join(),
+    );
+    await tester.pump();
+    expect(
+      tester.widget<TextField>(innerField).controller!.text.length,
+      maxReminderCharacters,
+    );
+    expect(
+      find.text('$maxReminderCharacters/$maxReminderCharacters'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('keeps a failed project note editable and retries the save', (

@@ -161,7 +161,8 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
         saveKey: ValueKey('continue-project-reminder-button'),
         actionLabel: 'Elegir fecha',
         icon: Icons.calendar_today_outlined,
-        maxLength: null,
+        maxLength: maxReminderCharacters,
+        validator: validateReminder,
       ),
     );
     if (text == null || !mounted) return;
@@ -1095,6 +1096,7 @@ class _AddProjectTextSheet extends StatefulWidget {
     this.actionLabel = 'Guardar nota',
     this.icon = Icons.save_outlined,
     this.maxLength = maxNoteCharacters,
+    this.validator = validateNote,
     this.onSubmit,
   });
 
@@ -1107,6 +1109,7 @@ class _AddProjectTextSheet extends StatefulWidget {
   final String actionLabel;
   final IconData icon;
   final int? maxLength;
+  final String? Function(String?) validator;
   final Future<String?> Function(String)? onSubmit;
 
   @override
@@ -1188,20 +1191,33 @@ class _AddProjectTextSheetState extends State<_AddProjectTextSheet> {
                   minLines: 3,
                   maxLines: 6,
                   maxLength: widget.maxLength,
+                  inputFormatters: widget.maxLength == null
+                      ? null
+                      : [
+                          BackendLengthLimitingTextInputFormatter(
+                            widget.maxLength!,
+                          ),
+                        ],
+                  buildCounter: widget.maxLength == null
+                      ? null
+                      : (
+                          context, {
+                          required currentLength,
+                          required isFocused,
+                          maxLength,
+                        }) => Text(
+                          '${_controller.text.length}/${widget.maxLength}',
+                        ),
                   textCapitalization: TextCapitalization.sentences,
                   decoration: InputDecoration(
                     labelText: widget.label,
                     hintText: widget.hint,
                     helperText: widget.maxLength == null
                         ? null
-                        : 'Máximo $maxNoteCharacters caracteres; el texto adicional se recortará.',
+                        : 'Máximo ${widget.maxLength} caracteres; el texto adicional se recortará.',
                     alignLabelWithHint: true,
                   ),
-                  validator: (value) => widget.maxLength == null
-                      ? (value?.trim().isEmpty ?? true
-                            ? 'Escribe un recordatorio antes de guardarlo.'
-                            : null)
-                      : validateNote(value),
+                  validator: widget.validator,
                 ),
                 if (_submitError != null) ...[
                   const SizedBox(height: 8),
